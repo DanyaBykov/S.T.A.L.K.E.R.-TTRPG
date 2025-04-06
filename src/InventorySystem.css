@@ -1,0 +1,171 @@
+/* src/styles/InventorySystem.css */
+.inventory-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    height: 100vh;
+}
+  
+.header {
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  background-color: #2a2a2a;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+}
+
+/* Left panel - Equipment */
+.equipment-panel {
+  width: 40%;
+  padding: 1rem;
+  border-right: 1px solid #3a3a3a;
+}
+
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  height: 100%;
+}
+
+.equipment-slot {
+  background-color: #2a2a2a;
+  border: 2px solid #3a3a3a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.equipment-item {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: move;
+}
+
+.item-name {
+  font-size: 0.75rem;
+  background-color: #3a3a3a;
+  padding: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.item-icon {
+  height: 4rem;
+  width: 4rem;
+  margin: 0 auto;
+  background-color: #4a4a4a;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slot-label {
+  color: #7a7a7a;
+  font-size: 0.75rem;
+}
+
+/* Quick access slots */
+.quick-access {
+  margin-top: auto;
+}
+
+.quick-access-label {
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+  color: #9a9a9a;
+}
+
+.quick-access-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.quick-slot {
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Right panel - Inventory */
+.inventory-panel {
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+}
+
+.inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: #2a2a2a;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.money-display {
+  background-color: #3a3a3a;
+  padding: 0 1rem;
+  border-radius: 0.25rem;
+}
+
+.inventory-table-container {
+  flex: 1;
+  overflow: auto;
+}
+
+.inventory-table {
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.inventory-table th {
+  padding: 0.5rem;
+  border: 1px solid #3a3a3a;
+  text-align: left;
+  background-color: #2a2a2a;
+}
+
+.inventory-table td {
+  padding: 0.5rem;
+  border: 1px solid #3a3a3a;
+}
+
+.inventory-table tr:hover {
+  background-color: #3a3a3a;
+}
+
+.inventory-row {
+  cursor: move;
+}
+
+.weight-display {
+  padding: 0.5rem;
+  background-color: #2a2a2a;
+  border-top: 1px solid #3a3a3a;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.weight-indicator {
+  background-color: #3a3a3a;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+}
+
+.text-center {
+  text-align: center;
+}
