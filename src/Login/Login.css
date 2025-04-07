@@ -1,152 +1,110 @@
-/* Center the page content and ensure it fills the screen */
-.login-page {
-    position: relative;
+/* Background & Container */
+.login-background {
+    background: url('/login_bg.png') no-repeat center center/cover;
     width: 100%;
     height: 100vh;
-    background: url("/login_bg.png") no-repeat center center/cover;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
   }
   
-  /* Overlay for darkening the background image */
-  .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1;
-  }
-  
-  /* Content container on top of the overlay */
-  .content {
-    position: relative;
-    z-index: 2;
-    width: 80%;
-    max-width: 900px;
+  .login-content {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     color: #fff;
     text-align: center;
   }
   
   /* Title Section */
   .title-section {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
   }
-  
-  .title {
-    font-size: 4rem;
+  .main-title {
+    font-size: 3rem;
     margin: 0;
-    letter-spacing: 0.2rem;
   }
-  
   .subtitle {
-    font-size: 1.2rem;
-    margin: 0.5rem 0;
-    letter-spacing: 0.1rem;
+    font-size: 1.5rem;
+    margin: 0.5rem 0 1rem 0;
   }
   
-  /* Forms Row */
-  .forms-row {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 2rem;
+  /* Login Screen Styles */
+  .login-screen h3 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
   }
   
-  .form-box {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 1rem;
-    border-radius: 5px;
-    width: 250px;
+  .login-screen select {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  /* Forms */
+  .dm-form,
+  .player-form {
+    margin-top: 1rem;
+  }
+  
+  /* Toggle Buttons for DM Form */
+  .toggle-buttons {
+    margin-bottom: 1rem;
+  }
+  .toggle-buttons button {
+    padding: 0.5rem 1rem;
+    margin: 0 0.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    background-color: #ccc;
+    color: #333;
+  }
+  .toggle-buttons .active {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  /* Form Fields */
+  .form-field {
+    margin: 1rem 0;
     text-align: left;
   }
-  
-  .form-box h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    text-align: center;
+  .form-field label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
   }
-  
-  .form-box input,
-  .form-box select {
+  .form-field input {
     width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
+    padding: 0.75rem;
     border: none;
-    border-radius: 3px;
+    border-radius: 4px;
+    font-size: 1rem;
   }
   
-  .form-box button {
+  /* Submit Buttons */
+  button[type="submit"] {
     width: 100%;
-    padding: 0.5rem;
+    padding: 0.75rem;
     background-color: #ff9900;
     border: none;
-    border-radius: 3px;
-    cursor: pointer;
+    border-radius: 4px;
     font-weight: bold;
     color: #000;
-  }
-  
-  /* Second row (Generated Code) */
-  .second-row {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 2rem;
-  }
-  
-  .generated-code-box {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 1rem;
-    border-radius: 5px;
-    width: 250px;
-  }
-  
-  .generated-code-box h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    text-align: center;
-  }
-  
-  .generated-code-box input {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border: none;
-    border-radius: 3px;
-  }
-  
-  .generated-code-box button {
-    width: 100%;
-    padding: 0.5rem;
-    background-color: #66cc66;
-    border: none;
-    border-radius: 3px;
+    font-size: 1rem;
     cursor: pointer;
-    font-weight: bold;
-    color: #000;
+    margin-top: 1rem;
   }
-  
-  .game-list {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-  
-  .game-item {
-    display: flex;
-    justify-content: space-between;
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 0.5rem;
-    border-radius: 3px;
-  }
-  
-  .game-item .code {
-    margin-left: 1rem;
-    font-weight: bold;
+  button:hover,
+  .toggle-buttons button:hover {
+    opacity: 0.9;
   }
   

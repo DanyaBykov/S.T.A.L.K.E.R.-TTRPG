@@ -2,117 +2,135 @@ import React, { useState } from "react";
 import "./Login.css";
 
 function Login() {
+  const [selectedRole, setSelectedRole] = useState("");
+  const [dmAction, setDmAction] = useState("login"); // "login" or "register"
+
+  // Form states for Dungeon Master
+  const [dmUsername, setDmUsername] = useState("");
+  const [dmEmail, setDmEmail] = useState("");
+  const [dmPassword, setDmPassword] = useState("");
+
+  // Form state for Player
   const [gameCode, setGameCode] = useState("");
-  const [gameName, setGameName] = useState("");
-  const [loadedGame, setLoadedGame] = useState("");
-  const [newGameName, setNewGameName] = useState("");
 
-  // Example placeholders for loaded games
-  const savedGames = [
-    { name: "My game name 1", code: "CODE1" },
-    { name: "My game name 2", code: "CODE2" },
-    { name: "My game name 3", code: "CODE3" },
-  ];
-
-  const handleJoin = () => {
-    alert(`Joining game with code: ${gameCode}`);
-    // Implement your join logic here
+  const handleRoleChange = (e) => {
+    setSelectedRole(e.target.value);
+    if (e.target.value !== "dm") {
+      setDmAction("login");
+    }
   };
 
-  const handleCreate = () => {
-    alert(`Creating new game with name: ${gameName}`);
-    // Implement your create logic here
-  };
-
-  const handleLoad = () => {
-    alert(`Loading saved game: ${loadedGame}`);
-    // Implement your load logic here
-  };
-
-  const handleGenerate = () => {
-    alert(`Generating code for new game: ${newGameName}`);
-    // Implement your code generation logic here
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (selectedRole === "dm") {
+      if (dmAction === "login") {
+        console.log("Dungeon Master Login:", dmEmail, dmPassword);
+        // Add your DM login logic here
+      } else {
+        console.log("Dungeon Master Register:", dmUsername, dmEmail, dmPassword);
+        // Add your DM registration logic here
+      }
+    } else if (selectedRole === "player") {
+      console.log("Player joining with game code:", gameCode);
+      // Add your player join logic here
+    }
   };
 
   return (
-    <div className="login-page">
-      {/* Background overlay */}
-      <div className="overlay"></div>
-
-      {/* Main content */}
-      <div className="content">
-        {/* Title section */}
+    <div className="login-background">
+      <div className="login-content">
+        {/* Title Section */}
         <div className="title-section">
-          <h1 className="title">STALKER</h1>
+          <h1 className="main-title">STALKER</h1>
           <h2 className="subtitle">Tabletop RPG Platform</h2>
         </div>
 
-        {/* Forms row */}
-        <div className="forms-row">
-          {/* Join form */}
-          <div className="form-box">
-            <h3>Join</h3>
-            <input
-              type="text"
-              placeholder="Enter game code"
-              value={gameCode}
-              onChange={(e) => setGameCode(e.target.value)}
-            />
-            <button onClick={handleJoin}>Join</button>
-          </div>
+        {/* Login Screen */}
+        <div className="login-screen">
+          <h3>Select Your Role</h3>
+          <select value={selectedRole} onChange={handleRoleChange}>
+            <option value="">Choose your role</option>
+            <option value="dm">Dungeon Master</option>
+            <option value="player">Player</option>
+          </select>
 
-          {/* Create form */}
-          <div className="form-box">
-            <h3>Create</h3>
-            <input
-              type="text"
-              placeholder="Enter game name"
-              value={gameName}
-              onChange={(e) => setGameName(e.target.value)}
-            />
-            <button onClick={handleCreate}>Create</button>
-          </div>
-
-          {/* Load form */}
-          <div className="form-box">
-            <h3>Load</h3>
-            <select
-              value={loadedGame}
-              onChange={(e) => setLoadedGame(e.target.value)}
-            >
-              <option value="">Choose game to load</option>
-              {savedGames.map((game) => (
-                <option key={game.code} value={game.code}>
-                  {game.name}
-                </option>
-              ))}
-            </select>
-            <button onClick={handleLoad}>Load</button>
-          </div>
-        </div>
-
-        {/* Generated Code / second row */}
-        <div className="second-row">
-          <div className="generated-code-box">
-            <h3>Generated Code</h3>
-            <input
-              type="text"
-              placeholder="Enter game name"
-              value={newGameName}
-              onChange={(e) => setNewGameName(e.target.value)}
-            />
-            <button onClick={handleGenerate}>Create</button>
-          </div>
-
-          {/* Example of listing out existing games and codes */}
-          <div className="game-list">
-            {savedGames.map((game) => (
-              <div key={game.code} className="game-item">
-                <span>{game.name}</span>
-                <span className="code">{game.code}</span>
+          {selectedRole === "dm" && (
+            <div className="dm-form">
+              <h2>Dungeon Master {dmAction === "login" ? "Login" : "Register"}</h2>
+              <div className="toggle-buttons">
+                <button
+                  type="button"
+                  onClick={() => setDmAction("login")}
+                  className={dmAction === "login" ? "active" : ""}
+                >
+                  Login
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDmAction("register")}
+                  className={dmAction === "register" ? "active" : ""}
+                >
+                  Register
+                </button>
               </div>
-            ))}
-          </div>
+              <form onSubmit={handleSubmit}>
+                {dmAction === "register" && (
+                  <div className="form-field">
+                    <label>
+                      Username:
+                      <input
+                        type="text"
+                        value={dmUsername}
+                        onChange={(e) => setDmUsername(e.target.value)}
+                      />
+                    </label>
+                  </div>
+                )}
+                <div className="form-field">
+                  <label>
+                    Email:
+                    <input
+                      type="email"
+                      value={dmEmail}
+                      onChange={(e) => setDmEmail(e.target.value)}
+                    />
+                  </label>
+                </div>
+                <div className="form-field">
+                  <label>
+                    Password:
+                    <input
+                      type="password"
+                      value={dmPassword}
+                      onChange={(e) => setDmPassword(e.target.value)}
+                    />
+                  </label>
+                </div>
+                <button type="submit">
+                  {dmAction === "login" ? "Login" : "Register"}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {selectedRole === "player" && (
+            <div className="player-form">
+              <h2>Player</h2>
+              <form onSubmit={handleSubmit}>
+                <div className="form-field">
+                  <label>
+                    Game Code:
+                    <input
+                      type="text"
+                      value={gameCode}
+                      onChange={(e) => setGameCode(e.target.value)}
+                    />
+                  </label>
+                </div>
+                <button type="submit">Join Game</button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </div>
