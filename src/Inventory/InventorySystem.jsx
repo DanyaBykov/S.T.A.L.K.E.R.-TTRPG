@@ -10,7 +10,7 @@ const InventorySystem = () => {
     { id: 5, name: 'Medkit', type: 'consumable', quantity: 3, price: 1500, totalPrice: 4500, notes: 'Restores health' },
     { id: 6, name: 'Radiation Pills', type: 'consumable', quantity: 5, price: 800, totalPrice: 4000, notes: 'Reduces radiation' },
     { id: 7, name: 'Detector', type: 'tool', quantity: 1, price: 7000, totalPrice: 7000, notes: 'Locates anomalies' },
-    { id: 8, name: 'Pistol', type: 'weapon', quantity: 1, price: 6000, totalPrice: 6000, notes: 'Sidearm, light' },
+    { id: 8, name: 'Pistol', type: 'pistol', quantity: 1, price: 6000, totalPrice: 6000, notes: 'Sidearm, light' },
   ]);
 
   const [equipment, setEquipment] = useState({
@@ -72,11 +72,12 @@ const InventorySystem = () => {
 
   return (
     <div className="inventory-container">
-      <div className="header">EQUIPMENT</div>
+      
       <div className="main-content">
         <div className="equipment-panel">
+        <div className="header">EQUIPMENT</div>
           <div className="equipment-grid">
-            {['headgear', 'primary', 'secondary', 'armor', 'tool'].map(slotType => (
+            {['primary', 'headgear', 'armor',  'secondary', 'tool', 'pistol', '1', '2', '3', '4', '5', '6'].map(slotType => (
               <div
                 key={slotType}
                 className="equipment-slot"
@@ -103,7 +104,7 @@ const InventorySystem = () => {
           <div className="quick-access">
             <div className="quick-access-label">QUICK ACCESS</div>
             <div className="quick-access-grid">
-              {[1, 2, 3, 4].map(slot => (
+              {[1, 2, 3, 4, 5, 6].map(slot => (
                 <div key={slot} className="quick-slot">
                   Slot {slot}
                 </div>
