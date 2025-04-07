@@ -1,15 +1,9 @@
-import { useState } from 'react'
-import InventorySystem from './InventorySystem'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './router.jsx';
 
-function App() {
-  return (
-    <div className="App">
-      <InventorySystem />
-    </div>
-  )
-}
-
-export default App
+createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
