@@ -177,7 +177,7 @@ const InventorySystem = () => {
         setEquipment(newEquipment);
         setInventoryItems(newInventory);
       } catch (err) {
-        setError("Failed to equip item: " + err.message);
+        alert("Please move weapon back to the inventory first and then equip it.");
       }
     }
     setDraggedItem(null);
@@ -191,7 +191,6 @@ const InventorySystem = () => {
       const slotKey = Object.keys(equipment).find(key => equipment[key]?.id === draggedItem.id);
       if (slotKey) {
         try {
-          // Remove from equipment slot (passing null as itemId unequips the item)
           await equipItem(characterId, slotKey, null);
           
           setInventoryItems([...inventoryItems, draggedItem]);
@@ -369,18 +368,23 @@ const InventorySystem = () => {
         </div>
       )}
       {deleteItem && (
-        <div className="delete-item-menu">
-          <h3>Delete Item</h3>
-          <p>{`Delete ${deleteItem.name}`}</p>
-          <input
-            type="number"
-            min="1"
-            max={deleteItem.quantity}
-            value={deleteQuantity}
-            onChange={(e) => setDeleteQuantity(Number(e.target.value))}
-          />
-          <button onClick={handleDeleteItem}>Confirm</button>
-          <button onClick={() => setDeleteItem(null)}>Cancel</button>
+        <div className="window-overlay">
+          <div className="delete-item-window">
+            <h3>Delete Item</h3>
+            <p>{`Delete ${deleteItem.name}?`}</p>
+            <input
+              type="number"
+              min="1"
+              max={deleteItem.quantity}
+              value={deleteQuantity}
+              onChange={(e) => setDeleteQuantity(Number(e.target.value))}
+              placeholder="Quantity to delete"
+            />
+            <div className="window-buttons">
+              <button onClick={handleDeleteItem}>Confirm</button>
+              <button onClick={() => setDeleteItem(null)}>Cancel</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
