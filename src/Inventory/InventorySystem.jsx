@@ -3,14 +3,14 @@ import './InventorySystem.css';
 
 const InventorySystem = () => {
   const [inventoryItems, setInventoryItems] = useState([
-    { id: 1, name: 'Gas Mask', type: 'headgear', quantity: 1, price: 5000, totalPrice: 5000, notes: 'Protects against toxic gases' },
-    { id: 2, name: 'Tactical Vest', type: 'armor', quantity: 1, price: 8000, totalPrice: 8000, notes: 'Medium protection' },
-    { id: 3, name: 'Sawed-off Shotgun', type: 'weapon', quantity: 1, price: 12000, totalPrice: 12000, notes: 'Short range, high damage' },
-    { id: 4, name: 'Assault Rifle', type: 'weapon', quantity: 1, price: 25000, totalPrice: 25000, notes: 'Medium range, good accuracy' },
-    { id: 5, name: 'Medkit', type: 'consumable', quantity: 3, price: 1500, totalPrice: 4500, notes: 'Restores health' },
-    { id: 6, name: 'Radiation Pills', type: 'consumable', quantity: 5, price: 800, totalPrice: 4000, notes: 'Reduces radiation' },
-    { id: 7, name: 'Detector', type: 'tool', quantity: 1, price: 7000, totalPrice: 7000, notes: 'Locates anomalies' },
-    { id: 8, name: 'Pistol', type: 'pistol', quantity: 1, price: 6000, totalPrice: 6000, notes: 'Sidearm, light' },
+    { id: 1, name: 'Gas Mask', type: 'headgear', quantity: 1, weight: 5, totalWeight: 5, notes: 'Protects against toxic gases' },
+    { id: 2, name: 'Tactical Vest', type: 'armor', quantity: 1, weight: 8, totalWeight: 8, notes: 'Medium protection' },
+    { id: 3, name: 'Sawed-off Shotgun', type: 'weapon', quantity: 1, weight: 12, totalWeight: 12, notes: 'Short range, high damage' },
+    { id: 4, name: 'Assault Rifle', type: 'weapon', quantity: 1, weight: 25, totalWeight: 25, notes: 'Medium range, good accuracy' },
+    { id: 5, name: 'Medkit', type: 'consumable', quantity: 3, weight: 1.5, totalWeight: 4.5, notes: 'Restores health' },
+    { id: 6, name: 'Radiation Pills', type: 'consumable', quantity: 5, weight: 0.8, totalWeight: 4, notes: 'Reduces radiation' },
+    { id: 7, name: 'Detector', type: 'tool', quantity: 1, weight: 7, totalWeight: 7, notes: 'Locates anomalies' },
+    { id: 8, name: 'Pistol', type: 'pistol', quantity: 1, weight: 6, totalWeight: 6, notes: 'Sidearm, light' },
   ]);
 
   const [equipment, setEquipment] = useState({
@@ -21,16 +21,82 @@ const InventorySystem = () => {
     tool: null,
   });
 
-  const [weight, setWeight] = useState(10);
-  const [capacity] = useState(40);
+  const [capacity] = useState(80);
   const [draggedItem, setDraggedItem] = useState(null);
+  const [money, setMoney] = useState(10000);
+  const [isMoneyMenuOpen, setIsMoneyMenuOpen] = useState(false);
+  const [moneyChangeAmount, setMoneyChangeAmount] = useState(0);
+  const [isAddItemMenuOpen, setIsAddItemMenuOpen] = useState(false);
+  const [newItem, setNewItem] = useState({
+    name: '',
+    type: '',
+    quantity: 1,
+    weight: 0,
+    notes: '',
+  });
+  const [deleteItem, setDeleteItem] = useState(null);
+  const [deleteQuantity, setDeleteQuantity] = useState(1);
 
-  const calculateTotalMoney = () => {
-    return inventoryItems.reduce((total, item) => total + item.totalPrice, 0);
+  const calculateTotalWeight = () => {
+    return inventoryItems.reduce((total, item) => total + item.totalWeight, 0);
+  };
+
+  const handleMoneyChange = (amount) => {
+    setMoney((prevMoney) => prevMoney + amount);
+  };
+
+  const toggleMoneyMenu = () => {
+    setIsMoneyMenuOpen((prev) => !prev);
   };
 
   const handleDragStart = (e, item) => {
     setDraggedItem(item);
+  };
+
+  const toggleAddItemMenu = () => {
+    setIsAddItemMenuOpen((prev) => !prev);
+  };
+
+  const handleDeleteItem = () => {
+    if (deleteItem) {
+      if (deleteQuantity >= deleteItem.quantity) {
+        // Remove the item completely
+        setInventoryItems(inventoryItems.filter((item) => item.id !== deleteItem.id));
+      } else {
+        // Reduce the quantity and update total weight
+        const updatedItems = inventoryItems.map((item) =>
+          item.id === deleteItem.id
+            ? {
+                ...item,
+                quantity: item.quantity - deleteQuantity,
+                totalWeight: item.totalWeight - deleteItem.weight * deleteQuantity,
+              }
+            : item
+        );
+        setInventoryItems(updatedItems);
+      }
+      setDeleteItem(null);
+    }
+  };
+
+  const handleRightClick = (e, item) => {
+    e.preventDefault();
+    setDeleteItem(item);
+    setDeleteQuantity(1);
+  };
+
+  const handleAddItem = () => {
+    if (newItem.name && newItem.type && newItem.weight > 0 && newItem.quantity > 0) {
+      const totalWeight = newItem.weight * newItem.quantity;
+      const newItemWithId = {
+        ...newItem,
+        id: inventoryItems.length + 1,
+        totalWeight,
+      };
+      setInventoryItems([...inventoryItems, newItemWithId]);
+      setNewItem({ name: '', type: '', quantity: 1, weight: 0, notes: '' });
+      setIsAddItemMenuOpen(false);
+    }
   };
 
   const handleEquipmentDrop = (e, slotType) => {
@@ -39,12 +105,19 @@ const InventorySystem = () => {
       let canEquip = false;
       if (draggedItem.type === slotType) canEquip = true;
       if (draggedItem.type === 'weapon' && (slotType === 'primary' || slotType === 'secondary')) canEquip = true;
-
+  
       if (canEquip) {
         const currentItem = equipment[slotType];
         const newEquipment = { ...equipment, [slotType]: draggedItem };
+  
+        const originalSlot = Object.keys(equipment).find(key => equipment[key]?.id === draggedItem.id);
+        if (originalSlot) {
+          newEquipment[originalSlot] = null;
+        }
+  
         const newInventory = inventoryItems.filter(item => item.id !== draggedItem.id);
         if (currentItem) newInventory.push(currentItem);
+  
         setEquipment(newEquipment);
         setInventoryItems(newInventory);
       }
@@ -69,6 +142,8 @@ const InventorySystem = () => {
   const handleDragOver = (e) => {
     e.preventDefault();
   };
+
+  const itemTypes = ['headgear', 'armor', 'weapon', 'consumable', 'tool', 'pistol'];
 
   return (
     <div className="inventory-container">
@@ -115,7 +190,25 @@ const InventorySystem = () => {
         <div className="inventory-panel">
           <div className="inventory-header">
             <div>INVENTORY</div>
-            <div className="money-display">{calculateTotalMoney()} грн</div>
+            <div className="money-menu">
+              <button className="money-button" onClick={toggleMoneyMenu}>
+                {isMoneyMenuOpen ? 'Close Money Menu' : 'Open Money Menu'}
+              </button>
+              {isMoneyMenuOpen && (
+                <div className="money-menu-content">
+                  <input
+                    type="number"
+                    value={moneyChangeAmount}
+                    onChange={(e) => setMoneyChangeAmount(Number(e.target.value))}
+                    placeholder="Change Amount"
+                    className='money-input'
+                  />
+                  <button onClick={() => handleMoneyChange(moneyChangeAmount)}>Add</button>
+                  <button onClick={() => handleMoneyChange(-moneyChangeAmount)}>Remove</button>
+                </div>
+              )}
+            </div>
+            <div className="money-display">{money} грн</div>
           </div>
           <div className="inventory-table-container" onDrop={handleInventoryDrop} onDragOver={handleDragOver}>
             <table className="inventory-table">
@@ -136,12 +229,14 @@ const InventorySystem = () => {
                     className="inventory-row"
                     draggable
                     onDragStart={(e) => handleDragStart(e, item)}
+                    onContextMenu={(e) => handleRightClick(e, item)} 
                   >
+                  
                     <td>{item.name}</td>
                     <td className="text-center">{item.type}</td>
                     <td className="text-center">{item.quantity}</td>
-                    <td className="text-center">{item.price}</td>
-                    <td className="text-center">{item.totalPrice}</td>
+                    <td className="text-center">{item.weight}</td>
+                    <td className="text-center">{item.totalWeight}</td>
                     <td className="text-center">{item.notes}</td>
                   </tr>
                 ))}
@@ -149,10 +244,67 @@ const InventorySystem = () => {
             </table>
           </div>
           <div className="weight-display">
-            <div className="weight-indicator">{weight}/{capacity} кг</div>
+            <button className="add-item-button" onClick={toggleAddItemMenu}>Add Item</button>
+            <div className="weight-indicator">{calculateTotalWeight()}/{capacity} кг</div>
           </div>
         </div>
       </div>
+      {isAddItemMenuOpen && (
+        <div className="add-item-menu">
+          <h3>Add New Item</h3>
+          <input
+            type="text"
+            placeholder="Name"
+            value={newItem.name}
+            onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+          />
+          <select
+            value={newItem.type}
+            onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
+          >
+            <option value="" disabled>Select Type</option>
+            {itemTypes.map((type) => (
+              <option key={type} value={type}>
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            placeholder="Quantity"
+            value={newItem.quantity}
+            onChange={(e) => setNewItem({ ...newItem, quantity: Number(e.target.value) })}
+          />
+          <input
+            type="number"
+            placeholder="Weight"
+            value={newItem.weight}
+            onChange={(e) => setNewItem({ ...newItem, weight: Number(e.target.value) })}
+          />
+          <textarea
+            placeholder="Notes"
+            value={newItem.notes}
+            onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
+          />
+          <button onClick={handleAddItem}>Add</button>
+          <button onClick={toggleAddItemMenu}>Cancel</button>
+        </div>
+      )}
+      {deleteItem && (
+        <div className="delete-item-menu">
+          <h3>Delete Item</h3>
+          <p>{`Delete ${deleteItem.name}`}</p>
+          <input
+            type="number"
+            min="1"
+            max={deleteItem.quantity}
+            value={deleteQuantity}
+            onChange={(e) => setDeleteQuantity(Number(e.target.value))}
+          />
+          <button onClick={handleDeleteItem}>Confirm</button>
+          <button onClick={() => setDeleteItem(null)}>Cancel</button>
+        </div>
+      )}
     </div>
   );
 };
