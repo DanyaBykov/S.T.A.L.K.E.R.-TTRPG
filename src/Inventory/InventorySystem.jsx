@@ -1,27 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getCharacters, getCharacter, addInventoryItem, updateInventoryItem, deleteInventoryItem, equipItem, updateMoney } from '../services/api.js';
 import './InventorySystem.css';
 
 const InventorySystem = () => {
-  const [inventoryItems, setInventoryItems] = useState([
-    { id: 1, name: 'Gas Mask', type: 'headgear', quantity: 1, weight: 5, totalWeight: 5, notes: 'Protects against toxic gases' },
-    { id: 2, name: 'Tactical Vest', type: 'armor', quantity: 1, weight: 8, totalWeight: 8, notes: 'Medium protection' },
-    { id: 3, name: 'Sawed-off Shotgun', type: 'weapon', quantity: 1, weight: 12, totalWeight: 12, notes: 'Short range, high damage' },
-    { id: 4, name: 'Assault Rifle', type: 'weapon', quantity: 1, weight: 25, totalWeight: 25, notes: 'Medium range, good accuracy' },
-    { id: 5, name: 'Medkit', type: 'consumable', quantity: 3, weight: 1.5, totalWeight: 4.5, notes: 'Restores health' },
-    { id: 6, name: 'Radiation Pills', type: 'consumable', quantity: 5, weight: 0.8, totalWeight: 4, notes: 'Reduces radiation' },
-    { id: 7, name: 'Detector', type: 'tool', quantity: 1, weight: 7, totalWeight: 7, notes: 'Locates anomalies' },
-    { id: 8, name: 'Pistol', type: 'pistol', quantity: 1, weight: 6, totalWeight: 6, notes: 'Sidearm, light' },
-  ]);
-
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [characterId, setCharacterId] = useState(null);
+  const [inventoryItems, setInventoryItems] = useState([]);
   const [equipment, setEquipment] = useState({
     headgear: null,
     armor: null,
     primary: null,
     secondary: null,
     tool: null,
+    pistol: null
   });
 
-  const [capacity] = useState(80);
+  const [capacity, setCapacity] = useState(80);
   const [draggedItem, setDraggedItem] = useState(null);
   const [money, setMoney] = useState(10000);
   const [isMoneyMenuOpen, setIsMoneyMenuOpen] = useState(false);
@@ -37,12 +34,60 @@ const InventorySystem = () => {
   const [deleteItem, setDeleteItem] = useState(null);
   const [deleteQuantity, setDeleteQuantity] = useState(1);
 
+  // Check authentication and load character data
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      navigate('/');
+      return;
+    }
+
+    async function loadCharacterData() {
+      try {
+        setLoading(true);
+        const characters = await getCharacters();
+        
+        if (characters.length === 0) {
+          setError("No characters found. Please join a game first.");
+          return;
+        }
+        
+        // Use the first character for now
+        const charId = characters[0].id;
+        setCharacterId(charId);
+        
+        // Get full character details
+        const characterData = await getCharacter(charId);
+        
+        // Update state with character data
+        setInventoryItems(characterData.inventory || []);
+        setEquipment(characterData.equipment || {});
+        setMoney(characterData.money || 10000);
+        setCapacity(characterData.capacity || 80);
+        
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    loadCharacterData();
+  }, [navigate]);
+
   const calculateTotalWeight = () => {
-    return inventoryItems.reduce((total, item) => total + item.totalWeight, 0);
+    return inventoryItems.reduce((total, item) => total + item.total_weight, 0);
   };
 
-  const handleMoneyChange = (amount) => {
-    setMoney((prevMoney) => prevMoney + amount);
+  const handleMoneyChange = async (amount) => {
+    if (!characterId) return;
+    
+    try {
+      const response = await updateMoney(characterId, amount);
+      setMoney(response.money);
+    } catch (err) {
+      setError("Failed to update money: " + err.message);
+    }
   };
 
   const toggleMoneyMenu = () => {
@@ -57,8 +102,12 @@ const InventorySystem = () => {
     setIsAddItemMenuOpen((prev) => !prev);
   };
 
-  const handleDeleteItem = () => {
-    if (deleteItem) {
+  const handleDeleteItem = async () => {
+    if (!characterId || !deleteItem) return;
+    
+    try {
+      await deleteInventoryItem(characterId, deleteItem.id, deleteQuantity);
+      
       if (deleteQuantity >= deleteItem.quantity) {
         // Remove the item completely
         setInventoryItems(inventoryItems.filter((item) => item.id !== deleteItem.id));
@@ -69,13 +118,15 @@ const InventorySystem = () => {
             ? {
                 ...item,
                 quantity: item.quantity - deleteQuantity,
-                totalWeight: item.totalWeight - deleteItem.weight * deleteQuantity,
+                total_weight: item.total_weight - deleteItem.weight * deleteQuantity,
               }
             : item
         );
         setInventoryItems(updatedItems);
       }
       setDeleteItem(null);
+    } catch (err) {
+      setError("Failed to delete item: " + err.message);
     }
   };
 
@@ -85,55 +136,71 @@ const InventorySystem = () => {
     setDeleteQuantity(1);
   };
 
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
+    if (!characterId) return;
+    
     if (newItem.name && newItem.type && newItem.weight > 0 && newItem.quantity > 0) {
-      const totalWeight = newItem.weight * newItem.quantity;
-      const newItemWithId = {
-        ...newItem,
-        id: inventoryItems.length + 1,
-        totalWeight,
-      };
-      setInventoryItems([...inventoryItems, newItemWithId]);
-      setNewItem({ name: '', type: '', quantity: 1, weight: 0, notes: '' });
-      setIsAddItemMenuOpen(false);
+      try {
+        const addedItem = await addInventoryItem(characterId, newItem);
+        setInventoryItems([...inventoryItems, addedItem]);
+        setNewItem({ name: '', type: '', quantity: 1, weight: 0, notes: '' });
+        setIsAddItemMenuOpen(false);
+      } catch (err) {
+        setError("Failed to add item: " + err.message);
+      }
     }
   };
 
-  const handleEquipmentDrop = (e, slotType) => {
+  const handleEquipmentDrop = async (e, slotType) => {
     e.preventDefault();
-    if (draggedItem) {
-      let canEquip = false;
-      if (draggedItem.type === slotType) canEquip = true;
-      if (draggedItem.type === 'weapon' && (slotType === 'primary' || slotType === 'secondary')) canEquip = true;
-  
-      if (canEquip) {
+    if (!characterId || !draggedItem) return;
+    
+    let canEquip = false;
+    if (draggedItem.type === slotType) canEquip = true;
+    if (draggedItem.type === 'weapon' && (slotType === 'primary' || slotType === 'secondary')) canEquip = true;
+
+    if (canEquip) {
+      try {
+        await equipItem(characterId, slotType, draggedItem.id);
+        
         const currentItem = equipment[slotType];
         const newEquipment = { ...equipment, [slotType]: draggedItem };
-  
+        
         const originalSlot = Object.keys(equipment).find(key => equipment[key]?.id === draggedItem.id);
         if (originalSlot) {
           newEquipment[originalSlot] = null;
         }
-  
+        
         const newInventory = inventoryItems.filter(item => item.id !== draggedItem.id);
         if (currentItem) newInventory.push(currentItem);
-  
+        
         setEquipment(newEquipment);
         setInventoryItems(newInventory);
+      } catch (err) {
+        setError("Failed to equip item: " + err.message);
       }
     }
     setDraggedItem(null);
   };
 
-  const handleInventoryDrop = (e) => {
+  const handleInventoryDrop = async (e) => {
     e.preventDefault();
-    if (draggedItem && Object.values(equipment).includes(draggedItem)) {
+    if (!characterId || !draggedItem) return;
+    
+    if (Object.values(equipment).includes(draggedItem)) {
       const slotKey = Object.keys(equipment).find(key => equipment[key]?.id === draggedItem.id);
       if (slotKey) {
-        setInventoryItems([...inventoryItems, draggedItem]);
-        const newEquipment = { ...equipment };
-        newEquipment[slotKey] = null;
-        setEquipment(newEquipment);
+        try {
+          // Remove from equipment slot (passing null as itemId unequips the item)
+          await equipItem(characterId, slotKey, null);
+          
+          setInventoryItems([...inventoryItems, draggedItem]);
+          const newEquipment = { ...equipment };
+          newEquipment[slotKey] = null;
+          setEquipment(newEquipment);
+        } catch (err) {
+          setError("Failed to unequip item: " + err.message);
+        }
       }
     }
     setDraggedItem(null);
@@ -145,14 +212,26 @@ const InventorySystem = () => {
 
   const itemTypes = ['headgear', 'armor', 'weapon', 'consumable', 'tool', 'pistol'];
 
+  if (loading) {
+    return <div className="loading">Loading character data...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <div className="error-message">{error}</div>
+        <button onClick={() => navigate('/')}>Back to Login</button>
+      </div>
+    );
+  }
+
   return (
     <div className="inventory-container">
-      
       <div className="main-content">
         <div className="equipment-panel">
-        <div className="header">EQUIPMENT</div>
+          <div className="header">EQUIPMENT</div>
           <div className="equipment-grid">
-            {['primary', 'headgear', 'armor',  'secondary', 'tool', 'pistol', '1', '2', '3', '4', '5', '6'].map(slotType => (
+            {['primary', 'headgear', 'armor', 'secondary', 'tool', 'pistol'].map(slotType => (
               <div
                 key={slotType}
                 className="equipment-slot"
@@ -231,12 +310,11 @@ const InventorySystem = () => {
                     onDragStart={(e) => handleDragStart(e, item)}
                     onContextMenu={(e) => handleRightClick(e, item)} 
                   >
-                  
                     <td>{item.name}</td>
                     <td className="text-center">{item.type}</td>
                     <td className="text-center">{item.quantity}</td>
                     <td className="text-center">{item.weight}</td>
-                    <td className="text-center">{item.totalWeight}</td>
+                    <td className="text-center">{item.total_weight}</td>
                     <td className="text-center">{item.notes}</td>
                   </tr>
                 ))}

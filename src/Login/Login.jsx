@@ -1,9 +1,14 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { loginUser, registerUser, joinGame } from "../services/api.js";
 import "./Login.css";
 
 function Login() {
+  const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState("");
   const [dmAction, setDmAction] = useState("login"); // "login" or "register"
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Form states for Dungeon Master
   const [dmUsername, setDmUsername] = useState("");
@@ -18,21 +23,53 @@ function Login() {
     if (e.target.value !== "dm") {
       setDmAction("login");
     }
+    setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (selectedRole === "dm") {
-      if (dmAction === "login") {
-        console.log("Dungeon Master Login:", dmEmail, dmPassword);
-        // Add your DM login logic here
-      } else {
-        console.log("Dungeon Master Register:", dmUsername, dmEmail, dmPassword);
-        // Add your DM registration logic here
+    setLoading(true);
+    setError("");
+
+    try {
+      if (selectedRole === "dm") {
+        // Handle DM login/register
+        if (dmAction === "login") {
+          // Login as DM
+          const response = await loginUser(dmEmail, dmPassword);
+          localStorage.setItem("authToken", response.access_token);
+          localStorage.setItem("userRole", "dm");
+          
+          // Get first character or create game for DM
+          navigate("/inventory");
+        } else {
+          // Register as DM
+          await registerUser(dmUsername, dmEmail, dmPassword);
+          // Then login
+          const loginResponse = await loginUser(dmEmail, dmPassword);
+          localStorage.setItem("authToken", loginResponse.access_token);
+          localStorage.setItem("userRole", "dm");
+          
+          navigate("/inventory");
+        }
+      } else if (selectedRole === "player") {
+        // Handle Player joining game
+        // First, need to authenticate (could add player login here)
+        if (!gameCode) {
+          throw new Error("Game code is required");
+        }
+        
+        // For now, players can just join with a game code
+        // In a full implementation, you'd want player authentication too
+        await joinGame(gameCode);
+        localStorage.setItem("userRole", "player");
+        
+        navigate("/inventory");
       }
-    } else if (selectedRole === "player") {
-      console.log("Player joining with game code:", gameCode);
-      // Add your player join logic here
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,6 +90,12 @@ function Login() {
             <option value="dm">Dungeon Master</option>
             <option value="player">Player</option>
           </select>
+
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
 
           {selectedRole === "dm" && (
             <div className="dm-form">
@@ -82,6 +125,7 @@ function Login() {
                         type="text"
                         value={dmUsername}
                         onChange={(e) => setDmUsername(e.target.value)}
+                        required
                       />
                     </label>
                   </div>
@@ -93,6 +137,7 @@ function Login() {
                       type="email"
                       value={dmEmail}
                       onChange={(e) => setDmEmail(e.target.value)}
+                      required
                     />
                   </label>
                 </div>
@@ -103,11 +148,12 @@ function Login() {
                       type="password"
                       value={dmPassword}
                       onChange={(e) => setDmPassword(e.target.value)}
+                      required
                     />
                   </label>
                 </div>
-                <button type="submit">
-                  {dmAction === "login" ? "Login" : "Register"}
+                <button type="submit" disabled={loading}>
+                  {loading ? "Processing..." : dmAction === "login" ? "Login" : "Register"}
                 </button>
               </form>
             </div>
@@ -124,10 +170,13 @@ function Login() {
                       type="text"
                       value={gameCode}
                       onChange={(e) => setGameCode(e.target.value)}
+                      required
                     />
                   </label>
                 </div>
-                <button type="submit">Join Game</button>
+                <button type="submit" disabled={loading}>
+                  {loading ? "Processing..." : "Join Game"}
+                </button>
               </form>
             </div>
           )}
