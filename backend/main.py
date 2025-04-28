@@ -537,7 +537,8 @@ def create_sample_inventory():
             "quantity": 1,
             "weight": 8.0,
             "notes": "Mid-tier protection suit",
-            "total_weight": 8.0
+            "total_weight": 8.0,
+            "quick_slots": 2
         },
         {
             "id": 5,
@@ -546,7 +547,8 @@ def create_sample_inventory():
             "quantity": 1,
             "weight": 2.5,
             "notes": "Scientific headgear with good protection",
-            "total_weight": 2.5
+            "total_weight": 2.5,
+            "quick_slots": 1
         },
         {
             "id": 6,

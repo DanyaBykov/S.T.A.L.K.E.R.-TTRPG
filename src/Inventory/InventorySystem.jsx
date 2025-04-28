@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCharacters, getCharacter, addInventoryItem, updateInventoryItem, deleteInventoryItem, equipItem, updateMoney } from '../services/api.js';
 import './InventorySystem.css';
@@ -17,7 +17,6 @@ const InventorySystem = () => {
     tool: null,
     pistol: null
   });
-
   const [capacity, setCapacity] = useState(80);
   const [draggedItem, setDraggedItem] = useState(null);
   const [money, setMoney] = useState(10000);
@@ -33,8 +32,8 @@ const InventorySystem = () => {
   });
   const [deleteItem, setDeleteItem] = useState(null);
   const [deleteQuantity, setDeleteQuantity] = useState(1);
+  const totalQuickSlots = 6; // Total quick slots
 
-  // Check authentication and load character data
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
@@ -46,42 +45,40 @@ const InventorySystem = () => {
       try {
         setLoading(true);
         const characters = await getCharacters();
-        
         if (characters.length === 0) {
           setError("No characters found. Please join a game first.");
           return;
         }
-        
-        // Use the first character for now
         const charId = characters[0].id;
         setCharacterId(charId);
-        
-        // Get full character details
         const characterData = await getCharacter(charId);
-        
-        // Update state with character data
         setInventoryItems(characterData.inventory || []);
         setEquipment(characterData.equipment || {});
         setMoney(characterData.money || 10000);
         setCapacity(characterData.capacity || 80);
-        
       } catch (err) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     }
-    
     loadCharacterData();
   }, [navigate]);
 
+  // Calculate total weight including inventory and equipment
   const calculateTotalWeight = () => {
-    return inventoryItems.reduce((total, item) => total + item.total_weight, 0);
+    const inventoryWeight = inventoryItems.reduce((total, item) => total + item.total_weight, 0);
+    const equipmentWeight = Object.values(equipment).reduce((total, item) => {
+      if (item) {
+        return total + (item.total_weight || item.weight);
+      }
+      return total;
+    }, 0);
+    return inventoryWeight + equipmentWeight;
   };
 
   const handleMoneyChange = async (amount) => {
     if (!characterId) return;
-    
     try {
       const response = await updateMoney(characterId, amount);
       setMoney(response.money);
@@ -104,15 +101,11 @@ const InventorySystem = () => {
 
   const handleDeleteItem = async () => {
     if (!characterId || !deleteItem) return;
-    
     try {
       await deleteInventoryItem(characterId, deleteItem.id, deleteQuantity);
-      
       if (deleteQuantity >= deleteItem.quantity) {
-        // Remove the item completely
         setInventoryItems(inventoryItems.filter((item) => item.id !== deleteItem.id));
       } else {
-        // Reduce the quantity and update total weight
         const updatedItems = inventoryItems.map((item) =>
           item.id === deleteItem.id
             ? {
@@ -138,7 +131,13 @@ const InventorySystem = () => {
 
   const handleAddItem = async () => {
     if (!characterId) return;
-    
+    // Calculate weight that this item will add
+    const additionalWeight = newItem.quantity * newItem.weight;
+    const currentWeight = calculateTotalWeight();
+    if (currentWeight + additionalWeight > capacity) {
+      alert("Cannot add item(s): Total weight exceeds capacity.");
+      return;
+    }
     if (newItem.name && newItem.type && newItem.weight > 0 && newItem.quantity > 0) {
       try {
         const addedItem = await addInventoryItem(characterId, newItem);
@@ -151,29 +150,79 @@ const InventorySystem = () => {
     }
   };
 
+  const usedQuickSlots = useMemo(() => {
+    let used = 0;
+    ['headgear', 'armor'].forEach(slot => {
+      if (equipment[slot] && equipment[slot].quick_slots) {
+        used += equipment[slot].quick_slots;
+      }
+    });
+    return used;
+  }, [equipment]);
+
+  // (Optional) Keeping this helper if you ever need it separately
+  const calculateUsedQuickSlots = () => {
+    let used = 0;
+    ['headgear', 'armor'].forEach(slot => {
+      if (equipment[slot] && equipment[slot].quick_slots) {
+        used += equipment[slot].quick_slots;
+      }
+    });
+    return used;
+  };
+
+  const renderQuickAccess = () => {
+    return (
+      <div className="quick-access-grid">
+        {Array.from({ length: totalQuickSlots }, (_, i) => i + 1).map((slot) => (
+          <div
+            key={slot}
+            className={`quick-slot ${slot <= usedQuickSlots ? 'occupied-slot' : ''}`}
+          >
+            Slot {slot}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const handleEquipmentDrop = async (e, slotType) => {
     e.preventDefault();
     if (!characterId || !draggedItem) return;
     
     let canEquip = false;
     if (draggedItem.type === slotType) canEquip = true;
-    if (draggedItem.type === 'weapon' && (slotType === 'primary' || slotType === 'secondary')) canEquip = true;
-
+    if (draggedItem.type === 'weapon' && (slotType === 'primary' || slotType === 'secondary'))
+      canEquip = true;
+    
+    // For headgear and armor, ensure quick slot requirement is met.
+    if ((draggedItem.type === 'headgear' || draggedItem.type === 'armor') && draggedItem.quick_slots) {
+      const originalSlot = Object.keys(equipment).find(key => equipment[key]?.id === draggedItem.id) || '';
+      let originalConsumption = 0;
+      if (originalSlot && (originalSlot === 'headgear' || originalSlot === 'armor')) {
+        originalConsumption = equipment[originalSlot].quick_slots || 0;
+      }
+      const used = calculateUsedQuickSlots();
+      const free = totalQuickSlots - (used - originalConsumption);
+      if (draggedItem.quick_slots > free) {
+        alert("Not enough quick slots available. Item cannot be equipped.");
+        setDraggedItem(null);
+        return;
+      }
+      canEquip = true;
+    }
+    
     if (canEquip) {
       try {
         await equipItem(characterId, slotType, draggedItem.id);
-        
         const currentItem = equipment[slotType];
         const newEquipment = { ...equipment, [slotType]: draggedItem };
-        
         const originalSlot = Object.keys(equipment).find(key => equipment[key]?.id === draggedItem.id);
-        if (originalSlot) {
+        if (originalSlot && originalSlot !== slotType) {
           newEquipment[originalSlot] = null;
         }
-        
-        const newInventory = inventoryItems.filter(item => item.id !== draggedItem.id);
+        let newInventory = inventoryItems.filter(item => item.id !== draggedItem.id);
         if (currentItem) newInventory.push(currentItem);
-        
         setEquipment(newEquipment);
         setInventoryItems(newInventory);
       } catch (err) {
@@ -249,20 +298,16 @@ const InventorySystem = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="slot-label">{slotType.charAt(0).toUpperCase() + slotType.slice(1)}</div>
+                  <div className="slot-label">
+                    {slotType.charAt(0).toUpperCase() + slotType.slice(1)}
+                  </div>
                 )}
               </div>
             ))}
           </div>
           <div className="quick-access">
             <div className="quick-access-label">QUICK ACCESS</div>
-            <div className="quick-access-grid">
-              {[1, 2, 3, 4, 5, 6].map(slot => (
-                <div key={slot} className="quick-slot">
-                  Slot {slot}
-                </div>
-              ))}
-            </div>
+            {renderQuickAccess()}
           </div>
         </div>
         <div className="inventory-panel">
