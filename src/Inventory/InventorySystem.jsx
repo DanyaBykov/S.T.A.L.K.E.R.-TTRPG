@@ -192,28 +192,15 @@ const InventorySystem = () => {
   };
 
   const renderQuickAccess = () => {
-    // Build reservedSlots from equipped headgear and armor.
-    const reservedSlots = [];
-    if (equipment.headgear) {
-      const count = equipment.headgear.quick_slots || 1;
-      for (let i = 0; i < count; i++) {
-        reservedSlots.push(equipment.headgear);
-      }
-    }
-    if (equipment.armor) {
-      const count = equipment.armor.quick_slots || 2;
-      for (let i = 0; i < count; i++) {
-        reservedSlots.push(equipment.armor);
-      }
-    }
-    const reservedCount = reservedSlots.length;
-    
+    const headgearCount = equipment.headgear ? (equipment.headgear.quick_slots || 1) : 0;
+    const armorCount = equipment.armor ? (equipment.armor.quick_slots || 2) : 0;
+    const userSlotCount = totalQuickSlots - headgearCount - armorCount;
+  
     return (
       <div className="quick-access-grid">
         {Array.from({ length: totalQuickSlots }, (_, index) => {
-          if (index < reservedCount) {
-            // Reserved slot: add a drop handler that alerts when dropping into it.
-            const reservedItem = reservedSlots[index];
+          if (index < headgearCount) {
+            // Reserved for headgear
             return (
               <div
                 key={index}
@@ -225,16 +212,33 @@ const InventorySystem = () => {
                 onDragOver={(e) => e.preventDefault()}
               >
                 <div className="quick-slot-content">
-                  <div className="item-name">{reservedItem.name}</div>
-                  <div className="item-icon">
-                    {reservedItem.type === 'headgear' ? '🥽' : '🔧'}
-                  </div>
+                  <div className="item-name">{equipment.headgear.name}</div>
+                  <div className="item-icon">🥽</div>
+                </div>
+              </div>
+            );
+          } else if (index >= totalQuickSlots - armorCount) {
+            // Reserved for armor
+            return (
+              <div
+                key={index}
+                className="quick-slot reserved-slot"
+                onDrop={(e) => {
+                  e.preventDefault();
+                  alert("This quick slot is reserved by equipment.");
+                }}
+                onDragOver={(e) => e.preventDefault()}
+              >
+                <div className="quick-slot-content">
+                  <div className="item-name">{equipment.armor.name}</div>
+                  <div className="item-icon">🔧</div>
                 </div>
               </div>
             );
           } else {
-            // Calculate user quick slot index and render user-managed slot.
-            const userSlotIndex = index - reservedCount;
+            // User-managed slot.
+            // Calculate the index within the user-managed quickSlots array.
+            const userSlotIndex = index - headgearCount;
             const slot = quickSlots[userSlotIndex];
             return (
               <div
@@ -247,7 +251,9 @@ const InventorySystem = () => {
                   <div
                     className="quick-slot-content"
                     draggable
-                    onDragStart={(e) => handleQuickSlotDragStart(e, userSlotIndex, slot)}
+                    onDragStart={(e) =>
+                      handleQuickSlotDragStart(e, userSlotIndex, slot)
+                    }
                   >
                     {slot.type === 'magazine' ? (
                       <>
@@ -279,25 +285,35 @@ const InventorySystem = () => {
     if (!characterId || !draggedItem) return;
   
     let canEquip = false;
-  
-    // Standard type match checks.
+    // Simple type matching:
     if (draggedItem.type === slotType) canEquip = true;
     if (draggedItem.type === 'weapon' && (slotType === 'primary' || slotType === 'secondary'))
       canEquip = true;
   
-    // For headgear or armor, ensure sufficient free quick slots are available.
     if (draggedItem.type === 'headgear' || draggedItem.type === 'armor') {
-      if (draggedItem.quick_slots) {
-        // Calculate quick slots used by currently equipped headgear/armor.
-        const used = calculateUsedQuickSlots(); // Sum of quick_slots from equipment.headgear and equipment.armor.
-        const free = totalQuickSlots - used;
-        if (draggedItem.quick_slots > free) {
-          alert("Not enough quick slots available. Item cannot be equipped.");
-          setDraggedItem(null);
-          return;
-        }
+      // Determine what the new reserved counts would be:
+      const newHeadgearCount =
+        draggedItem.type === 'headgear'
+          ? draggedItem.quick_slots || 1
+          : equipment.headgear
+          ? equipment.headgear.quick_slots || 1
+          : 0;
+      const newArmorCount =
+        draggedItem.type === 'armor'
+          ? draggedItem.quick_slots || 2
+          : equipment.armor
+          ? equipment.armor.quick_slots || 2
+          : 0;
+      const newUserSlotCount = totalQuickSlots - newHeadgearCount - newArmorCount;
+      // Count user-managed slots currently occupied.
+      const occupiedUserSlots = quickSlots.filter((slot) => slot !== null).length;
+      if (occupiedUserSlots > newUserSlotCount) {
+        alert(
+          "Not enough free quick slots available. Please clear some quick access items first."
+        );
+        setDraggedItem(null);
+        return;
       }
-      // Even if the type check above failed, we allow headgear/armor to equip if quick slot check passes.
       canEquip = true;
     }
   
@@ -307,12 +323,14 @@ const InventorySystem = () => {
         const currentItem = equipment[slotType];
         const newEquipment = { ...equipment, [slotType]: draggedItem };
         const originalSlot = Object.keys(equipment).find(
-          key => equipment[key]?.id === draggedItem.id
+          (key) => equipment[key]?.id === draggedItem.id
         );
         if (originalSlot && originalSlot !== slotType) {
           newEquipment[originalSlot] = null;
         }
-        let newInventory = inventoryItems.filter(item => item.id !== draggedItem.id);
+        let newInventory = inventoryItems.filter(
+          (item) => item.id !== draggedItem.id
+        );
         if (currentItem) newInventory.push(currentItem);
         setEquipment(newEquipment);
         setInventoryItems(newInventory);
@@ -326,13 +344,11 @@ const InventorySystem = () => {
   const handleQuickSlotDrop = (e, slotIndex) => {
     e.preventDefault();
     if (!draggedItem) return;
-    // Only allow items of type 'medication' or 'magazine', as before.
     if (draggedItem.type !== 'medication' && draggedItem.type !== 'magazine') {
       alert("Only medication or magazine items can be equipped in quick slots.");
       setDraggedItem(null);
       return;
     }
-    // Get the current slot (from our quickSlots state, on user-managed indices)
     const currentSlot = quickSlots[slotIndex];
     if (draggedItem.type === 'magazine') {
       if (currentSlot) {
@@ -341,12 +357,10 @@ const InventorySystem = () => {
         const newSlots = [...quickSlots];
         newSlots[slotIndex] = { type: 'magazine', item: draggedItem };
         setQuickSlots(newSlots);
-        // Remove the item from inventory (implementation as before)
         setInventoryItems(inventoryItems.filter(item => item.id !== draggedItem.id));
       }
     } else if (draggedItem.type === 'medication') {
       if (!currentSlot) {
-        // Add as new medication: allow stacking up to 3 units.
         const addQuantity = draggedItem.quantity > 3 ? 3 : draggedItem.quantity;
         const newSlots = [...quickSlots];
         newSlots[slotIndex] = { type: 'medication', item: draggedItem, quantity: addQuantity };
@@ -362,7 +376,6 @@ const InventorySystem = () => {
           ));
         }
       } else {
-        // If slot is occupied, allow stacking if same medication and not at 3 units:
         if (currentSlot.type === 'medication' && currentSlot.item.id === draggedItem.id) {
           if (currentSlot.quantity < 3) {
             const addable = Math.min(draggedItem.quantity, 3 - currentSlot.quantity);
