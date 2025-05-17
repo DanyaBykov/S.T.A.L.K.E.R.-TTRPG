@@ -1,0 +1,70 @@
+id,name,property,source,rarity,weight,avg_price
+A001,Виверт,"фіз. захист +2, радіація +1/хв",gravitational anomlaies,common,0.1,4000
+A002,Вихор,"фіз захист +2, витривалість +5, радіація +1/хв",gravitational anomlaies,common,0.1,4000
+A003,Граві,"вага +3 кг, радіація +1/хв",gravitational anomlaies,common,0.1,4000
+A004,Кам'яне серце,"вага +3 кг, радіація +1/хв",gravitational anomlaies,common,0.1,4500
+A005,Каніфоль,"витривалість +5, радіація +1/хв",gravitational anomlaies,common,0.1,4000
+A006,Кров каменю,"вага +3 кг, радіація +1/хв",gravitational anomlaies,common,0.1,4000
+A007,Галька,"фіз захист +2, витривалість +5, радіація +1/хв",gravitational anomlaies,common,0.1,4000
+A008,Медуза,радіація -1/хв,gravitational anomlaies,common,0.1,4000
+A009,Краплі,"терм. захист +2, радіація +1/хв",thermal anomalies,common,0.1,4000
+A010,Кристал,"терм. захист +2, радіація +1/хв",thermal anomalies,common,0.1,4000
+A011,Ліра,"вага +3 кг, опір кровотечі(слабкий), радіація +1/хв",thermal anomalies,common,0.1,5000
+A012,Око,"терм. захист +2, радіація +1/хв",thermal anomalies,common,0.1,4000
+A013,Черево,"вага +3 кг, опір кровотечі(слабкий), радіація +1/хв",thermal anomalies,common,0.1,5000
+A014,Біфштекс,"опір кровотечі(слабкий), радіація +1/хв",thermal anomalies,common,0.1,4500
+A015,Вогняна куля,"терм. захист +2, радіація +1/хв",thermal anomalies,common,0.1,4000
+A016,Дзиґа,"опір кровотечі(слабкий), радіація +1/хв",thermal anomalies,common,0.1,4500
+A017,Мамине намисто,"опір кровотечі(слабкий), радіація +1/хв",thermal anomalies,common,0.1,4500
+A018,Батарейка,"витривалість +5, радіація +1/хв",electric anomalies,common,0.1,4000
+A019,Порожнявка,"витривалість +5, радіація +1/хв",electric anomalies,common,0.1,4000
+A020,Сніжинка,"витривалість +5, радіація +1/хв",electric anomalies,common,0.1,4000
+A021,Спалах,"елек. захист +2, радіація +1/хв",electric anomalies,common,0.1,4000
+A022,Шоколадка,"елек. захист +2, радіація +1/хв",electric anomalies,common,0.1,4500
+A023,Щурячий король,"елек. захист +2, радіація +1/хв",electric anomalies,common,0.1,4000
+A024,Бенгальский вогонь,"елек. захист +2, радіація +1/хв",electric anomalies,common,0.1,4000
+A025,Сапфір,"витривалість +5, радіація +1/хв",electric anomalies,common,0.1,4000
+A026,Колючка,радіація -1/хв,toxic anomalies,common,0.1,4000
+A027,Пліснява,"хім. захист +2, радіація +1/хв",toxic anomalies,common,0.1,4000
+A028,Пузир,радіація -1/хв,toxic anomalies,common,0.1,4000
+A029,Слимак,радіація -1/хв,toxic anomalies,common,0.1,4000
+A030,Слюда,радіація -1/хв,toxic anomalies,common,0.1,4000
+A031,Шкарлупа,"хім. захист +2, радіація +1/хв",toxic anomalies,common,0.1,4000
+A032,Кристальна колючка,радіація -1/хв,toxic anomalies,common,0.1,4500
+A033,Шмат м'яса,"хім. захист +2, радіація +1/хв",toxic anomalies,common,0.1,4000
+A034,Ріг,"хім. захист +2, радіація +1/хв",toxic anomalies,common,0.1,4000
+A035,Слиз,радіація -1/хв,toxic anomalies,common,0.1,4500
+A036,Корона,"фіз захист +5; витривалість +10; радіація +5/хв",gravitational anomlaies,uncommon,0.10,7000
+A037,Мухоловка,"вага +7 кг; радіація +5/хв",gravitational anomlaies,uncommon,0.10,7000
+A038,Пружина,"вага +7 кг; радіація +5/хв",gravitational anomlaies,uncommon,0.10,7000
+A039,Золота рибка,"вага +3 кг; радіація +1/хв",gravitational anomlaies,uncommon,0.10,7000
+A040,Брак,"вага +3 кг; опір кровотечі(слабкий); радіація +5/хв",thermal anomalies,uncommon,0.10,7000
+A041,Магма,"терм. захист +2; вага +3 кг; радіація +5/хв",thermal anomalies,uncommon,0.10,7000
+A042,Мертва губка,"опір кровотечі(середній); радіація +5/хв",thermal anomalies,uncommon,0.10,7000
+A043,Плазма,"терм. захист +5; радіація +5/хв",thermal anomalies,uncommon,0.10,7000
+A044,Арфа,"елек. захист +2; опір кровотечі(середній); радіація +5/хв",electric anomalies,uncommon,0.10,7000
+A045,Душа,"витривалість +10; радіація +5/хв",electric anomalies,uncommon,0.10,7000
+A046,Місячне сяйво,"елек. захист +5; радіація +5/хв",electric anomalies,uncommon,0.10,7000
+A047,Урок праці,"елек. захист +5; опір кровотечі(середній); радіація +5/хв",electric anomalies,uncommon,0.10,7000
+A048,Ліхтар,"елек. захист +5; радіація +5/хв",electric anomalies,uncommon,0.10,7000
+A049,Морський їжак,"радіація -5/хв",toxic anomalies,uncommon,0.10,7000
+A050,Колобок,"хім. захист +5; радіація +5/хв",toxic anomalies,uncommon,0.10,7000
+A051,Інфузорія,"хім. захист +5; радіація +5/хв",toxic anomalies,uncommon,0.10,7000
+A052,Сніданок туриста,"хім. захист +5; радіація +5/хв",toxic anomalies,uncommon,0.10,7000
+A053,Бутон,"фіз захист +5; витривалість +10; радіація +10/хв",gravitational anomlaies,rare,0.10,14000
+A054,Нічна зірка,"вага +15 кг; радіація +10/хв",gravitational anomlaies,rare,0.10,14000
+A055,Битий камінь,"фіз захист +5; радіація +10/хв",gravitational anomlaies,rare,0.10,14000
+A056,Битий камінь,"фіз захист +10; радіація +20/хв",gravitational anomlaies,rare,0.10,14000
+A057,Факел,"терм. захист +5; вага +7 кг; радіація +10/хв",thermal anomalies,rare,0.10,14000
+A058,Пелюстка,"опір кровотечі (сильний); радіація +10/хв",thermal anomalies,rare,0.10,14000
+A059,М'ясна запальничка,"терм. захист +10; радіація +10/хв",thermal anomalies,rare,0.10,14000
+A060,Блиск,"елек. захист +10; радіація +10/хв",electric anomalies,rare,0.10,14000
+A061,Гребінь,"витривалість +15; радіація +10/хв",electric anomalies,rare,0.10,14000
+A062,Морська зірка,"витривалість +10; опір кровотечі (сильний); радіація +10/хв",electric anomalies,rare,0.10,14000
+A063,Чортів гриб,"хім. захист +10; радіація +10/хв",toxic anomalies,rare,0.10,14000
+A064,Плівка,"хім. захист +10; радіація +10/хв",toxic anomalies,rare,0.10,14000
+A065,Стрибунець,"радіація -10/хв",toxic anomalies,rare,0.10,14000
+A066,Компас,"фіз. захист +15; радіація +20/хв",gravitational anomlaies,legendary,0.10,35000
+A067,Гіперкуб,"терм. захист +15; опір кровотечі(сильний); радіація +20/хв",thermal anomalies,legendary,0.10,35000
+A068,Грозова ягода,"витривалість +20; радіація +20/хв",electric anomalies,legendary,0.10,35000
+A069,Рідкий камінь,"хім. захист +15; радіація -20/хв",toxic anomalies,legendary,0.10,45000

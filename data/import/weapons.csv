@@ -1,0 +1,20 @@
+id,name,type,d4,d6,d8,d10,d12,d20,rof,range,calibre,reliability,weight,capacity,avg_price
+wpn001,АКМ-74U,Assault rifle,2,0,0,0,0,0,3,close,5.45х39,14,1.2,30,5500
+wpn002,АКМ-74,Assault rifle,0,2,0,0,0,0,3,medium,5.45х39,16,2.5,30,7000
+wpn003,AR416,Assault rifle,0,0,2,0,0,0,3,medium,5.56х45,13,2.5,30,11500
+wpn004,"Малюк",Assault rifle,1,0,2,0,0,0,3,medium,"5.45х39 / 5.56х45",15,2.5,30,19000
+wpn005,GP-37,Assault rifle,0,0,0,2,0,0,3,medium,5.56х45,15,2.5,30,12000
+wpn006,ПК "Бізон",Sub-machine gun,2,0,0,0,0,0,4,medium,9х19,13,2.0,64,7000
+wpn007,MP-5,Sub-machine gun,3,0,0,0,0,0,4,medium,9х19,15,1.5,30,6500
+wpn008,Vector,Sub-machine gun,0,0,2,0,0,0,5,medium,9х19,15,1.5,35,8000
+wpn009,Обріз,Shotgun,4,0,0,0,0,0,2,close,12x70,10,1.0,2,800
+wpn010,ТОЗ-34,Shotgun,5,0,0,0,0,0,2,medium,12x70,13,1.5,2,2000
+wpn011,Ремінгтон,Shotgun,7,0,0,0,0,0,1,close,12x70,15,2.5,6,12500
+wpn012,SPAS-12,Shotgun,8,0,0,0,0,0,1,close,12x70,17,2.5,8,15500
+wpn013,Мосинка,Sniper rifle,0,0,0,2,0,0,1,long,7.62×54,10,1.0,5,3000
+wpn014,СВД,Sniper rifle,0,0,0,0,0,2,1,long,7.62×54,14,2.5,10,8000
+wpn015,AWM,Sniper rifle,0,1,0,0,0,1,1,long,7.62x74,16,3.0,5,20000
+wpn016,ПМ,Pistol,0,1,0,0,0,0,1,medium,9х18,13,0.5,8,1000
+wpn017,Форт-17,Pistol,2,0,0,0,0,0,1,medium,9х18,15,0.5,12,4500
+wpn018,USP,Pistol,0,0,0,1,0,0,1,medium,9х19,12,0.5,12,7500
+wpn019,РШ-9,Pistol,0,0,0,0,0,1,1,medium,9х39,15,1.0,6,12500
