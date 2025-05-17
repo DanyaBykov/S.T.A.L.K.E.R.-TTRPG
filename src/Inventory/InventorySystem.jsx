@@ -15,7 +15,7 @@ const InventorySystem = () => {
     primary: null,
     secondary: null,
     tool: null,
-    pistol: null
+    pistol: null,
   });
   const [capacity, setCapacity] = useState(80);
   const [draggedItem, setDraggedItem] = useState(null);
@@ -33,6 +33,7 @@ const InventorySystem = () => {
   const [deleteItem, setDeleteItem] = useState(null);
   const [deleteQuantity, setDeleteQuantity] = useState(1);
   const totalQuickSlots = 6; // Total quick slots
+  const [quickSlots, setQuickSlots] = useState(Array(totalQuickSlots).fill(null));
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -65,7 +66,6 @@ const InventorySystem = () => {
     loadCharacterData();
   }, [navigate]);
 
-  // Calculate total weight including inventory and equipment
   const calculateTotalWeight = () => {
     const inventoryWeight = inventoryItems.reduce((total, item) => total + item.total_weight, 0);
     const equipmentWeight = Object.values(equipment).reduce((total, item) => {
@@ -94,6 +94,19 @@ const InventorySystem = () => {
   const handleDragStart = (e, item) => {
     setDraggedItem(item);
   };
+
+  const handleQuickSlotDragStart = (e, slotIndex, slotItem) => {
+    e.stopPropagation();
+    let dragged;
+    // For medication, merge the full item data with the current stacked quantity.
+    if (slotItem.type === 'medication') {
+      dragged = { ...slotItem.item, quantity: slotItem.quantity, quickSlotIndex: slotIndex };
+    } else if (slotItem.type === 'magazine') {
+      dragged = { ...slotItem.item, quickSlotIndex: slotIndex };
+    }
+    setDraggedItem(dragged);
+  };
+  
 
   const toggleAddItemMenu = () => {
     setIsAddItemMenuOpen((prev) => !prev);
@@ -153,10 +166,17 @@ const InventorySystem = () => {
   const usedQuickSlots = useMemo(() => {
     let used = 0;
     ['headgear', 'armor'].forEach(slot => {
-      if (equipment[slot] && equipment[slot].quick_slots) {
-        used += equipment[slot].quick_slots;
+      if (equipment[slot]) {
+        let slots = equipment[slot].quick_slots;
+        if (!slots) {
+          slots = equipment[slot].type === 'armor' ? 2 : equipment[slot].type === 'headgear' ? 1 : 0;
+        }
+        used += slots;
       }
     });
+    if (equipment.consumable) {
+      used += equipment.consumable.length;
+    }
     return used;
   }, [equipment]);
 
@@ -172,16 +192,84 @@ const InventorySystem = () => {
   };
 
   const renderQuickAccess = () => {
+    // Build reservedSlots from equipped headgear and armor.
+    const reservedSlots = [];
+    if (equipment.headgear) {
+      const count = equipment.headgear.quick_slots || 1;
+      for (let i = 0; i < count; i++) {
+        reservedSlots.push(equipment.headgear);
+      }
+    }
+    if (equipment.armor) {
+      const count = equipment.armor.quick_slots || 2;
+      for (let i = 0; i < count; i++) {
+        reservedSlots.push(equipment.armor);
+      }
+    }
+    const reservedCount = reservedSlots.length;
+    
     return (
       <div className="quick-access-grid">
-        {Array.from({ length: totalQuickSlots }, (_, i) => i + 1).map((slot) => (
-          <div
-            key={slot}
-            className={`quick-slot ${slot <= usedQuickSlots ? 'occupied-slot' : ''}`}
-          >
-            Slot {slot}
-          </div>
-        ))}
+        {Array.from({ length: totalQuickSlots }, (_, index) => {
+          if (index < reservedCount) {
+            // Reserved slot: add a drop handler that alerts when dropping into it.
+            const reservedItem = reservedSlots[index];
+            return (
+              <div
+                key={index}
+                className="quick-slot reserved-slot"
+                onDrop={(e) => {
+                  e.preventDefault();
+                  alert("This quick slot is reserved by equipment.");
+                }}
+                onDragOver={(e) => e.preventDefault()}
+              >
+                <div className="quick-slot-content">
+                  <div className="item-name">{reservedItem.name}</div>
+                  <div className="item-icon">
+                    {reservedItem.type === 'headgear' ? '🥽' : '🔧'}
+                  </div>
+                </div>
+              </div>
+            );
+          } else {
+            // Calculate user quick slot index and render user-managed slot.
+            const userSlotIndex = index - reservedCount;
+            const slot = quickSlots[userSlotIndex];
+            return (
+              <div
+                key={index}
+                className={`quick-slot ${slot ? 'occupied-slot' : ''}`}
+                onDrop={(e) => handleQuickSlotDrop(e, userSlotIndex)}
+                onDragOver={(e) => handleDragOver(e)}
+              >
+                {slot ? (
+                  <div
+                    className="quick-slot-content"
+                    draggable
+                    onDragStart={(e) => handleQuickSlotDragStart(e, userSlotIndex, slot)}
+                  >
+                    {slot.type === 'magazine' ? (
+                      <>
+                        <div className="item-name">{slot.item.name}</div>
+                        <div className="item-icon">📖</div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="item-name">
+                          {slot.item.name} x{slot.quantity}
+                        </div>
+                        <div className="item-icon">💊</div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  `Slot ${index + 1}`
+                )}
+              </div>
+            );
+          }
+        })}
       </div>
     );
   };
@@ -189,35 +277,38 @@ const InventorySystem = () => {
   const handleEquipmentDrop = async (e, slotType) => {
     e.preventDefault();
     if (!characterId || !draggedItem) return;
-    
+  
     let canEquip = false;
+  
+    // Standard type match checks.
     if (draggedItem.type === slotType) canEquip = true;
     if (draggedItem.type === 'weapon' && (slotType === 'primary' || slotType === 'secondary'))
       canEquip = true;
-    
-    // For headgear and armor, ensure quick slot requirement is met.
-    if ((draggedItem.type === 'headgear' || draggedItem.type === 'armor') && draggedItem.quick_slots) {
-      const originalSlot = Object.keys(equipment).find(key => equipment[key]?.id === draggedItem.id) || '';
-      let originalConsumption = 0;
-      if (originalSlot && (originalSlot === 'headgear' || originalSlot === 'armor')) {
-        originalConsumption = equipment[originalSlot].quick_slots || 0;
+  
+    // For headgear or armor, ensure sufficient free quick slots are available.
+    if (draggedItem.type === 'headgear' || draggedItem.type === 'armor') {
+      if (draggedItem.quick_slots) {
+        // Calculate quick slots used by currently equipped headgear/armor.
+        const used = calculateUsedQuickSlots(); // Sum of quick_slots from equipment.headgear and equipment.armor.
+        const free = totalQuickSlots - used;
+        if (draggedItem.quick_slots > free) {
+          alert("Not enough quick slots available. Item cannot be equipped.");
+          setDraggedItem(null);
+          return;
+        }
       }
-      const used = calculateUsedQuickSlots();
-      const free = totalQuickSlots - (used - originalConsumption);
-      if (draggedItem.quick_slots > free) {
-        alert("Not enough quick slots available. Item cannot be equipped.");
-        setDraggedItem(null);
-        return;
-      }
+      // Even if the type check above failed, we allow headgear/armor to equip if quick slot check passes.
       canEquip = true;
     }
-    
+  
     if (canEquip) {
       try {
         await equipItem(characterId, slotType, draggedItem.id);
         const currentItem = equipment[slotType];
         const newEquipment = { ...equipment, [slotType]: draggedItem };
-        const originalSlot = Object.keys(equipment).find(key => equipment[key]?.id === draggedItem.id);
+        const originalSlot = Object.keys(equipment).find(
+          key => equipment[key]?.id === draggedItem.id
+        );
         if (originalSlot && originalSlot !== slotType) {
           newEquipment[originalSlot] = null;
         }
@@ -232,16 +323,110 @@ const InventorySystem = () => {
     setDraggedItem(null);
   };
 
+  const handleQuickSlotDrop = (e, slotIndex) => {
+    e.preventDefault();
+    if (!draggedItem) return;
+    // Only allow items of type 'medication' or 'magazine', as before.
+    if (draggedItem.type !== 'medication' && draggedItem.type !== 'magazine') {
+      alert("Only medication or magazine items can be equipped in quick slots.");
+      setDraggedItem(null);
+      return;
+    }
+    // Get the current slot (from our quickSlots state, on user-managed indices)
+    const currentSlot = quickSlots[slotIndex];
+    if (draggedItem.type === 'magazine') {
+      if (currentSlot) {
+        alert("This quick slot is already occupied.");
+      } else {
+        const newSlots = [...quickSlots];
+        newSlots[slotIndex] = { type: 'magazine', item: draggedItem };
+        setQuickSlots(newSlots);
+        // Remove the item from inventory (implementation as before)
+        setInventoryItems(inventoryItems.filter(item => item.id !== draggedItem.id));
+      }
+    } else if (draggedItem.type === 'medication') {
+      if (!currentSlot) {
+        // Add as new medication: allow stacking up to 3 units.
+        const addQuantity = draggedItem.quantity > 3 ? 3 : draggedItem.quantity;
+        const newSlots = [...quickSlots];
+        newSlots[slotIndex] = { type: 'medication', item: draggedItem, quantity: addQuantity };
+        setQuickSlots(newSlots);
+        const remaining = draggedItem.quantity - addQuantity;
+        if (remaining <= 0) {
+          setInventoryItems(inventoryItems.filter(item => item.id !== draggedItem.id));
+        } else {
+          setInventoryItems(inventoryItems.map(item =>
+            item.id === draggedItem.id
+              ? { ...item, quantity: remaining, total_weight: remaining * item.weight }
+              : item
+          ));
+        }
+      } else {
+        // If slot is occupied, allow stacking if same medication and not at 3 units:
+        if (currentSlot.type === 'medication' && currentSlot.item.id === draggedItem.id) {
+          if (currentSlot.quantity < 3) {
+            const addable = Math.min(draggedItem.quantity, 3 - currentSlot.quantity);
+            const newSlots = [...quickSlots];
+            newSlots[slotIndex] = { ...currentSlot, quantity: currentSlot.quantity + addable };
+            setQuickSlots(newSlots);
+            const remaining = draggedItem.quantity - addable;
+            if (remaining <= 0) {
+              setInventoryItems(inventoryItems.filter(item => item.id !== draggedItem.id));
+            } else {
+              setInventoryItems(inventoryItems.map(item =>
+                item.id === draggedItem.id
+                  ? { ...item, quantity: remaining, total_weight: remaining * item.weight }
+                  : item
+              ));
+            }
+          } else {
+            alert("This quick slot already has the maximum 3 medications.");
+          }
+        } else {
+          alert("This quick slot is occupied by a different item.");
+        }
+      }
+    }
+    setDraggedItem(null);
+  };
+  
+
   const handleInventoryDrop = async (e) => {
     e.preventDefault();
     if (!characterId || !draggedItem) return;
+  
+    if (draggedItem.quickSlotIndex !== undefined) {
+      const newSlots = [...quickSlots];
+      newSlots[draggedItem.quickSlotIndex] = null;
+      setQuickSlots(newSlots);
+  
+      const itemToReturn = { ...draggedItem };
+      delete itemToReturn.quickSlotIndex;
+      const invItem = inventoryItems.find(item => item.id === itemToReturn.id);
+      if (invItem) {
+        const updatedInventory = inventoryItems.map(item =>
+          item.id === itemToReturn.id 
+            ? { 
+                ...item, 
+                quantity: item.quantity + (itemToReturn.quantity || 1),
+                total_weight: (item.quantity + (itemToReturn.quantity || 1)) * item.weight 
+              }
+            : item
+        );
+        setInventoryItems(updatedInventory);
+      } else {
+        setInventoryItems([...inventoryItems, itemToReturn]);
+      }
+      setDraggedItem(null);
+      return;
+    }
     
     if (Object.values(equipment).includes(draggedItem)) {
       const slotKey = Object.keys(equipment).find(key => equipment[key]?.id === draggedItem.id);
       if (slotKey) {
         try {
           await equipItem(characterId, slotKey, null);
-          
+
           setInventoryItems([...inventoryItems, draggedItem]);
           const newEquipment = { ...equipment };
           newEquipment[slotKey] = null;
@@ -258,7 +443,7 @@ const InventorySystem = () => {
     e.preventDefault();
   };
 
-  const itemTypes = ['headgear', 'armor', 'weapon', 'consumable', 'tool', 'pistol'];
+  const itemTypes = ['headgear', 'armor', 'weapon', 'consumable', 'tool', 'pistol', 'magazine', 'medication'];
 
   if (loading) {
     return <div className="loading">Loading character data...</div>;
@@ -331,18 +516,18 @@ const InventorySystem = () => {
                 </div>
               )}
             </div>
-            <div className="money-display">{money} грн</div>
+            <div className="money-display">{money} uah</div>
           </div>
           <div className="inventory-table-container" onDrop={handleInventoryDrop} onDragOver={handleDragOver}>
             <table className="inventory-table">
               <thead>
                 <tr>
-                  <th>Назва</th>
-                  <th>Тип</th>
-                  <th>Кількість</th>
-                  <th>Вага (1 шт.)</th>
-                  <th>Загальна вага</th>
-                  <th>Ваші нотатки про предмет</th>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Quantity</th>
+                  <th>Weight (per piece)</th>
+                  <th>Total weight</th>
+                  <th>Notations about the item</th>
                 </tr>
               </thead>
               <tbody>
@@ -367,7 +552,7 @@ const InventorySystem = () => {
           </div>
           <div className="weight-display">
             <button className="add-item-button" onClick={toggleAddItemMenu}>Add Item</button>
-            <div className="weight-indicator">{calculateTotalWeight()}/{capacity} кг</div>
+            <div className="weight-indicator">{calculateTotalWeight()}/{capacity} kg</div>
           </div>
         </div>
       </div>

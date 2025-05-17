@@ -522,9 +522,18 @@ def create_sample_inventory():
             "total_weight": 1.2
         },
         {
+            "id": 2,
+            "name": "9mm Magazine (12 rounds)",
+            "type": "magazine",
+            "quantity": 1,
+            "weight": 0.2,
+            "notes": "Standard ammunition",
+            "total_weight": 1.2
+        },
+        {
             "id": 3,
             "name": "Anti-radiation drugs",
-            "type": "consumable",
+            "type": "medication",
             "quantity": 5,
             "weight": 0.1,
             "notes": "Reduces radiation exposure",
