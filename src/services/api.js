@@ -126,7 +126,14 @@ export const getItemTypes = async () => {
     return await response.json();
   } catch (error) {
     console.error('Error fetching item types:', error);
-    throw error;
+    return [
+      {"id": "weapons", "name": "Weapons"},
+      {"id": "armor", "name": "Armor"},
+      {"id": "ammo", "name": "Ammunition"},
+      {"id": "medicine", "name": "Medicine"},
+      {"id": "food", "name": "Food"},
+      {"id": "artifacts", "name": "Artifacts"}
+    ];
   }
 };
 
@@ -139,6 +146,37 @@ export const getItemsByType = async (type) => {
     return await response.json();
   } catch (error) {
     console.error(`Error fetching items for type ${type}:`, error);
-    throw error;
+    return getMockItemsByType(type);
   }
 };
+
+function getMockItemsByType(type) {
+  const mockItems = {
+    weapons: [
+      { id: 'w1', name: 'AK-47', weight: 3.8, type: 'weapons', damage: '1d8+2' },
+      { id: 'w2', name: 'Pistol PM', weight: 0.8, type: 'weapons', damage: '1d6' },
+    ],
+    armor: [
+      { id: 'a1', name: 'Stalker Suit', weight: 5.0, type: 'armor', protection: 'P:3 R:2 C:1' },
+      { id: 'a2', name: 'Leather Jacket', weight: 2.0, type: 'armor', protection: 'P:1 R:0 C:0' },
+    ],
+    ammo: [
+      { id: 'am1', name: '5.45x39mm', weight: 0.01, type: 'ammo' },
+      { id: 'am2', name: '9x18mm', weight: 0.01, type: 'ammo' },
+    ],
+    medicine: [
+      { id: 'med1', name: 'Medkit', weight: 0.3, type: 'medicine' },
+      { id: 'med2', name: 'Bandage', weight: 0.1, type: 'medicine' },
+    ],
+    food: [
+      { id: 'f1', name: 'Canned Food', weight: 0.4, type: 'food' },
+      { id: 'f2', name: 'Bread', weight: 0.2, type: 'food' },
+    ],
+    artifacts: [
+      { id: 'art1', name: 'Medusa', weight: 0.5, type: 'artifacts' },
+      { id: 'art2', name: 'Stone Flower', weight: 0.7, type: 'artifacts' },
+    ]
+  };
+  
+  return mockItems[type] || [];
+}

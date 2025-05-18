@@ -1269,6 +1269,8 @@ def create_sample_character(user_id, game_id, character_name=None):
     return character_id
 # Add these endpoints near the end of your FastAPI application
 
+# Add these endpoints
+
 @app.get("/api/item-types")
 async def get_item_types():
     """Get all available item categories from the database"""
@@ -1312,13 +1314,13 @@ async def get_items_by_category(category: str):
             base_item = {
                 "id": item.get("id", ""),
                 "name": item.get("name", ""),
-                "weight": item.get("weight", 0),
+                "weight": float(item.get("weight", 0)),
                 "type": category
             }
             
             # Add category-specific fields
             if category == "weapons":
-                base_item["damage"] = f"{item.get('d4', 0)}d4 + {item.get('d6', 0)}d6 + {item.get('d8', 0)}d8"
+                base_item["damage"] = item.get("damage", "")
                 base_item["range"] = item.get("range", "")
                 base_item["calibre"] = item.get("calibre", "")
             elif category == "armor":
@@ -1326,7 +1328,7 @@ async def get_items_by_category(category: str):
                 base_item["slots"] = item.get("artefact_slots", 0)
             elif category == "ammo":
                 base_item["special"] = item.get("special", "")
-                
+            
             formatted_items.append(base_item)
             
         return formatted_items
