@@ -21,8 +21,10 @@ from typing import Optional, Any, Dict
 app = FastAPI(title="S.T.A.L.K.E.R. TTRPG API")
 db.config['host'] = "database"
 db.config['port'] = 3306
-db.config['user'] = "root"
-db.config['password'] = os.environ.get("MYSQL_ROOT_PASSWORD", "rootpass")
+db.config['user'] = "ttrpg_user"
+db.config['database'] = "TTRPG_DB"
+db.config['password'] ="88888888"
+# db.config['password'] = os.environ.get("MYSQL_ROOT_PASSWORD", "rootpass")
 # db.config['use_pure'] = True
 ensure_data_loaded()
 
