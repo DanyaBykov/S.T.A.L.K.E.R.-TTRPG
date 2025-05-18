@@ -12,7 +12,7 @@ services:
       MYSQL_USER: ttrpg_user
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-secretpass}
     ports:
-      - "3306:3306"
+      - "33060:33060"
     networks:
       - stalker-net
     healthcheck:
