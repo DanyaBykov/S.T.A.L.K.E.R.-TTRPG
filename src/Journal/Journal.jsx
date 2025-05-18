@@ -270,16 +270,8 @@ function QuestLogSection() {
     const fetchQuests = async () => {
       try {
         setLoading(true);
-
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          throw new Error("No authentication token found");
-        }
-        
         const response = await fetch(`/characters/${characterId}/quests`, {
           headers: {
-            'Authorization': token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json'
           }
         });
@@ -316,14 +308,11 @@ function QuestLogSection() {
         quest.id === id ? { ...quest, completed: !quest.completed } : quest
       ));
       
-      // Get token from localStorage
-      const token = localStorage.getItem('token');
       
       // API call to update quest
       const response = await fetch(`/characters/${characterId}/quests/${id}/toggle`, {
         method: 'PATCH',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
           'Content-Type': 'application/json'
         }
       });
@@ -357,14 +346,11 @@ function QuestLogSection() {
         completed: false
       };
       
-      // Get token from localStorage
-      const token = localStorage.getItem('token');
       
       // API call to create quest
       const response = await fetch(`/characters/${characterId}/quests`, {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(newQuest)
