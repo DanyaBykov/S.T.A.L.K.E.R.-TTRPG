@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from fastapi.staticfiles import StaticFiles  
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from typing import List, Optional, Dict
 import random
 import string
@@ -1271,7 +1271,7 @@ def create_sample_character(user_id, game_id, character_name=None):
 
 # Add these endpoints
 
-@app.get("/api/item-types")
+@app.get("/api/item-types", response_model=JSONResponse)
 async def get_item_types():
     """Get all available item categories from the database"""
     try:
@@ -1284,11 +1284,11 @@ async def get_item_types():
             {"id": "food", "name": "Food"},
             {"id": "artifacts", "name": "Artifacts"}
         ]
-        return item_types
+        return JSONResponse(content=item_types)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/items/{category}", response_model=List[InventoryItem])
+@app.get("/api/items/{category}", response_model=JSONResponse)
 async def get_items_by_category(category: str):
     """Get all items from a specific category"""
     try:
@@ -1331,7 +1331,7 @@ async def get_items_by_category(category: str):
             
             formatted_items.append(base_item)
             
-        return formatted_items
+        return JSONResponse(content=formatted_items)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
