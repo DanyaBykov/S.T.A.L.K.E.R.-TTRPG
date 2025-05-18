@@ -5,7 +5,7 @@ services:
     image: mysql:8.0
     restart: always
     volumes:
-      - ./data:/var/lib/mysql
+      - data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
       MYSQL_DATABASE: TTRPG_DB
@@ -53,3 +53,6 @@ services:
 networks:
   stalker-net:
     driver: bridge
+
+volumes:
+  data:
