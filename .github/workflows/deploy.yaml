@@ -61,10 +61,8 @@ jobs:
           node -v
           
           # Build the frontend
-          cd src
           npm install
           npm run build
-          cd ..
 
           # Deploy with Docker Compose
           docker-compose down || true
