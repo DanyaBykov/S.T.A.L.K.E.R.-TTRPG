@@ -254,6 +254,14 @@ function DetailView({ item, onBack, category }) {
   );
 }
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('authToken');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': token ? `Bearer ${token}` : ''
+  };
+};
+
 // Quest Log Section Component with Fetch API
 function QuestLogSection() {
   const [quests, setQuests] = useState([]);
@@ -271,9 +279,7 @@ function QuestLogSection() {
       try {
         setLoading(true);
         const response = await fetch(`/characters/${characterId}/quests`, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          headers: getAuthHeaders()
         });
         
         if (!response.ok) {
@@ -312,9 +318,7 @@ function QuestLogSection() {
       // API call to update quest
       const response = await fetch(`/characters/${characterId}/quests/${id}/toggle`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: getAuthHeaders(),
       });
       
       if (!response.ok) {
@@ -350,9 +354,7 @@ function QuestLogSection() {
       // API call to create quest
       const response = await fetch(`/characters/${characterId}/quests`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(newQuest)
       });
       
@@ -473,9 +475,7 @@ function NotesSection() {
 
         
         const response = await fetch(`/characters/${characterId}/notes`, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          headers: getAuthHeaders()
         });
         
         if (!response.ok) {
@@ -516,9 +516,7 @@ function NotesSection() {
       // API call to create note
       const response = await fetch(`/characters/${characterId}/notes`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(newNote)
       });
       
@@ -574,9 +572,7 @@ function NotesSection() {
       // API call to update note
       const response = await fetch(`/characters/${characterId}/notes/${selectedNote.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(updatedNote)
       });
       
@@ -626,10 +622,7 @@ function NotesSection() {
       // API call to delete note
       const response = await fetch(`/characters/${characterId}/notes/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json'
-        }
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) {
