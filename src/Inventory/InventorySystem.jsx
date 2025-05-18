@@ -58,6 +58,42 @@ const InventorySystem = () => {
   const totalQuickSlots = 6; // Total quick slots
   const [quickSlots, setQuickSlots] = useState(Array(totalQuickSlots).fill(null));
   const [burgerOpen, setBurgerOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState('');
+  const [selectedName, setSelectedName] = useState('');
+  const [availableItems, setAvailableItems] = useState([]);
+
+  // TO:DO needs to be changed by real db data
+  const itemsByType = {
+    weapon: [
+      { id: 'w1', name: 'AK-47', weight: 3.5 },
+      { id: 'w2', name: 'M16', weight: 3.2 }
+    ],
+    armor: [
+      { id: 'a1', name: 'SEVA Suit', weight: 8.0 },
+      { id: 'a2', name: 'Kevlar Vest', weight: 5.0 }
+    ],
+    consumable: [
+      { id: 'c1', name: 'MedKit', weight: 1.0 },
+      { id: 'c2', name: 'Energy Bar', weight: 0.2 }
+    ],
+    tool: [
+      { id: 't1', name: 'Multi-Tool', weight: 0.5 }
+    ],
+    pistol: [
+      { id: 'p1', name: 'Glock 19', weight: 0.9 }
+    ],
+    magazine: [
+      { id: 'm1', name: '9mm Magazine', weight: 0.3 }
+    ],
+    medication: [
+      { id: 'md1', name: 'Painkillers', weight: 0.1 }
+    ],
+    headgear: [
+      { id: 'hg1', name: 'Sunglasses', weight: 0.2 }
+    ]
+  };
+
+  const itemTypes = ['headgear', 'armor', 'weapon', 'consumable', 'tool', 'pistol', 'magazine', 'medication'];
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -478,8 +514,6 @@ const InventorySystem = () => {
     e.preventDefault();
   };
 
-  const itemTypes = ['headgear', 'armor', 'weapon', 'consumable', 'tool', 'pistol', 'magazine', 'medication'];
-
   if (loading) {
     return <div className="loading">Loading character data...</div>;
   }
@@ -633,15 +667,20 @@ const InventorySystem = () => {
       {isAddItemMenuOpen && (
         <div className="add-item-menu">
           <h3>Add New Item</h3>
-          <input
-            type="text"
-            placeholder="Name"
-            value={newItem.name}
-            onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-          />
+          {/* First Dropdown: Select Type */}
           <select
             value={newItem.type}
-            onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
+            onChange={(e) => {
+              const typeSelected = e.target.value;
+              setNewItem({ ...newItem, type: typeSelected, name: '', weight: 0 });
+              setSelectedType(typeSelected);
+              if (itemsByType[typeSelected]) {
+                setAvailableItems(itemsByType[typeSelected]);
+              } else {
+                setAvailableItems([]);
+              }
+              setSelectedName('');
+            }}
           >
             <option value="" disabled>Select Type</option>
             {itemTypes.map((type) => (
@@ -650,17 +689,36 @@ const InventorySystem = () => {
               </option>
             ))}
           </select>
+
+          {/* Second Dropdown: Select Item Name */}
+          <select
+            value={newItem.name}
+            onChange={(e) => {
+              const nameSelected = e.target.value;
+              const selectedItem = availableItems.find(item => item.name === nameSelected);
+              setNewItem({
+                ...newItem,
+                name: nameSelected,
+                weight: selectedItem ? selectedItem.weight : 0
+              });
+              setSelectedName(nameSelected);
+            }}
+            disabled={!newItem.type}
+          >
+            <option value="" disabled>Select Item</option>
+            {availableItems.map((item) => (
+              <option key={item.id} value={item.name}>
+                {item.name} {item.weight ? `(${item.weight} kg)` : ""}
+              </option>
+            ))}
+          </select>
+
+          {/* Other inputs for quantity and notes (weight input removed) */}
           <input
             type="number"
             placeholder="Quantity"
             value={newItem.quantity}
             onChange={(e) => setNewItem({ ...newItem, quantity: Number(e.target.value) })}
-          />
-          <input
-            type="number"
-            placeholder="Weight"
-            value={newItem.weight}
-            onChange={(e) => setNewItem({ ...newItem, weight: Number(e.target.value) })}
           />
           <textarea
             placeholder="Notes"
