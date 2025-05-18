@@ -220,21 +220,29 @@ class Database:
             tables = self.get_tables()
             logger.info(f"Found {len(tables)} tables in database")
             
-            csv_files_loaded = 0
             for table in tables:
                 if self.table_is_empty(table):
+                    # First try direct file
                     csv_file = os.path.join(self.csv_directory, f"{table}.csv")
                     
+                    # Special case for anomalies (in subdirectory)
+                    if table == 'anomalies':
+                        anomaly_types = ['gravity', 'electric', 'thermal', 'toxic', 'special']
+                        for atype in anomaly_types:
+                            anomaly_file = os.path.join(self.csv_directory, 'anomalies', f"{atype}.csv")
+                            if os.path.exists(anomaly_file):
+                                logger.info(f"Loading anomaly file: {anomaly_file}")
+                                self.load_csv_to_table(anomaly_file, table)
+                                csv_files_loaded += 1
+                        continue
+                        
+                    # Normal file handling
                     if os.path.exists(csv_file):
                         logger.info(f"Table {table} is empty. Loading data from {csv_file}")
                         if self.load_csv_to_table(csv_file, table):
                             csv_files_loaded += 1
                     else:
-                        logger.warning(f"Table {table} is empty but no matching CSV file found at {csv_file}")
-                else:
-                    logger.info(f"Table {table} already contains data, skipping")
-            
-            logger.info(f"Loaded data from {csv_files_loaded} CSV files")
+                        logger.warning(f"CSV file not found: {csv_file}")
             
         except Exception as e:
             logger.error(f"Error ensuring CSV data is loaded: {e}")
