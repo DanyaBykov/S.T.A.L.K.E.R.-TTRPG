@@ -2,8 +2,23 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { Menu } from 'lucide-react';
-import { getCharacters, getCharacter, addInventoryItem, updateInventoryItem, deleteInventoryItem, equipItem, updateMoney } from '../services/api.js';
+import { getCharacters, getCharacter, addInventoryItem, deleteInventoryItem, equipItem, updateMoney } from '../services/api.js';
 import './InventorySystem.css';
+
+export async function updateInventoryItem(characterId, itemId, updateData) {
+  const response = await fetch(`/characters/${characterId}/inventory/${itemId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(updateData)
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Update failed");
+  }
+  return response.json();
+}
 
 const InventorySystem = () => {
   const navigate = useNavigate();
@@ -34,10 +49,10 @@ const InventorySystem = () => {
   });
   const [deleteItem, setDeleteItem] = useState(null);
   const [deleteQuantity, setDeleteQuantity] = useState(1);
-  // const [contextItem, setContextItem] = useState(null); 
-  // const [isUpdateItemMenuOpen, setIsUpdateItemMenuOpen] = useState(false);
-  // const [updateItem, setUpdateItem] = useState(null);
-  // const [updateItemData, setUpdateItemData] = useState({ quantity: 1, notes: '' });
+  const [contextItem, setContextItem] = useState(null); 
+  const [isUpdateItemMenuOpen, setIsUpdateItemMenuOpen] = useState(false);
+  const [updateItem, setUpdateItem] = useState(null);
+  const [updateItemData, setUpdateItemData] = useState({ quantity: 1, notes: '' });
   const [hoveredItem, setHoveredItem] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const totalQuickSlots = 6; // Total quick slots
@@ -584,11 +599,11 @@ const InventorySystem = () => {
                     className="inventory-row"
                     draggable
                     onDragStart={(e) => handleDragStart(e, item)}
-                    onContextMenu={(e) => handleRightClick(e, item)}
-                    // onContextMenu={(e) => {
-                    //   e.preventDefault();
-                    //   setContextItem(item);
-                    // }}
+                    // onContextMenu={(e) => handleRightClick(e, item)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setContextItem(item);
+                    }}
                     onMouseEnter={(e) => {
                       setHoveredItem(item);
                       setTooltipPos({ x: e.clientX, y: e.clientY });
@@ -690,7 +705,7 @@ const InventorySystem = () => {
           {/* You can add more parameters that are available in your data */}
         </div>
       )}
-      {/* {contextItem && (
+      {contextItem && (
         <div className="context-menu-overlay">
           <div className="context-menu">
             <p>{contextItem.name}</p>
@@ -755,7 +770,7 @@ const InventorySystem = () => {
             }}>Cancel</button>
           </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 };
