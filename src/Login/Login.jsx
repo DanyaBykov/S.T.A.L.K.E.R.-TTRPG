@@ -323,7 +323,7 @@ function Login() {
           localStorage.setItem("userRole", "dm");
           
           // Get first character or create game for DM
-          navigate("/inventory");
+          navigate("/create-game");
         } else {
           // Register as DM
           await registerUser(dmUsername, dmEmail, dmPassword);
@@ -332,7 +332,7 @@ function Login() {
           localStorage.setItem("authToken", loginResponse.access_token);
           localStorage.setItem("userRole", "dm");
           
-          navigate("/inventory");
+          navigate("/create-game");
         }
       } else if (selectedRole === "player") {
         // Handle Player joining game

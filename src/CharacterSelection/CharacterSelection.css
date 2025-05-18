@@ -1,0 +1,179 @@
+/* Base container & scrollable page */
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    font-family: 'Courier New', monospace;
+    color: #a3ffa3;
+    overflow: auto;
+  }
+  
+  .cg-container {
+    width: 80%;
+    max-width: 90%;
+    margin: 5% auto;
+    padding: 20px;
+    background-color: #0a0a0a;
+    border: 1px solid #444;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    overflow: auto;
+  }
+  
+  /* Headings styling */
+  .cg-container h1,
+  .cg-container h2 {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 5px rgba(163, 255, 163, 0.5);
+    margin-bottom: 20px;
+  }
+  
+  /* Games list */
+  .games-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    border: 1px solid #444;
+    padding: 10px;
+    background-color: #1a2a1a;
+  }
+  
+  .game-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #444;
+    background-color: #1a2a1a;
+  }
+  
+  .game-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .game-code {
+    font-size: 12px;
+    color: #a3ffa3;
+  }
+  
+  /* New game section */
+  .new-game {
+    padding: 10px;
+    border: 1px solid #444;
+    background-color: #1a2a1a;
+  }
+  
+  .new-game input[type="text"] {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #444;
+    background-color: #1a2a1a;
+    color: #a3ffa3;
+    box-sizing: border-box;
+  }
+  
+  .new-game button {
+    padding: 10px 20px;
+    background-color: #1a2a1a;
+    border: 1px solid #444;
+    color: #a3ffa3;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .new-game button:hover {
+    background-color: #2a3a2a;
+    padding-left: 25px;
+  }
+  
+  /* Optional Error Message Style */
+  .error-message {
+    color: #ff4c4c;
+    margin-bottom: 10px;
+  }
+  
+  /* Loading Message Style */
+  .loading {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .game-item button {
+    padding: 8px 16px;
+    background-color: #1a2a1a;
+    border: 1px solid #444;
+    color: #a3ffa3;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+  }
+  
+  .game-item button:hover {
+    background-color: #2a3a2a;
+    padding-left: 25px;
+  }
+
+  /* New styles for game items with edit/delete/join actions */
+.games-list .game-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #444;
+    background-color: #1a2a1a;
+  }
+  
+  .games-list .game-info {
+    flex: 1;
+  }
+  
+  .games-list .game-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .games-list .game-code {
+    font-size: 12px;
+    color: #a3ffa3;
+  }
+  
+  .game-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+  }
+  
+  /* Inline edit input style */
+  .game-actions input[type="text"] {
+    padding: 5px;
+    border: 1px solid #444;
+    background-color: #1a2a1a;
+    color: #a3ffa3;
+    box-sizing: border-box;
+  }
+  
+  /* Re-use button styles for the new actions */
+  .game-actions button,
+  .game-item button {
+    padding: 8px 16px;
+    background-color: #1a2a1a;
+    border: 1px solid #444;
+    color: #a3ffa3;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .game-actions button:hover,
+  .game-item button:hover {
+    background-color: #2a3a2a;
+    padding-left: 25px;
+  }

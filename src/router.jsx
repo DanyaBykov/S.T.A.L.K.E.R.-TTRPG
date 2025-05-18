@@ -11,6 +11,8 @@ import CreateCharacter from './Create_Character/CreateCharacter.jsx';
 import './Create_Character/CreateCharacter.css';
 import CreateGame from './CreateGame/CreateGame.jsx';
 import './CreateGame/CreateGame.css';
+import CharacterSelection from './CharacterSelection/CharacterSelection.jsx';
+import './CharacterSelection/CharacterSelection.css';
 
 function App() {
   return (
@@ -22,6 +24,7 @@ function App() {
         <Route path="/journal" element={<StalkerJournal />} />
         <Route path="/create-character" element={<CreateCharacter />} />
         <Route path="/create-game" element={<CreateGame />} />
+        <Route path="/characters" element={<CharacterSelection />} />
       </Routes>
     </Router>
   );

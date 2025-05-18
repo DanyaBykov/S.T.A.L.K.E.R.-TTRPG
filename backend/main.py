@@ -131,7 +131,14 @@ class NoteCreate(NoteBase):
     pass
 
 users_db = {}
-games_db = {}
+games_db = {
+    "test-game-id": {
+        "dm_id": "test-dm-id",
+        "game_code": "ABC123",
+        "created_at": datetime.utcnow(),
+        "players": ["test-player-id"]
+    }
+}
 characters_db = {}
 quests_db = {}
 notes_db = {} 
