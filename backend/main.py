@@ -15,6 +15,12 @@ from passlib.context import CryptContext
 from database import db, ensure_data_loaded
 from fastapi import Query, Path
 from typing import Optional, Any, Dict
+from PIL import Image
+import io
+import os
+
+
+public_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "public"))
 
 
 # Initialize FastAPI
@@ -181,6 +187,29 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             return {"id": user_id, **user_data}
     
     raise credentials_exception
+
+@app.get("/api/placeholder/{width}/{height}")
+async def get_placeholder_image(width: int, height: int):
+    """
+    Serves a placeholder image, optionally resized to the specified dimensions.
+    """    
+    placeholder_path = os.path.join(public_path, "placeholder.png")
+    try:
+        # Open the image and resize it
+        image = Image.open(placeholder_path)
+        resized_image = image.resize((width, height))
+        
+        # Save to a bytes buffer
+        img_byte_arr = io.BytesIO()
+        resized_image.save(img_byte_arr, format='PNG')
+        img_byte_arr.seek(0)
+        
+        # Return the resized image
+        return Response(content=img_byte_arr.getvalue(), media_type="image/png")
+    except Exception as e:
+        logger.error(f"Error processing placeholder image: {e}")
+        # Fallback to the original image
+        return FileResponse(placeholder_path)
 
 # --- QUEST LOG ENDPOINTS ---
 @app.get("/characters/{character_id}/quests", response_model=List[Quest])
