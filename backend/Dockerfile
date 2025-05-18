@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY Pipfile Pipfile.lock ./
 RUN pip install pipenv && pipenv install --deploy --system
+RUN pipenv install fastapi
 
 COPY . .
 
