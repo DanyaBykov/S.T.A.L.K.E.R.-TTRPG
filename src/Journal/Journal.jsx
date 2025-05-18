@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import "./Journal.css";
 
+// API URL constant - leave empty if backend is on same origin
+const API_URL = '';
+
 export default function StalkerJournal() {
   const [selectedTab, setSelectedTab] = useState("Bestiary");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -111,7 +114,7 @@ export default function StalkerJournal() {
   );
 }
 
-// Mock data - replace with actual DB data later
+// Mock data - kept as fallback if API fails
 const mockBestiaryData = [
   { id: 1, name: "Bloodsucker", image: "/api/placeholder/280/280", description: "A terrifying mutant known for its ability to become nearly invisible and attack unsuspecting stalkers. Known for their distinctive tentacled faces and powerful claws." },
   { id: 2, name: "Pseudogiant", image: "/api/placeholder/280/280", description: "Massive, powerful mutants that cause the ground to shake when they move. Despite their name, they aren't giant humans but rather a horrifically mutated mass of flesh." },
@@ -138,22 +141,59 @@ const mockArtifactsData = [
 
 // Bestiary Section Component
 function BestiarySection({ selectedItem, onItemClick }) {
+  const [beasts, setBeasts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchBeasts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/wiki/mutants`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setBeasts(Array.isArray(data.data) ? data.data : data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching beasts:", err);
+        setError("Failed to load bestiary data. Using local data.");
+        
+        // Fallback to mock data if API fails
+        setBeasts(mockBestiaryData);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    // Only fetch data if no item is selected for detail view
+    if (!selectedItem) {
+      fetchBeasts();
+    }
+  }, [selectedItem]);
+
   if (selectedItem) {
     return <DetailView item={selectedItem} onBack={() => onItemClick(null)} category="Bestiary" />;
   }
 
+  if (loading) return <div className="loading">Loading bestiary data...</div>;
+
   return (
     <div className="list-section">
       <h1 className="section-title">Bestiary</h1>
+      {error && <div className="error-message">{error}</div>}
       <div className="item-list">
-        {mockBestiaryData.map(beast => (
+        {beasts.map(beast => (
           <div 
             key={beast.id} 
             className="list-item"
             onClick={() => onItemClick(beast)}
           >
             <div className="list-item-image">
-              <img src={beast.image} alt={beast.name} />
+              <img src={beast.image || "/api/placeholder/280/280"} alt={beast.name} />
             </div>
             <div className="list-item-name">{beast.name}</div>
           </div>
@@ -165,22 +205,59 @@ function BestiarySection({ selectedItem, onItemClick }) {
 
 // Anomalies Section Component
 function AnomaliesSection({ selectedItem, onItemClick }) {
+  const [anomalies, setAnomalies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchAnomalies = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/wiki/anomalies`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setAnomalies(Array.isArray(data.data) ? data.data : data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching anomalies:", err);
+        setError("Failed to load anomalies data. Using local data.");
+        
+        // Fallback to mock data if API fails
+        setAnomalies(mockAnomaliesData);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    // Only fetch data if no item is selected for detail view
+    if (!selectedItem) {
+      fetchAnomalies();
+    }
+  }, [selectedItem]);
+
   if (selectedItem) {
     return <DetailView item={selectedItem} onBack={() => onItemClick(null)} category="Anomalies" />;
   }
 
+  if (loading) return <div className="loading">Loading anomalies data...</div>;
+
   return (
     <div className="list-section">
       <h1 className="section-title">Anomalies</h1>
+      {error && <div className="error-message">{error}</div>}
       <div className="item-list">
-        {mockAnomaliesData.map(anomaly => (
+        {anomalies.map(anomaly => (
           <div 
             key={anomaly.id} 
             className="list-item"
             onClick={() => onItemClick(anomaly)}
           >
             <div className="list-item-image">
-              <img src={anomaly.image} alt={anomaly.name} />
+              <img src={anomaly.image || "/api/placeholder/280/280"} alt={anomaly.name} />
             </div>
             <div className="list-item-name">{anomaly.name}</div>
           </div>
@@ -192,22 +269,59 @@ function AnomaliesSection({ selectedItem, onItemClick }) {
 
 // Artifacts Section Component
 function ArtifactsSection({ selectedItem, onItemClick }) {
+  const [artifacts, setArtifacts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchArtifacts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/wiki/artifacts`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setArtifacts(Array.isArray(data.data) ? data.data : data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching artifacts:", err);
+        setError("Failed to load artifacts data. Using local data.");
+        
+        // Fallback to mock data if API fails
+        setArtifacts(mockArtifactsData);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    // Only fetch data if no item is selected for detail view
+    if (!selectedItem) {
+      fetchArtifacts();
+    }
+  }, [selectedItem]);
+
   if (selectedItem) {
     return <DetailView item={selectedItem} onBack={() => onItemClick(null)} category="Artifacts" />;
   }
 
+  if (loading) return <div className="loading">Loading artifacts data...</div>;
+
   return (
     <div className="list-section">
       <h1 className="section-title">Artifacts</h1>
+      {error && <div className="error-message">{error}</div>}
       <div className="item-list">
-        {mockArtifactsData.map(artifact => (
+        {artifacts.map(artifact => (
           <div 
             key={artifact.id} 
             className="list-item"
             onClick={() => onItemClick(artifact)}
           >
             <div className="list-item-image">
-              <img src={artifact.image} alt={artifact.name} />
+              <img src={artifact.image || "/api/placeholder/280/280"} alt={artifact.name} />
             </div>
             <div className="list-item-name">{artifact.name}</div>
           </div>
@@ -219,32 +333,103 @@ function ArtifactsSection({ selectedItem, onItemClick }) {
 
 // Detail View Component for Bestiary, Anomalies, and Artifacts
 function DetailView({ item, onBack, category }) {
+  const [fullDetails, setFullDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Get the table name based on category
+  const getTableName = () => {
+    switch (category.toLowerCase()) {
+      case 'bestiary': return 'mutants';
+      case 'anomalies': return 'anomalies';
+      case 'artifacts': return 'artifacts';
+      default: return category.toLowerCase();
+    }
+  };
+  
+  useEffect(() => {
+    const fetchDetails = async () => {
+      // If we already have full details, no need to fetch
+      if (item && item.description) {
+        setFullDetails(item);
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        const tableName = getTableName();
+        const response = await fetch(`${API_URL}/wiki/tables/${tableName}/${item.id}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const detailedItem = await response.json();
+        setFullDetails(detailedItem);
+        setError(null);
+      } catch (err) {
+        console.error(`Error fetching ${category} details:`, err);
+        setError(`Failed to load complete details for ${item.name}.`);
+        
+        // Use item as fallback
+        setFullDetails(item);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (item) {
+      fetchDetails();
+    }
+  }, [item, category]);
+  
+  if (loading) return <div className="loading">Loading details...</div>;
+  
+  const displayItem = fullDetails || item;
+  
+  // Extract properties for display
+  const getProperties = () => {
+    if (category === 'Artifacts') {
+      if (displayItem.properties) return displayItem.properties;
+      
+      return [
+        `Radiation: ${displayItem.radiation || "N/A"}`,
+        `Weight: ${displayItem.weight || "N/A"} kg`,
+        `Value: ${displayItem.value || "N/A"} RU`
+      ].filter(prop => !prop.includes("N/A")).join(", ");
+    }
+    return displayItem.properties;
+  };
+  
   return (
     <div className="detail-view">
       <div className="detail-header">
         <button className="back-button" onClick={onBack}>← Back to {category}</button>
-        <h1 className="detail-title">{item.name}</h1>
+        <h1 className="detail-title">{displayItem.name}</h1>
       </div>
+      
+      {error && <div className="error-message">{error}</div>}
       
       <div className="detail-content">
         <div className="detail-image-container">
           <img 
-            src={item.image} 
-            alt={item.name} 
+            src={displayItem.image || "/api/placeholder/280/280"} 
+            alt={displayItem.name} 
             className="detail-image"
           />
         </div>
         
         <div className="detail-text">
           <p className="detail-description">
-            {item.description}
+            {displayItem.description}
           </p>
           
-          {item.properties && (
+          {(displayItem.properties || category === 'Artifacts') && (
             <div className="stat-block-section">
               <h2 className="stat-block-title">PROPERTIES</h2>
               <div className="stat-block-content">
-                <p>{item.properties}</p>
+                <p>{getProperties()}</p>
               </div>
             </div>
           )}
@@ -278,7 +463,7 @@ function QuestLogSection() {
     const fetchQuests = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/characters/${characterId}/quests`, {
+        const response = await fetch(`${API_URL}/characters/${characterId}/quests`, {
           headers: getAuthHeaders()
         });
         
@@ -316,7 +501,7 @@ function QuestLogSection() {
       
       
       // API call to update quest
-      const response = await fetch(`/characters/${characterId}/quests/${id}/toggle`, {
+      const response = await fetch(`${API_URL}/characters/${characterId}/quests/${id}/toggle`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
       });
@@ -352,7 +537,7 @@ function QuestLogSection() {
       
       
       // API call to create quest
-      const response = await fetch(`/characters/${characterId}/quests`, {
+      const response = await fetch(`${API_URL}/characters/${characterId}/quests`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(newQuest)
@@ -474,7 +659,7 @@ function NotesSection() {
         setLoading(true);
 
         
-        const response = await fetch(`/characters/${characterId}/notes`, {
+        const response = await fetch(`${API_URL}/characters/${characterId}/notes`, {
           headers: getAuthHeaders()
         });
         
@@ -514,7 +699,7 @@ function NotesSection() {
       
       
       // API call to create note
-      const response = await fetch(`/characters/${characterId}/notes`, {
+      const response = await fetch(`${API_URL}/characters/${characterId}/notes`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(newNote)
@@ -570,7 +755,7 @@ function NotesSection() {
       
       
       // API call to update note
-      const response = await fetch(`/characters/${characterId}/notes/${selectedNote.id}`, {
+      const response = await fetch(`${API_URL}/characters/${characterId}/notes/${selectedNote.id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(updatedNote)
@@ -620,7 +805,7 @@ function NotesSection() {
     try {
       
       // API call to delete note
-      const response = await fetch(`/characters/${characterId}/notes/${id}`, {
+      const response = await fetch(`${API_URL}/characters/${characterId}/notes/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
