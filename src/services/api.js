@@ -1,4 +1,4 @@
-const API_URL = 'https://stalker.ucuserver.cc/';
+const API_URL = 'https://stalker.ucuserver.cc';
 
 // Helper function for fetch requests
 async function apiRequest(url, options = {}) {
