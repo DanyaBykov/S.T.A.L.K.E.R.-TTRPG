@@ -51,7 +51,8 @@ class Database:
             'host': host,
             'user': user,
             'password': password,
-            'database': database
+            'database': database,
+            'client_flags': mysql.connector.ClientFlag.MULTI_STATEMENTS
         }
         self.csv_directory = csv_directory
         self.connection = None

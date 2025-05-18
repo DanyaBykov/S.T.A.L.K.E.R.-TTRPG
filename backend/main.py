@@ -21,7 +21,7 @@ from typing import Optional, Any, Dict
 app = FastAPI(title="S.T.A.L.K.E.R. TTRPG API")
 db.config['host'] = "stalker-ttrpg_database_1"
 db.config['port'] = 33060
-db.config['use_pure'] = True
+# db.config['use_pure'] = True
 ensure_data_loaded()
 
 # Configure CORS
