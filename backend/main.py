@@ -1271,6 +1271,8 @@ def create_sample_character(user_id, game_id, character_name=None):
 
 # Add these endpoints
 
+# Replace these endpoints with fixed versions
+
 @app.get("/api/item-types")
 async def get_item_types():
     """Get all available item categories from the database"""
@@ -1284,7 +1286,7 @@ async def get_item_types():
             {"id": "food", "name": "Food"},
             {"id": "artifacts", "name": "Artifacts"}
         ]
-        return JSONResponse(content=item_types)
+        return item_types
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1314,7 +1316,7 @@ async def get_items_by_category(category: str):
             base_item = {
                 "id": item.get("id", ""),
                 "name": item.get("name", ""),
-                "weight": float(item.get("weight", 0)),
+                "weight": float(item.get("weight", 0)) if item.get("weight") else 0,
                 "type": category
             }
             
@@ -1331,10 +1333,9 @@ async def get_items_by_category(category: str):
             
             formatted_items.append(base_item)
             
-        return JSONResponse(content=formatted_items)
+        return formatted_items
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 # Run the application
 if __name__ == "__main__":
     import uvicorn
