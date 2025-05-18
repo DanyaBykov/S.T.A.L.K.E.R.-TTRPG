@@ -1,7 +1,7 @@
 const API_URL = '';
 
 // Helper function for fetch requests
-async function apiRequest(url, options = {}) {
+export async function apiRequest(url, options = {}) {
   // Add token to request if available
   const token = localStorage.getItem('authToken');
   
