@@ -1288,7 +1288,7 @@ async def get_item_types():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/items/{category}")
+@app.get("/api/items/{category}", response_model=List[InventoryItem])
 async def get_items_by_category(category: str):
     """Get all items from a specific category"""
     try:
