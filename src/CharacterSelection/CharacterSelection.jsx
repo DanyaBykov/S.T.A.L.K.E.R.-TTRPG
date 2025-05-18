@@ -58,7 +58,9 @@ const CharacterSelection = () => {
   const [gameName, setGameName] = useState("");
 
   // Get game ID from either params or location state
-  const currentGameId = gameId || (location.state && location.state.gameId);
+  const currentGameId = gameId || 
+                     (location.state && location.state.gameId) || 
+                     localStorage.getItem("currentGameId");
 
   // For editing character name
   const [editingId, setEditingId] = useState(null);
