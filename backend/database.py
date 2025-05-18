@@ -26,11 +26,11 @@ class Database:
         return cls._instance
     
     def __init__(self, 
-                 host: str = 'database', 
+                 host: str = 'stalker-ttrpg_database_1', 
                  user: str = 'ttrpg_user', 
                  password: str = None,
                  database: str = 'TTRPG_DB',
-                 csv_directory: str = '/app/data/csv'):
+                 csv_directory: str = '/app/data/import'):
         """
         Initialize the database connector.
         
