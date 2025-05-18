@@ -12,13 +12,14 @@ from datetime import datetime, timedelta
 import jwt as pyjwt
 import os
 from passlib.context import CryptContext
-from database import db
+from database import db, ensure_data_loaded
 from fastapi import Query, Path
 from typing import Optional, Any, Dict
 
 
 # Initialize FastAPI
 app = FastAPI(title="S.T.A.L.K.E.R. TTRPG API")
+ensure_data_loaded()
 
 # Configure CORS
 app.add_middleware(
