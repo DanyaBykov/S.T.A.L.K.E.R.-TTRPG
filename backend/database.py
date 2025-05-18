@@ -46,6 +46,166 @@ class Database:
         self.connection = None
         self.cursor = None
         self._initialized = True
+    def initialize_schema_from_csvs(self) -> bool:
+        """Create database tables based on CSV files available in the data directory"""
+        if not self.connect():
+            logger.error("Cannot initialize schema: database connection failed")
+            return False
+            
+        try:
+            # Define table schemas based on CSV file headers
+            schema_definitions = {
+                'ammo': """
+                    CREATE TABLE IF NOT EXISTS ammo (
+                        id VARCHAR(20) PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        type ENUM('normal', 'HP', 'AP'),
+                        special TEXT,
+                        weight DECIMAL(4,2),
+                        avg_price INT
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """,
+                
+                'armor': """
+                    CREATE TABLE IF NOT EXISTS armor (
+                        id VARCHAR(20) PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        physical INT,
+                        radioactive INT,
+                        chemical INT,
+                        thermal INT,
+                        electric INT,
+                        psy INT,
+                        artefact_slots INT,
+                        quick_slots INT,
+                        reliability INT,
+                        weight DECIMAL(4,2),
+                        special TEXT,
+                        avg_price INT
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """,
+                
+                'artifacts': """
+                    CREATE TABLE IF NOT EXISTS artifacts (
+                        id VARCHAR(20) PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        property TEXT,
+                        source ENUM('gravitational anomlaies',
+                                    'thermal anomalies',
+                                    'electric anomalies',
+                                    'toxic anomalies'),
+                        rarity ENUM('common',
+                                    'uncommon',
+                                    'rare',
+                                    'legendary',
+                                    'archi-artifact'),
+                        weight DECIMAL(4,2),
+                        avg_price INT
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """,
+                
+                'beasts': """
+                    CREATE TABLE IF NOT EXISTS beasts (
+                        id VARCHAR(20) PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        size ENUM('small', 'medium', 'large', 'humanoid'),
+                        description TEXT,
+                        abilities TEXT,
+                        HP INT,
+                        agility INT
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """,
+                
+                'food': """
+                    CREATE TABLE IF NOT EXISTS food (
+                        id VARCHAR(50) PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        food_points INT,
+                        weight DECIMAL(4,2),
+                        avg_price INT,
+                        bonus TEXT
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """,
+                
+                'medicine': """
+                    CREATE TABLE IF NOT EXISTS medicine (
+                        id VARCHAR(20) PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        property TEXT,
+                        weight DECIMAL(4,2),
+                        avg_price INT
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """,
+                
+                'weapons': """
+                    CREATE TABLE IF NOT EXISTS weapons (
+                        id VARCHAR(20) PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        type VARCHAR(50),
+                        d4 INT DEFAULT 0,
+                        d6 INT DEFAULT 0,
+                        d8 INT DEFAULT 0,
+                        d10 INT DEFAULT 0,
+                        d12 INT DEFAULT 0,
+                        d20 INT DEFAULT 0,
+                        rof INT,
+                        `range` ENUM('close', 'medium', 'long'),
+                        calibre VARCHAR(50),
+                        reliability INT,
+                        weight DECIMAL(4,2),
+                        capacity INT,
+                        avg_price INT
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """,
+                
+                'anomalies': """
+                    CREATE TABLE IF NOT EXISTS anomalies (
+                        id VARCHAR(20) PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        strength ENUM('weak',
+                                    'normal',
+                                    'strong',
+                                    'charged'),
+                        d4 INT DEFAULT 0,
+                        d6 INT DEFAULT 0,
+                        d8 INT DEFAULT 0,
+                        d10 INT DEFAULT 0,
+                        d12 INT DEFAULT 0,
+                        d20 INT DEFAULT 0,
+                        type ENUM('gravity',
+                                'electric',
+                                'thermal',
+                                'toxic',
+                                'special'),
+                        visibility ENUM('almost invisible',
+                                        'invisible',
+                                        'visible'),
+                        behavior TEXT
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                """
+            }
+            
+            # Create tables
+            tables_created = 0
+            for table_name, schema in schema_definitions.items():
+                try:
+                    with self.get_connection() as conn:
+                        with conn.cursor() as cursor:
+                            logger.info(f"Creating table: {table_name}")
+                            cursor.execute(schema)
+                            conn.commit()
+                            tables_created += 1
+                except Exception as e:
+                    logger.error(f"Error creating table {table_name}: {e}")
+            
+            logger.info(f"Created {tables_created} tables")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error initializing schema: {e}")
+            return False
+        finally:
+            self.close()
         
     @contextmanager
     def get_connection(self):
@@ -321,9 +481,15 @@ class Database:
             logger.error(f"Error counting records in {table_name}: {e}")
             return 0
 
+
 db = Database()
 
 def ensure_data_loaded():
+    if not db.get_tables():
+        logger.info("No tables found in database. Creating schema...")
+        db.initialize_schema_from_csvs()
+
+    logger.info("Ensuring CSV data is loaded...")
     db.ensure_csv_data_loaded()
 
 if __name__ == "__main__":
