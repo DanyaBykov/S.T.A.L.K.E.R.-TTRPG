@@ -346,7 +346,7 @@ function Login() {
         await joinGame(gameCode);
         localStorage.setItem("userRole", "player");
         
-        navigate("/characters");
+        navigate("/characters", { state: { gameId: gameCode } });
       }
     } catch (err) {
       setError(err.message);
