@@ -205,9 +205,8 @@ async def get_placeholder_image(width: int, height: int):
         img_byte_arr.seek(0)
         
         # Return the resized image
-        return Response(content=img_byte_arr.getvalue(), media_type="image/png")
+        return FileResponse(content=img_byte_arr.getvalue(), media_type="image/png")
     except Exception as e:
-        logger.error(f"Error processing placeholder image: {e}")
         # Fallback to the original image
         return FileResponse(placeholder_path)
 
