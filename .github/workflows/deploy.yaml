@@ -43,6 +43,11 @@ jobs:
           echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
           echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
           
+          cd src
+          npm install
+          npm run build
+          cd ..
+
           # Deploy with Docker Compose
           docker-compose down || true
           docker-compose up -d --build
