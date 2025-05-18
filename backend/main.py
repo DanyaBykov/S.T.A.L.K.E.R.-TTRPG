@@ -880,34 +880,131 @@ async def create_game(
         "is_dm": True
     }
 
-@app.post("/games/join")
-async def join_game(game_code: str, current_user: dict = Depends(get_current_user)):
-    for game_id, game in games_db.items():
-        if game["game_code"] == game_code:
-            if current_user["id"] not in game["players"]:
-                games_db[game_id]["players"].append(current_user["id"])
-            
-            # Create a character for the player if they don't have one
-            character_exists = False
-            for character in characters_db.values():
-                if character["user_id"] == current_user["id"] and character["game_id"] == game_id:
-                    character_exists = True
-                    break
-            
-            if not character_exists:
-                create_sample_character(
-                    current_user["id"],
-                    game_id,
-                    character_name=f"{current_user['username']}'s Character"
-                )
-            
-            return {"message": "Successfully joined the game"}
-    
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Game not found with this code"
-    )
+# Add this function to the helper functions section
 
+async def get_current_user_or_none(
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="token", auto_error=False))
+):
+    """Returns the current user if authenticated, or None if not."""
+    if not token:
+        return None
+        
+    try:
+        payload = pyjwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            return None
+            
+        for user_id, user_data in users_db.items():
+            if user_data["email"] == email:
+                return {"id": user_id, **user_data}
+                
+    except:
+        pass
+        
+    return None
+
+class JoinGameRequest(BaseModel):
+    game_code: str
+    guest_name: Optional[str] = "Anonymous Stalker"
+
+@app.post("/games/join")
+async def join_game(
+    join_data: JoinGameRequest,
+    current_user: Optional[dict] = Depends(get_current_user_or_none)
+):
+    """Join a game using a game code - allows anonymous users"""
+    game_id = None
+    found_game = None
+    
+    # Find game with matching code
+    for g_id, game in games_db.items():
+        if game["game_code"] == join_data.game_code:
+            game_id = g_id
+            found_game = game
+            break
+    
+    if not game_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game not found with this code"
+        )
+    
+    if current_user:
+        # Registered user flow
+        if current_user["id"] not in found_game["players"]:
+            games_db[game_id]["players"].append(current_user["id"])
+        
+        # Check if user already has a character
+        character_exists = False
+        existing_character_id = None
+        
+        for char_id, character in characters_db.items():
+            if character["user_id"] == current_user["id"] and character["game_id"] == game_id:
+                character_exists = True
+                existing_character_id = char_id
+                break
+        
+        if not character_exists:
+            # Create a new character for the registered user
+            character_id = create_sample_character(
+                current_user["id"],
+                game_id,
+                character_name=f"{current_user['username']}'s Character"
+            )
+        else:
+            character_id = existing_character_id
+        
+        return {
+            "message": "Successfully joined the game",
+            "game_id": game_id,
+            "character_id": character_id,
+            "is_guest": False,
+            "game_name": found_game.get("name", f"Game {game_id}"),
+            "game_code": found_game["game_code"]
+        }
+    else:
+        # Anonymous/guest user flow
+        guest_id = str(uuid.uuid4())
+        
+        # Create a temporary guest user
+        guest_user = {
+            "id": guest_id,
+            "username": join_data.guest_name,
+            "is_guest": True,
+            "created_at": datetime.now().isoformat()
+        }
+        
+        # Store in users_db (optionally with expiration)
+        users_db[guest_id] = guest_user
+        
+        # Create a character for this guest
+        character_id = create_sample_character(
+            guest_id, 
+            game_id,
+            character_name=f"{join_data.guest_name}"
+        )
+        
+        # Add guest to players list
+        games_db[game_id]["players"].append(guest_id)
+        
+        # Generate session token for the guest
+        access_token_expires = timedelta(hours=12)  # Guest sessions last 12 hours
+        access_token = create_access_token(
+            data={"sub": f"guest:{guest_id}", "name": join_data.guest_name},
+            expires_delta=access_token_expires
+        )
+        
+        return {
+            "message": "Successfully joined the game as a guest",
+            "game_id": game_id,
+            "character_id": character_id,
+            "is_guest": True,
+            "guest_token": access_token,
+            "guest_name": join_data.guest_name,
+            "game_name": found_game.get("name", f"Game {game_id}"),
+            "game_code": found_game["game_code"]
+        }
 # --- CHARACTER & INVENTORY ENDPOINTS ---
 
 @app.get("/characters", response_model=List[Character])
