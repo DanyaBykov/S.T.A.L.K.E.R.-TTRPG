@@ -346,7 +346,7 @@ function Login() {
         await joinGame(gameCode);
         localStorage.setItem("userRole", "player");
         
-        navigate("/inventory");
+        navigate("/characters");
       }
     } catch (err) {
       setError(err.message);
