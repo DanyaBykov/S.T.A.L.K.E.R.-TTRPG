@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CreateGame.css';
-import { apiRequest } from '../services/api';
+import { apiRequest } from '../services/api.js';
 
 // API functions for game management
 async function getGames() {
