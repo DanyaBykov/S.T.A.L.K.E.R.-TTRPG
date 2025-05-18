@@ -136,6 +136,13 @@ class Note(NoteBase):
 class NoteCreate(NoteBase):
     pass
 
+
+class GameCreate(BaseModel):
+    name: str
+
+class GameUpdate(BaseModel):
+    name: str
+
 users_db = {}
 games_db = {
     "test-game-id": {
@@ -839,9 +846,13 @@ async def register_user(user: UserCreate):
 
 # --- GAME MANAGEMENT ENDPOINTS ---
 
-@app.post("/games", response_model=Game)
-async def create_game(current_user: dict = Depends(get_current_user)):
-    if not current_user["is_dm"]:
+@app.post("/games")
+async def create_game(
+    game: GameCreate,  # Change to use GameCreate model
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new game with the current user as DM"""
+    if not current_user.get("is_dm", False):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only DMs can create games"
@@ -851,19 +862,22 @@ async def create_game(current_user: dict = Depends(get_current_user)):
     game_code = generate_game_code()
     
     # Ensure game code is unique
-    while any(game["game_code"] == game_code for game in games_db.values()):
+    while any(g["game_code"] == game_code for g in games_db.values()):
         game_code = generate_game_code()
     
     games_db[game_id] = {
         "dm_id": current_user["id"],
         "game_code": game_code,
-        "created_at": datetime.utcnow(),
+        "name": game.name,  # Add name field
+        "created_at": datetime.now().isoformat(),
         "players": []
     }
     
     return {
         "id": game_id,
-        **games_db[game_id]
+        "name": game.name,
+        **{k: v for k, v in games_db[game_id].items() if k != "name"},
+        "is_dm": True
     }
 
 @app.post("/games/join")
@@ -1329,6 +1343,78 @@ async def get_items_by_category(category: str):
     except Exception as e:
         print(f"Error in get_items_by_category: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+@app.get("/games")
+async def get_user_games(current_user: dict = Depends(get_current_user)):
+    """Get all games where the user is either DM or player"""
+    user_games = []
+    
+    # Find games where user is DM or player
+    for game_id, game in games_db.items():
+        is_dm = game["dm_id"] == current_user["id"]
+        is_player = current_user["id"] in game.get("players", [])
+        
+        if is_dm or is_player:
+            user_games.append({
+                "id": game_id,
+                "name": game.get("name", f"Game {game_id}"),
+                "game_code": game["game_code"],
+                "is_dm": is_dm,
+                "created_at": game.get("created_at", datetime.now().isoformat())
+            })
+    
+    return user_games
+    
+@app.put("/games/{game_id}")
+async def update_game(
+    game_id: str,
+    game: GameUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update game details (only DM can do this)"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    if games_db[game_id]["dm_id"] != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Only the DM can update this game")
+    
+    games_db[game_id]["name"] = game.name
+    
+    return {
+        "id": game_id,
+        "name": game.name,
+        "game_code": games_db[game_id]["game_code"],
+        "is_dm": True,
+        "created_at": games_db[game_id].get("created_at", datetime.now().isoformat())
+    }
+
+@app.delete("/games/{game_id}")
+async def delete_game(
+    game_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a game (only DM can do this)"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    if games_db[game_id]["dm_id"] != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Only the DM can delete this game")
+    
+    # Delete the game
+    del games_db[game_id]
+    
+    # Also delete any associated characters
+    characters_to_delete = []
+    for char_id, character in characters_db.items():
+        if character["game_id"] == game_id:
+            characters_to_delete.append(char_id)
+    
+    for char_id in characters_to_delete:
+        del characters_db[char_id]
+    
+    return {"message": "Game deleted successfully"}
     
 @app.get("/{path:path}", include_in_schema=False)
 async def serve_spa(path: str):
