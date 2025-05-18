@@ -192,23 +192,80 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 async def get_placeholder_image(width: int, height: int):
     """
     Serves a placeholder image, optionally resized to the specified dimensions.
-    """    
-    placeholder_path = os.path.join(public_path, "placeholder.png")
+    If the image file doesn't exist, generates a simple colored placeholder.
+    """
+    # Try multiple possible locations for the placeholder image
+    possible_paths = [
+        os.path.join(public_path, "placeholder.png"),
+        os.path.join(os.path.dirname(__file__), "..", "public", "placeholder.png"),
+        os.path.join(dist_path, "placeholder.png"),
+        os.path.join(dist_path, "assets", "placeholder.png"),
+    ]
+    
+    placeholder_path = None
+    for path in possible_paths:
+        if os.path.isfile(path):
+            placeholder_path = path
+            break
+    
     try:
-        # Open the image and resize it
-        image = Image.open(placeholder_path)
-        resized_image = image.resize((width, height))
+        if placeholder_path:
+            # Use the existing file if found
+            image = Image.open(placeholder_path)
+            resized_image = image.resize((width, height))
+        else:
+            # Generate a simple placeholder with text if file not found
+            # Create a dark gray image with a lighter border
+            resized_image = Image.new('RGB', (width, height), (26, 42, 26))
+            
+            # Draw border (5px)
+            border = 5
+            for i in range(border):
+                for x in range(width):
+                    for y in range(height):
+                        if x < border or x >= width - border or y < border or y >= height - border:
+                            resized_image.putpixel((x, y), (163, 255, 163))
+            
+            # Add text if PIL has ImageDraw
+            try:
+                from PIL import ImageDraw, ImageFont
+                draw = ImageDraw.Draw(resized_image)
+                
+                # Try to use a font, fallback to default
+                try:
+                    font = ImageFont.truetype("Arial", 20)
+                except IOError:
+                    font = ImageFont.load_default()
+                
+                text = f"{width}×{height}"
+                text_width = draw.textlength(text, font=font)
+                position = ((width - text_width) // 2, (height - 20) // 2)
+                draw.text(position, text, fill=(163, 255, 163), font=font)
+            except ImportError:
+                # If ImageDraw is not available, just use the colored background
+                pass
         
         # Save to a bytes buffer
         img_byte_arr = io.BytesIO()
         resized_image.save(img_byte_arr, format='PNG')
         img_byte_arr.seek(0)
         
-        # Return the resized image
-        return FileResponse(content=img_byte_arr.getvalue(), media_type="image/png")
+        # Return the image
+        from fastapi.responses import Response
+        return Response(content=img_byte_arr.getvalue(), media_type="image/png")
+    
     except Exception as e:
-        # Fallback to the original image
-        return FileResponse(placeholder_path)
+        # If all else fails, return an error message with debug info
+        logger.error(f"Error generating placeholder image: {e}")
+        
+        # Generate the simplest possible image - just a colored square
+        fallback_img = Image.new('RGB', (width, height), (163, 255, 163))
+        img_byte_arr = io.BytesIO()
+        fallback_img.save(img_byte_arr, format='PNG')
+        img_byte_arr.seek(0)
+        
+        from fastapi.responses import Response
+        return Response(content=img_byte_arr.getvalue(), media_type="image/png")
 
 # --- QUEST LOG ENDPOINTS ---
 @app.get("/characters/{character_id}/quests", response_model=List[Quest])
