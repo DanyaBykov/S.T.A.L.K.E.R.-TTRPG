@@ -2,24 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { Menu } from 'lucide-react';
-import { getCharacters, getCharacter, addInventoryItem, deleteInventoryItem, equipItem, updateMoney } from '../services/api.js';
+import { getCharacters, getCharacter, addInventoryItem, deleteInventoryItem, equipItem, updateMoney, updateInventoryItem } from '../services/api.js';
 import './InventorySystem.css';
 import { getItemTypes, getItemsByType } from '../services/api.js';
 
-export async function updateInventoryItem(characterId, itemId, updateData) {
-  const response = await fetch(`/characters/${characterId}/inventory/${itemId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(updateData)
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || "Update failed");
-  }
-  return response.json();
-}
 
 const InventorySystem = () => {
   const navigate = useNavigate();
@@ -796,15 +782,24 @@ const InventorySystem = () => {
             </div>
             <button onClick={async () => {
               try {
-                const updated = await updateInventoryItem(characterId, updateItem.id, updateItemData);
+                const fullItemData = {
+                  ...updateItem,                                      
+                  quantity: updateItemData.quantity,                
+                  notes: updateItemData.notes,         
+                  total_weight: updateItem.weight * updateItemData.quantity
+                };
+                
+                const updated = await updateInventoryItem(characterId, updateItem.id, fullItemData);
+                
                 const updatedInventory = inventoryItems.map(item =>
                   item.id === updateItem.id ? updated : item
                 );
+                
                 setInventoryItems(updatedInventory);
                 setIsUpdateItemMenuOpen(false);
                 setUpdateItem(null);
               } catch (err) {
-                alert("Failed to update item: " + JSON.stringify(err));
+                alert("Failed to update item: " + (err.message || JSON.stringify(err)));
               }
             }}>Update</button>
             <button onClick={() => {
