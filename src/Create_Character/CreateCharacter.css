@@ -10,7 +10,6 @@ html, body {
     overflow: auto;
   }
   
-  /* Main container */
   .cc-container {
     width: 80%;
     max-width: 90%;
@@ -22,7 +21,6 @@ html, body {
     overflow: auto;
   }
   
-  /* Headings */
   .cc-container h1 {
     text-align: center;
     font-size: 24px;
@@ -42,7 +40,6 @@ html, body {
     text-shadow: 0 0 5px rgba(163, 255, 163, 0.5);
   }
   
-  /* Sections */
   .cc-container section {
     margin-bottom: 20px;
     padding: 10px;
@@ -51,7 +48,6 @@ html, body {
     border-radius: 4px;
   }
   
-  /* Labels and form elements */
   .cc-container label {
     display: block;
     margin: 10px 0 5px;
@@ -85,7 +81,6 @@ html, body {
     resize: vertical;
   }
   
-  /* Tables for stats and skills */
   .cc-container table {
     width: 100%;
     border-collapse: collapse;
@@ -100,7 +95,6 @@ html, body {
     font-size: 12px;
   }
   
-  /* Navigation buttons */
   .nav-buttons {
     display: flex;
     justify-content: space-between;
@@ -136,13 +130,11 @@ html, body {
     left: 10px;
   }
   
-  /* Table row hover effects (similar to inventory style) */
   .cc-container table tr:hover {
     background-color: rgba(163, 255, 163, 0.1);
     text-shadow: 0 0 5px rgba(163, 255, 163, 0.8);
   }
   
-  /* Scrollbar styling */
   .cc-container::-webkit-scrollbar {
     width: 8px;
   }
@@ -154,4 +146,23 @@ html, body {
   .cc-container::-webkit-scrollbar-thumb {
     background: #444;
     border: 1px solid #a3ffa3;
+  }
+
+  .cc-container input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #a3ffa3;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  .name-frame {
+    border: 1px solid #444;
+    background-color: #1a2a1a;
+    padding: 5px 10px;
+    color: #a3ffa3;
+    font-size: 14px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    margin-bottom: 10px;
   }

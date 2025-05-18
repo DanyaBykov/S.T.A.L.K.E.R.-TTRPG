@@ -9,6 +9,9 @@ import MapPage from './Map/MapModule.jsx';
 import StalkerJournal from './Journal/Journal.jsx'
 import CreateCharacter from './Create_Character/CreateCharacter.jsx';
 import './Create_Character/CreateCharacter.css';
+import CreateGame from './CreateGame/CreateGame.jsx';
+import './CreateGame/CreateGame.css';
+
 function App() {
   return (
     <Router>
@@ -18,6 +21,7 @@ function App() {
         <Route path="/map" element={<MapPage />} />
         <Route path="/journal" element={<StalkerJournal />} />
         <Route path="/create-character" element={<CreateCharacter />} />
+        <Route path="/create-game" element={<CreateGame />} />
       </Routes>
     </Router>
   );
