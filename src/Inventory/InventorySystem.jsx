@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { Menu } from 'lucide-react';
 import { getCharacters, getCharacter, addInventoryItem, updateInventoryItem, deleteInventoryItem, equipItem, updateMoney } from '../services/api.js';
 import './InventorySystem.css';
 
@@ -40,6 +42,7 @@ const InventorySystem = () => {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const totalQuickSlots = 6; // Total quick slots
   const [quickSlots, setQuickSlots] = useState(Array(totalQuickSlots).fill(null));
+  const [burgerOpen, setBurgerOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -186,33 +189,7 @@ const InventorySystem = () => {
     }
   };
 
-  const usedQuickSlots = useMemo(() => {
-    let used = 0;
-    ['headgear', 'armor'].forEach(slot => {
-      if (equipment[slot]) {
-        let slots = equipment[slot].quick_slots;
-        if (!slots) {
-          slots = equipment[slot].type === 'armor' ? 2 : equipment[slot].type === 'headgear' ? 1 : 0;
-        }
-        used += slots;
-      }
-    });
-    if (equipment.consumable) {
-      used += equipment.consumable.length;
-    }
-    return used;
-  }, [equipment]);
-
-  // (Optional) Keeping this helper if you ever need it separately
-  const calculateUsedQuickSlots = () => {
-    let used = 0;
-    ['headgear', 'armor'].forEach(slot => {
-      if (equipment[slot] && equipment[slot].quick_slots) {
-        used += equipment[slot].quick_slots;
-      }
-    });
-    return used;
-  };
+  
 
   const renderQuickAccess = () => {
     const headgearCount = equipment.headgear ? (equipment.headgear.quick_slots || 1) : 0;
@@ -505,7 +482,25 @@ const InventorySystem = () => {
     <div className="inventory-container">
       <div className="main-content">
         <div className="equipment-panel">
-          <div className="header">EQUIPMENT</div>
+        <div className="header">
+          <div 
+            className="burger-menu" 
+            onClick={() => setBurgerOpen((prev) => !prev)}
+            title="Options"
+          >
+            <Menu size={24} />
+          </div>
+          EQUIPMENT
+        </div>
+        {burgerOpen && (
+          <div className="burger-menu-list">
+            <ul>
+              <li><Link to="/">MAIN TERMINAL</Link></li>
+              <li><Link to="/inventory">INVENTORY</Link></li>
+              <li><Link to="/map">ZONE MAP</Link></li>
+            </ul>
+          </div>
+        )}
           <div className="equipment-grid">
           {['primary', 'headgear', 'armor', 'secondary', 'tool', 'pistol'].map(slotType => (
               <div
