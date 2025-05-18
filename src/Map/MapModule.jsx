@@ -9,7 +9,7 @@ import { Plus, UserCircle } from 'lucide-react';
 import TileRenderer from './TileRenderer';
 
 
-// Styled components
+
 const Container = styled.div`
   display: flex;
   width: 100vw;
@@ -17,22 +17,22 @@ const Container = styled.div`
   background: #000;
   overflow: hidden;
 `;
-// Map area takes remaining width
+
 const MapContainer = styled.div`
   flex: 1;
   position: relative;
-  height: 100%; /* Add this */
-  overflow: hidden; /* Add this */
+  height: 100%; 
+  overflow: hidden; 
 `;
 
 const MapImg = styled.img`
   width: 100%;
   height: 100%; 
-  object-fit: contain; /* Change from cover to contain */
-  display: block; /* Add this */
+  object-fit: contain; 
+  display: block; 
 `;
 
-// Base overlay with STALKER-style theme
+
 const Overlay = styled.div`
   position: absolute;
   background-image: linear-gradient(to bottom, 
@@ -46,7 +46,7 @@ const Overlay = styled.div`
   font-family: 'Courier New', monospace;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   
-  /* Scanline effect */
+  
   &:before {
     content: "";
     position: absolute;
@@ -62,7 +62,7 @@ const Overlay = styled.div`
     pointer-events: none;
   }
   
-  /* Left border decoration - like STALKER UI elements */
+  
   &:after {
     content: "";
     position: absolute;
@@ -85,7 +85,7 @@ const Overlay = styled.div`
     padding-left: 10px;
     
     &:before {
-      content: "//";
+      content: "
       position: absolute;
       left: -5px;
       opacity: 0.7;
@@ -186,7 +186,7 @@ const ResultsGrid = styled.div`
   position: relative;
   z-index: 1;
   
-  /* STALKER-style scrollbar */
+  
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -212,7 +212,7 @@ const DiceResult = styled(motion.div)`
   font-size: 0.9rem;
   position: relative;
   
-  /* Subtle pulse animation for results */
+  
   @keyframes resultPulse {
     0% { box-shadow: 0 0 3px rgba(163, 255, 163, 0.3) inset; }
     50% { box-shadow: 0 0 5px rgba(163, 255, 163, 0.6) inset; }
@@ -222,7 +222,7 @@ const DiceResult = styled(motion.div)`
   animation: resultPulse 2s infinite;
 `;
 
-// Side panel styled like STALKER UI
+
 const AvatarPanel = styled.div`
   width: 30%;
   height: 100%;
@@ -239,7 +239,7 @@ const AvatarPanel = styled.div`
   border-left: 5px solid rgba(163, 255, 163, 0.5);
   position: relative;
   
-  /* Scanline effect */
+  
   &:before {
     content: "";
     position: absolute;
@@ -268,7 +268,7 @@ const PanelHeader = styled.h3`
   z-index: 1;
   
   &:before {
-    content: "// ";
+    content: "
     opacity: 0.7;
   }
 `;
@@ -325,7 +325,7 @@ const InventoryBlock = styled.div`
   position: relative;
   z-index: 1;
   
-  /* Corner markers like in STALKER interfaces */
+  
   &:before, &:after {
     content: "";
     position: absolute;
@@ -348,16 +348,16 @@ const InventoryBlock = styled.div`
     border-width: 0 2px 2px 0;
   }
 `;
-// Replace the MenuBtn and MenuList styled components with these:
+
 
 const MenuBtn = styled.div`
   position: absolute;
   top: 16px;
   right: 16px;
-  color: #a3ffa3; /* STALKER-style green text */
+  color: #a3ffa3; 
   z-index: 100;
   
-  /* Add subtle radiation pulse effect */
+  
   @keyframes pulse {
     0% { text-shadow: 0 0 5px rgba(163, 255, 163, 0.3); }
     50% { text-shadow: 0 0 10px rgba(163, 255, 163, 0.7); }
@@ -387,11 +387,11 @@ const MenuList = styled.div`
     rgba(30, 35, 30, 0.9)
   );
   border: 1px solid #444;
-  border-radius: 0; /* More angular STALKER-style UI */
+  border-radius: 0; 
   min-width: 200px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   
-  /* Scanline effect */
+  
   &:before {
     content: "";
     position: absolute;
@@ -408,7 +408,7 @@ const MenuList = styled.div`
     z-index: 1;
   }
   
-  /* Left border decoration - like STALKER UI elements */
+  
   &:after {
     content: "";
     position: absolute;
@@ -440,9 +440,9 @@ const MenuList = styled.div`
   a {
     display: block;
     padding: 12px 16px;
-    color: #a3ffa3; /* STALKER green text */
+    color: #a3ffa3; 
     text-decoration: none;
-    font-family: 'Courier New', monospace; /* Technical font */
+    font-family: 'Courier New', monospace; 
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -450,11 +450,11 @@ const MenuList = styled.div`
     
     &:hover {
       background: rgba(163, 255, 163, 0.1);
-      padding-left: 20px; /* Slight shift on hover */
+      padding-left: 20px; 
       text-shadow: 0 0 5px rgba(163, 255, 163, 0.8);
     }
     
-    /* Prefix with STALKER-like data marker */
+    
     &:before {
       content: "> ";
       opacity: 0.7;
@@ -477,7 +477,13 @@ const GridOverlay = styled.div`
   background-image: 
     linear-gradient(to right, rgba(163, 255, 163, 0.1) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(163, 255, 163, 0.1) 1px, transparent 1px);
-  background-size: ${props => props.gridSize}px ${props => props.gridSize}px;
+  background-size: ${props => props.gridSize * props.scale}px ${props => props.gridSize * props.scale}px;
+  background-position: ${props => {
+    // Use proper modulo that works with negative numbers for correct grid alignment
+    const moduloX = ((props.offsetX % (props.gridSize * props.scale)) + (props.gridSize * props.scale)) % (props.gridSize * props.scale);
+    const moduloY = ((props.offsetY % (props.gridSize * props.scale)) + (props.gridSize * props.scale)) % (props.gridSize * props.scale);
+    return `${moduloX}px ${moduloY}px`;
+  }};
 `;
 const GridControl = styled(Overlay)`
   bottom: 16px;
@@ -537,7 +543,7 @@ const PinContainer = styled.div`
   width: 100%;
   height: 100%;
   z-index: 3;
-  pointer-events: none; /* Allow clicking through the container */
+  pointer-events: none; 
 `;
 const CharacterPin = styled.div`
   width: ${props => props.size}px;
@@ -545,18 +551,19 @@ const CharacterPin = styled.div`
   border-radius: 50%;
   background: ${props => props.color || 'rgba(20, 25, 20, 0.8)'};
   border: 2px solid rgba(163, 255, 163, 0.7);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6), 
+              ${props => props.isSnapped ? '0 0 0 1px #a3ffa3' : 'none'};
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: auto; /* Enable dragging */
+  pointer-events: auto; 
   user-select: none;
   position: absolute;
   transform: translate(-50%, -50%);
   cursor: grab;
   overflow: hidden;
   
-  /* STALKER-style radiation glow effect */
+  
   &:after {
     content: "";
     position: absolute;
@@ -600,13 +607,13 @@ const CharacterPin = styled.div`
 `;
 const PinPanel = styled(Overlay)`
   top: 16px;
-  left: 292px; /* Positioned next to dice panel */
+  left: 292px; 
   width: 280px;
   max-height: calc(100vh - 100px);
   overflow-y: auto;
   z-index: 5;
   
-  /* STALKER-style scrollbar */
+  
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -759,7 +766,7 @@ const MONSTER_AVATARS = [
   './avatars/mutant6.png'
 ];
 
-// If you don't have actual avatar images yet, you can use these placeholders
+
 const FALLBACK_PLAYER_AVATAR = 'https://placehold.co/100x100/1a2a1a/a3ffa3?text=S';
 const FALLBACK_MONSTER_AVATAR = 'https://placehold.co/100x100/2a1a1a/ff9999?text=M';
 
@@ -797,7 +804,7 @@ export default function MapPage() {
   const [selectedAvatar, setSelectedAvatar] = useState(PLAYER_AVATARS[0] || FALLBACK_PLAYER_AVATAR);
   const [mapDimensions, setMapDimensions] = useState({ width: 4096, height: 4096 }); 
   const [viewportDimensions, setViewportDimensions] = useState({ 
-    width: window.innerWidth * 0.7, // Approximate your panel layout
+    width: window.innerWidth * 0.7, 
     height: window.innerHeight 
   });
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
@@ -808,7 +815,7 @@ export default function MapPage() {
     setScale(1);
   }, []);
   
-  // Add this effect to get viewport dimensions
+  
   useEffect(() => {
     if (mapContainerRef.current) {
       setViewportDimensions({
@@ -854,8 +861,8 @@ export default function MapPage() {
   
   const adjustPositionForScale = (position) => {
     return {
-      x: position.x / scale,
-      y: position.y / scale
+      x: position.x,
+      y: position.y
     };
   };
   
@@ -866,27 +873,35 @@ export default function MapPage() {
     ));
   };
   
-  const handlePinStop = (pinId) => {
-    setCharacterPins(characterPins.map(pin => {
-      if (pin.id !== pinId) return pin;
+  // 3. Update the handlePinStop function to correctly snap to grid
+const handlePinStop = (pinId) => {
+  setCharacterPins(characterPins.map(pin => {
+    if (pin.id !== pinId) return pin;
+    
+    if (gridEnabled) {
+      const adjustedGridSize = gridSize * scale;
       
-      if (gridEnabled) {
-        const cellIndexX = Math.floor(pin.x / gridSize);
-        const cellIndexY = Math.floor(pin.y / gridSize);  
-
-        const cellCenterX = (cellIndexX * gridSize) + (gridSize / 2);
-        const cellCenterY = (cellIndexY * gridSize) + (gridSize / 2);
-        
-        return {
-          ...pin,
-          x: cellCenterX,
-          y: cellCenterY
-        };
-      }
+      // Calculate grid cell coordinates
+      // Note: We no longer subtract mapOffset since pins are now in the same coordinate space as the grid
+      const cellX = Math.round(pin.x / adjustedGridSize);
+      const cellY = Math.round(pin.y / adjustedGridSize);
       
-      return pin;
-    }));
-  };
+      // Convert to snap position
+      const snappedX = cellX * adjustedGridSize;
+      const snappedY = cellY * adjustedGridSize;
+      
+      console.log(`Snapping pin to grid: (${snappedX}, ${snappedY})`);
+      
+      return {
+        ...pin,
+        x: snappedX,
+        y: snappedY
+      };
+    }
+    
+    return pin;
+  }));
+};
   
   const renamePinById = (id, newName) => {
     setCharacterPins(
@@ -935,7 +950,7 @@ export default function MapPage() {
           maxScale={4} 
           wheel={{ step: 0.1, disabled: true }} 
           style={{'height': '100%'}}
-          limitToBounds={false} // Add this to prevent auto-centering
+          limitToBounds={false} 
           onZoom={() => {
           }}
           onPanning={(ref) => {
@@ -957,7 +972,7 @@ export default function MapPage() {
               e.preventDefault();
               
               const now = Date.now();
-              if (now - lastWheelTime.current < 50) return; // 50ms throttle
+              if (now - lastWheelTime.current < 50) return; 
               lastWheelTime.current = now;
               
               const currentScale = scale;
@@ -967,28 +982,28 @@ export default function MapPage() {
               const zoomFactor = e.deltaY > 0 ? 0.98 : 1.02; 
               const newScale = Math.max(0.5, Math.min(4, currentScale * (e.deltaY > 0 ? 0.98 : 1.02)));
               
-              // Skip if scale didn't change significantly
+              
               if (Math.abs(newScale - currentScale) < 0.01) return;
               
-              // Calculate container dimensions
+              
               const rect = mapContainerRef.current.getBoundingClientRect();
               
-              // Get mouse position relative to viewport
+              
               const mouseX = e.clientX - rect.left;
               const mouseY = e.clientY - rect.top;
               
-              // Convert to world coordinates (pre-zoom)
+              
               const worldX = (mouseX - currentOffsetX) / currentScale;
               const worldY = (mouseY - currentOffsetY) / currentScale;
               
-              // Calculate new offsets to keep the mouse position fixed
+              
               const newOffsetX = mouseX - (worldX * newScale);
               const newOffsetY = mouseY - (worldY * newScale);
               
-              // CRITICAL: Update TransformWrapper first with immediate transition
+              
               setTransform(newOffsetX, newOffsetY, newScale, 0);
               
-              // Then update our React state
+              
               setScale(newScale);
               setMapOffset({
                 x: newOffsetX, 
@@ -1033,11 +1048,24 @@ export default function MapPage() {
                 />
               </div>
               {gridEnabled && (
-                <GridContainer style={{zIndex: 2}}>
-                  <GridOverlay gridSize={gridSize} />
-                </GridContainer>
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  zIndex: 2,
+                  pointerEvents: 'none'
+                }}>
+                  <GridOverlay 
+                    gridSize={gridSize} 
+                    scale={scale} 
+                    offsetX={mapOffset.x} 
+                    offsetY={mapOffset.y}
+                  />
+                </div>
               )}
-                
+                            
                 <PinContainer>
                   {characterPins.map(pin => {
                     if (!pinRefs.current[pin.id]) {
@@ -1046,23 +1074,23 @@ export default function MapPage() {
                     
                     return (
                       <Draggable
-                        key={pin.id}
-                        position={{ x: pin.x, y: pin.y }}
-                        onDrag={(e, data) => {
-                          e.stopPropagation();
-                          handlePinDrag(pin.id, data);
-                        }}
-                        onStop={(e) => {
-                          e.stopPropagation();
-                          handlePinStop(pin.id);
-                        }}
-                        onMouseDown={(e) => {
-                          e.stopPropagation();
-                        }}
-                        bounds="parent"
-                        grid={gridEnabled ? [gridSize, gridSize] : null}
-                        nodeRef={pinRefs.current[pin.id]}
-                      >
+                      key={pin.id}
+                      position={{ x: pin.x, y: pin.y }}
+                      onDrag={(e, data) => {
+                        e.stopPropagation();
+                        handlePinDrag(pin.id, data);
+                      }}
+                      onStop={(e) => {
+                        e.stopPropagation();
+                        handlePinStop(pin.id);
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                      bounds="parent"
+                      grid={null}
+                      nodeRef={pinRefs.current[pin.id]}
+                    >
                         <div 
                           ref={pinRefs.current[pin.id]} 
                           style={{position: 'absolute'}}
@@ -1072,6 +1100,7 @@ export default function MapPage() {
                             size={gridSize * 0.8} 
                             isMonster={pin.isMonster}
                             title={pin.name}
+                            isSnapped={gridEnabled}
                           >
                             <img 
                               src={pin.avatar} 
@@ -1088,11 +1117,12 @@ export default function MapPage() {
                   })}
                 </PinContainer>
               </TransformComponent>
+              
             </>
           );
         }}
         </TransformWrapper>
-        {/* Grid Controls */}
+        {}
         <GridControl>
           <h3>Grid Controls</h3>
           <ControlRow>
@@ -1116,7 +1146,7 @@ export default function MapPage() {
           </ControlRow>
         </GridControl>
         
-        {/* Scale Legend */}
+        {}
         <ScaleLegend>
           <ScaleLine />
           <span>{Math.round(100 / scale)}m</span>
@@ -1173,7 +1203,7 @@ export default function MapPage() {
             </PinTab>
           </PinTabs>
           
-          {/* Avatar selector */}
+          {}
           <AvatarSelector isMonster={pinTabActive === 'monsters'}>
             {(pinTabActive === 'stalkers' ? PLAYER_AVATARS : MONSTER_AVATARS).map((avatar, i) => (
               <div 
@@ -1192,7 +1222,7 @@ export default function MapPage() {
             ))}
           </AvatarSelector>
           
-          {/* Add new token button */}
+          {}
           <AddPinButton 
             onClick={addCharacterPin}
             isMonster={pinTabActive === 'monsters'}
@@ -1201,7 +1231,7 @@ export default function MapPage() {
             Add {pinTabActive === 'stalkers' ? 'Stalker' : 'Mutant'}
           </AddPinButton>
           
-          {/* Current pins list */}
+          {}
           <div style={{ marginTop: '15px' }}>
             {characterPins
               .filter(pin => pin.isMonster === (pinTabActive === 'monsters'))
