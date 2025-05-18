@@ -22,13 +22,17 @@ jobs:
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         port: ${{ secrets.SSH_PORT }}
         script: |
-          # Stop any running containers to avoid file lock issues
+          # Stop any running containers
           cd /opt/stalker-ttrpg && docker-compose down || true
+          cd /
           
-          # Delete the directory and recreate it
-          rm -rf /opt/stalker-ttrpg
-          mkdir -p /opt/stalker-ttrpg
-          chmod 755 /opt/stalker-ttrpg
+          # Make sure we have proper permissions and completely remove directory
+          sudo chown -R $USER:$USER /opt/stalker-ttrpg || true
+          sudo chmod -R 755 /opt/stalker-ttrpg || true
+          sudo rm -rf /opt/stalker-ttrpg
+          sudo mkdir -p /opt/stalker-ttrpg
+          sudo chown -R $USER:$USER /opt/stalker-ttrpg
+          sudo chmod -R 755 /opt/stalker-ttrpg
       
     - name: Copy files to VPS
       uses: appleboy/scp-action@master
