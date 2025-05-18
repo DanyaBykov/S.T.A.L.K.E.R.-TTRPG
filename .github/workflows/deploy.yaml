@@ -11,17 +11,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-    
-    - name: Create SSH key
-      run: |
-        mkdir -p ~/.ssh/
-        echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/private_key
-        chmod 600 ~/.ssh/private_key
-        ssh-keygen -y -f ~/.ssh/private_key > ~/.ssh/private_key.pub
-    
-    - name: Debug SSH connection
-      run: |
-        ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "echo SSH connection successful"
       
     - name: Copy files to VPS
       uses: appleboy/scp-action@master
