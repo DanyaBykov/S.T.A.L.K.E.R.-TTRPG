@@ -20,7 +20,7 @@ from typing import Optional, Any, Dict
 # Initialize FastAPI
 app = FastAPI(title="S.T.A.L.K.E.R. TTRPG API")
 db.config['host'] = "stalker-ttrpg_database_1"
-db.config['port'] = 33060
+db.config['port'] = 3306
 # db.config['use_pure'] = True
 ensure_data_loaded()
 
