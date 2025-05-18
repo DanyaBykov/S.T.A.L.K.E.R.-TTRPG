@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY Pipfile Pipfile.lock ./
 RUN pip install pipenv && pipenv install --deploy --system
-RUN pipenv install fastapi passlib bcrypt pydantic[email] python-multipart uvicorn pymysql
+RUN pipenv install fastapi passlib bcrypt pydantic[email] python-multipart uvicorn pymysql cryptography
 
 COPY . .
 
