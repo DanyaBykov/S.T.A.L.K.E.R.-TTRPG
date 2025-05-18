@@ -26,6 +26,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: always
+    ports:
+      - 4000:4000
     depends_on:
       database:
         condition: service_healthy
