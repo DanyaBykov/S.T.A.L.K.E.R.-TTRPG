@@ -1120,15 +1120,7 @@ async def serve_index():
     return FileResponse(os.path.join(dist_path, "index.html"))
 
 # Catch-all route for SPA routing - must be the last route
-@app.get("/{path:path}", include_in_schema=False)
-async def serve_spa(path: str):
-    # First check if the requested path exists as a file
-    file_path = os.path.join(dist_path, path)
-    if os.path.isfile(file_path):
-        return FileResponse(file_path)
-    
-    # If not found, serve index.html for client-side routing
-    return FileResponse(os.path.join(dist_path, "index.html"))
+
 
 
 # Add this helper function in the HELPER FUNCTIONS section
@@ -1337,6 +1329,16 @@ async def get_items_by_category(category: str):
     except Exception as e:
         print(f"Error in get_items_by_category: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/{path:path}", include_in_schema=False)
+async def serve_spa(path: str):
+    # First check if the requested path exists as a file
+    file_path = os.path.join(dist_path, path)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    # If not found, serve index.html for client-side routing
+    return FileResponse(os.path.join(dist_path, "index.html"))
 # Run the application
 if __name__ == "__main__":
     import uvicorn
