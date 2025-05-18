@@ -1,3 +1,0 @@
-CREATE USER IF NOT EXISTS 'ttrpg_user'@'%' IDENTIFIED BY 'secretpass';
-GRANT ALL PRIVILEGES ON TTRPG_DB.* TO 'ttrpg_user'@'%';
-FLUSH PRIVILEGES;
