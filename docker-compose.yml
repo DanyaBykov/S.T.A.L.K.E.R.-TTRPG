@@ -18,6 +18,11 @@ services:
       - "3306:3306"  # Map to 3307 on host to avoid conflicts
     networks:
       - stalker-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   app:
     build:
