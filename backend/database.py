@@ -1,7 +1,7 @@
 import os
 import csv
-import mysql.connector
-from mysql.connector import Error
+import pymysql
+from pymysql import Error
 import logging
 import time
 from typing import List, Dict, Any, Optional, Tuple, Union
@@ -51,8 +51,7 @@ class Database:
             'host': host,
             'user': user,
             'password': password,
-            'database': database,
-            'client_flags': mysql.connector.ClientFlag.MULTI_STATEMENTS
+            'database': database
         }
         self.csv_directory = csv_directory
         self.connection = None
@@ -67,7 +66,7 @@ class Database:
             if self.connection and self.connection.is_connected():
                 conn = self.connection
             else:
-                conn = mysql.connector.connect(**self.config)
+                conn = pymysql.connect(**self.config)
             yield conn
         except Error as e:
             logger.error(f"Database connection error: {e}")
@@ -103,7 +102,7 @@ class Database:
         
         while retry_count < max_retries:
             try:
-                self.connection = mysql.connector.connect(**self.config)
+                self.connection = pymysql.connect(**self.config)
                 self.cursor = self.connection.cursor(dictionary=True)
                 logger.info("Successfully connected to database")
                 return True
