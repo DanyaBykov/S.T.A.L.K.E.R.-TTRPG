@@ -2,6 +2,7 @@ import os
 import csv
 import pymysql
 from pymysql import Error
+import pymysql.cursors
 import logging
 import time
 from typing import List, Dict, Any, Optional, Tuple, Union
@@ -14,33 +15,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class Database:
-    """Database connector with automatic CSV loading and data access methods."""
-    
     _instance = None
     
     def __new__(cls, *args, **kwargs):
-        """Create singleton instance to ensure one database connection."""
         if cls._instance is None:
             cls._instance = super(Database, cls).__new__(cls)
             cls._instance._initialized = False
         return cls._instance
     
     def __init__(self, 
-                 host: str = 'stalker-ttrpg_database_1', 
+                 host: str = 'database', 
                  user: str = 'ttrpg_user', 
                  password: str = None,
                  database: str = 'TTRPG_DB',
                  csv_directory: str = '/app/data/import'):
-        """
-        Initialize the database connector.
-        
-        Args:
-            host: Database host
-            user: Database user
-            password: Database password
-            database: Database name
-            csv_directory: Directory containing CSV files
-        """
         if self._initialized:
             return
             
@@ -51,7 +39,8 @@ class Database:
             'host': host,
             'user': user,
             'password': password,
-            'database': database
+            'database': database,
+            'cursorclass': pymysql.cursors.DictCursor
         }
         self.csv_directory = csv_directory
         self.connection = None
@@ -60,10 +49,9 @@ class Database:
         
     @contextmanager
     def get_connection(self):
-        """Context manager for database connections."""
         conn = None
         try:
-            if self.connection and self.connection.is_connected():
+            if self.connection and hasattr(self.connection, 'open') and self.connection.open:
                 conn = self.connection
             else:
                 conn = pymysql.connect(**self.config)
@@ -77,11 +65,13 @@ class Database:
 
     @contextmanager
     def get_cursor(self, dictionary=True):
-        """Context manager for database cursors."""
         with self.get_connection() as conn:
             cursor = None
             try:
-                cursor = conn.cursor(dictionary=dictionary)
+                if dictionary:
+                    cursor = conn.cursor()
+                else:
+                    cursor = conn.cursor(pymysql.cursors.Cursor)
                 yield cursor
                 conn.commit()
             except Error as e:
@@ -93,8 +83,7 @@ class Database:
                     cursor.close()
                     
     def connect(self) -> bool:
-        """Establish database connection with retry mechanism."""
-        if self.connection and self.connection.is_connected():
+        if self.connection and hasattr(self.connection, 'open') and self.connection.open:
             return True
             
         max_retries = 5
@@ -103,7 +92,7 @@ class Database:
         while retry_count < max_retries:
             try:
                 self.connection = pymysql.connect(**self.config)
-                self.cursor = self.connection.cursor(dictionary=True)
+                self.cursor = self.connection.cursor()
                 logger.info("Successfully connected to database")
                 return True
             except Error as e:
@@ -116,7 +105,6 @@ class Database:
         return False
     
     def close(self) -> None:
-        """Close database connection."""
         if self.cursor:
             self.cursor.close()
             self.cursor = None
@@ -126,11 +114,9 @@ class Database:
             logger.info("Database connection closed")
             
     def __del__(self):
-        """Cleanup resources on deletion."""
         self.close()
     
     def execute_query(self, query: str, params: tuple = None):
-        """Execute a query and return results."""
         with self.get_cursor() as cursor:
             cursor.execute(query, params or ())
             if query.strip().upper().startswith(('SELECT', 'SHOW')):
@@ -138,7 +124,6 @@ class Database:
             return cursor.rowcount
     
     def execute_many(self, query: str, params_list: List[tuple]):
-        """Execute a query with multiple parameter sets."""
         with self.get_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.executemany(query, params_list)
@@ -146,7 +131,6 @@ class Database:
                 return cursor.rowcount
     
     def get_tables(self) -> List[str]:
-        """Get list of all tables in the database."""
         try:
             with self.get_cursor() as cursor:
                 cursor.execute("SHOW TABLES")
@@ -157,7 +141,6 @@ class Database:
             return []
     
     def get_column_names(self, table_name: str) -> List[str]:
-        """Get column names for a table."""
         try:
             with self.get_cursor() as cursor:
                 cursor.execute(f"DESCRIBE {table_name}")
@@ -168,7 +151,6 @@ class Database:
             return []
     
     def table_is_empty(self, table_name: str) -> bool:
-        """Check if a table is empty."""
         try:
             with self.get_cursor() as cursor:
                 cursor.execute(f"SELECT COUNT(*) as count FROM {table_name}")
@@ -179,16 +161,6 @@ class Database:
             return True
     
     def load_csv_to_table(self, csv_file: str, table_name: str) -> bool:
-        """
-        Load data from a CSV file into a database table.
-        
-        Args:
-            csv_file: Path to CSV file
-            table_name: Name of target database table
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
         if not os.path.exists(csv_file):
             logger.error(f"CSV file not found: {csv_file}")
             return False
@@ -227,7 +199,6 @@ class Database:
             return False
     
     def _chunk_csv_rows(self, csv_reader, columns, chunk_size=1000):
-        """Process CSV reader in chunks to handle large files."""
         chunk = []
         for row in csv_reader:
             values = [row.get(col, None) for col in columns]
@@ -241,10 +212,6 @@ class Database:
             yield chunk
     
     def ensure_csv_data_loaded(self) -> None:
-        """
-        Main function to ensure all CSV data is loaded into respective tables.
-        This function detects empty tables and loads data from corresponding CSV files.
-        """
         if not self.connect():
             logger.error("Cannot ensure CSV data is loaded: database connection failed")
             return
@@ -275,7 +242,6 @@ class Database:
             self.close()
     
     def get_all(self, table_name: str, limit: int = 1000, offset: int = 0) -> List[Dict[str, Any]]:
-        """Get all records from a table with pagination."""
         try:
             query = f"SELECT * FROM {table_name} LIMIT %s OFFSET %s"
             return self.execute_query(query, (limit, offset))
@@ -284,7 +250,6 @@ class Database:
             return []
             
     def get_by_id(self, table_name: str, id_column: str, id_value: Any) -> Optional[Dict[str, Any]]:
-        """Get a record by its ID."""
         try:
             query = f"SELECT * FROM {table_name} WHERE {id_column} = %s"
             results = self.execute_query(query, (id_value,))
@@ -294,7 +259,6 @@ class Database:
             return None
             
     def search(self, table_name: str, column: str, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Search in a table for matching records."""
         try:
             query = f"SELECT * FROM {table_name} WHERE {column} LIKE %s LIMIT %s"
             return self.execute_query(query, (f"%{search_term}%", limit))
@@ -305,7 +269,6 @@ class Database:
     def get_related(self, table_name: str, foreign_table: str, 
                    foreign_key: str, primary_key_value: Any, 
                    limit: int = 100) -> List[Dict[str, Any]]:
-        """Get related records from a foreign table."""
         try:
             query = f"""
                 SELECT {foreign_table}.* 
@@ -320,11 +283,9 @@ class Database:
             return []
     
     def run_custom_query(self, query: str, params: tuple = None) -> Union[List[Dict[str, Any]], int]:
-        """Run a custom SQL query."""
         return self.execute_query(query, params)
     
     def count(self, table_name: str, where_clause: str = None, params: tuple = None) -> int:
-        """Count records in a table with optional where clause."""
         try:
             query = f"SELECT COUNT(*) as count FROM {table_name}"
             if where_clause:
@@ -338,7 +299,6 @@ class Database:
 db = Database()
 
 def ensure_data_loaded():
-    """Ensure all CSV data is loaded into database tables."""
     db.ensure_csv_data_loaded()
 
 if __name__ == "__main__":
