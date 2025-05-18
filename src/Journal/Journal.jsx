@@ -463,21 +463,17 @@ function NotesSection() {
   const [newNoteTitle, setNewNoteTitle] = useState("");
   const [newNoteContent, setNewNoteContent] = useState("");
   
-  // For development - replace with actual character ID when available
-  const characterId = "current-character-id";
+  const characterId = "1c5293ee-d3bd-4e7b-b91f-bb4f9f56a8a3";
   
   // Fetch notes on component mount
   useEffect(() => {
     const fetchNotes = async () => {
       try {
         setLoading(true);
-        
-        // Get token from localStorage
-        const token = localStorage.getItem('token');
+
         
         const response = await fetch(`/characters/${characterId}/notes`, {
           headers: {
-            'Authorization': token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json'
           }
         });
@@ -516,14 +512,11 @@ function NotesSection() {
         content: newNoteContent
       };
       
-      // Get token from localStorage
-      const token = localStorage.getItem('token');
       
       // API call to create note
       const response = await fetch(`/characters/${characterId}/notes`, {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(newNote)
@@ -577,14 +570,11 @@ function NotesSection() {
         content: newNoteContent
       };
       
-      // Get token from localStorage
-      const token = localStorage.getItem('token');
       
       // API call to update note
       const response = await fetch(`/characters/${characterId}/notes/${selectedNote.id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(updatedNote)
@@ -632,8 +622,6 @@ function NotesSection() {
     }
     
     try {
-      // Get token from localStorage
-      const token = localStorage.getItem('token');
       
       // API call to delete note
       const response = await fetch(`/characters/${characterId}/notes/${id}`, {
