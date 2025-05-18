@@ -116,3 +116,29 @@ export async function updateMoney(characterId, amount) {
     body: JSON.stringify({ amount }),
   });
 }
+
+export const getItemTypes = async () => {
+  try {
+    const response = await fetch('/api/item-types');
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching item types:', error);
+    throw error;
+  }
+};
+
+export const getItemsByType = async (type) => {
+  try {
+    const response = await fetch(`/api/items/${type}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching items for type ${type}:`, error);
+    throw error;
+  }
+};

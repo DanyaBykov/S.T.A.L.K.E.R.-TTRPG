@@ -256,7 +256,6 @@ async def get_placeholder_image(width: int, height: int):
     
     except Exception as e:
         # If all else fails, return an error message with debug info
-        logger.error(f"Error generating placeholder image: {e}")
         
         # Generate the simplest possible image - just a colored square
         fallback_img = Image.new('RGB', (width, height), (163, 255, 163))
@@ -1268,7 +1267,71 @@ def create_sample_character(user_id, game_id, character_name=None):
     }
     
     return character_id
+# Add these endpoints near the end of your FastAPI application
 
+@app.get("/api/item-types")
+async def get_item_types():
+    """Get all available item categories from the database"""
+    try:
+        # Return fixed categories that match our database tables
+        item_types = [
+            {"id": "weapons", "name": "Weapons"},
+            {"id": "armor", "name": "Armor"},
+            {"id": "ammo", "name": "Ammunition"},
+            {"id": "medicine", "name": "Medicine"},
+            {"id": "food", "name": "Food"},
+            {"id": "artifacts", "name": "Artifacts"}
+        ]
+        return item_types
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/items/{category}")
+async def get_items_by_category(category: str):
+    """Get all items from a specific category"""
+    try:
+        # Map frontend categories to database tables
+        table_mapping = {
+            "weapons": "weapons",
+            "armor": "armor",
+            "ammo": "ammo",
+            "medicine": "medicine", 
+            "food": "food",
+            "artifacts": "artifacts"
+        }
+        
+        table_name = table_mapping.get(category)
+        if not table_name:
+            raise HTTPException(status_code=404, detail=f"Category {category} not found")
+            
+        items = db.get_all(table_name)
+        
+        # Format the response based on category-specific fields
+        formatted_items = []
+        for item in items:
+            base_item = {
+                "id": item.get("id", ""),
+                "name": item.get("name", ""),
+                "weight": item.get("weight", 0),
+                "type": category
+            }
+            
+            # Add category-specific fields
+            if category == "weapons":
+                base_item["damage"] = f"{item.get('d4', 0)}d4 + {item.get('d6', 0)}d6 + {item.get('d8', 0)}d8"
+                base_item["range"] = item.get("range", "")
+                base_item["calibre"] = item.get("calibre", "")
+            elif category == "armor":
+                base_item["protection"] = f"P:{item.get('physical', 0)} R:{item.get('radioactive', 0)} C:{item.get('chemical', 0)}"
+                base_item["slots"] = item.get("artefact_slots", 0)
+            elif category == "ammo":
+                base_item["special"] = item.get("special", "")
+                
+            formatted_items.append(base_item)
+            
+        return formatted_items
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Run the application
 if __name__ == "__main__":

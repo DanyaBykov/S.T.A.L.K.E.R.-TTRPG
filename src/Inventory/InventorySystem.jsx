@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { getCharacters, getCharacter, addInventoryItem, deleteInventoryItem, equipItem, updateMoney } from '../services/api.js';
 import './InventorySystem.css';
+import { getItemTypes, getItemsByType } from '../services/api.js';
 
 export async function updateInventoryItem(characterId, itemId, updateData) {
   const response = await fetch(`/characters/${characterId}/inventory/${itemId}`, {
@@ -26,6 +27,7 @@ const InventorySystem = () => {
   const [error, setError] = useState(null);
   const [characterId, setCharacterId] = useState(null);
   const [inventoryItems, setInventoryItems] = useState([]);
+  const [itemTypes, setItemTypes] = useState([]);
   const [equipment, setEquipment] = useState({
     headgear: null,
     armor: null,
@@ -62,39 +64,7 @@ const InventorySystem = () => {
   const [selectedName, setSelectedName] = useState('');
   const [availableItems, setAvailableItems] = useState([]);
 
-  // TO:DO needs to be changed by real db data
-  const itemsByType = {
-    weapon: [
-      { id: 'w1', name: 'AK-47', weight: 3.5 },
-      { id: 'w2', name: 'M16', weight: 3.2 }
-    ],
-    armor: [
-      { id: 'a1', name: 'SEVA Suit', weight: 8.0 },
-      { id: 'a2', name: 'Kevlar Vest', weight: 5.0 }
-    ],
-    consumable: [
-      { id: 'c1', name: 'MedKit', weight: 1.0 },
-      { id: 'c2', name: 'Energy Bar', weight: 0.2 }
-    ],
-    tool: [
-      { id: 't1', name: 'Multi-Tool', weight: 0.5 }
-    ],
-    pistol: [
-      { id: 'p1', name: 'Glock 19', weight: 0.9 }
-    ],
-    magazine: [
-      { id: 'm1', name: '9mm Magazine', weight: 0.3 }
-    ],
-    medication: [
-      { id: 'md1', name: 'Painkillers', weight: 0.1 }
-    ],
-    headgear: [
-      { id: 'hg1', name: 'Sunglasses', weight: 0.2 }
-    ]
-  };
-
-  const itemTypes = ['headgear', 'armor', 'weapon', 'consumable', 'tool', 'pistol', 'magazine', 'medication'];
-
+ 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
@@ -125,7 +95,17 @@ const InventorySystem = () => {
     }
     loadCharacterData();
   }, [navigate]);
-
+  useEffect(() => {
+    const fetchItemTypes = async () => {
+      try {
+        const types = await getItemTypes();
+        setItemTypes(types.map(type => type.id));
+      } catch (err) {
+        setError("Failed to load item types: " + err.message);
+      }
+    };
+    fetchItemTypes();
+  }, []);
   const calculateTotalWeight = () => {
     const inventoryWeight = inventoryItems.reduce((total, item) => total + item.total_weight, 0);
     const equipmentWeight = Object.values(equipment).reduce((total, item) => {
@@ -514,6 +494,20 @@ const InventorySystem = () => {
     e.preventDefault();
   };
 
+  const handleItemTypeChange = async (typeSelected) => {
+    setNewItem({ ...newItem, type: typeSelected, name: '', weight: 0 });
+    setSelectedType(typeSelected);
+    
+    try {
+      const items = await getItemsByType(typeSelected);
+      setAvailableItems(items);
+    } catch (err) {
+      setError("Failed to load items: " + err.message);
+      setAvailableItems([]);
+    }
+    setSelectedName('');
+  };
+
   if (loading) {
     return <div className="loading">Loading character data...</div>;
   }
@@ -670,17 +664,7 @@ const InventorySystem = () => {
           {/* First Dropdown: Select Type */}
           <select
             value={newItem.type}
-            onChange={(e) => {
-              const typeSelected = e.target.value;
-              setNewItem({ ...newItem, type: typeSelected, name: '', weight: 0 });
-              setSelectedType(typeSelected);
-              if (itemsByType[typeSelected]) {
-                setAvailableItems(itemsByType[typeSelected]);
-              } else {
-                setAvailableItems([]);
-              }
-              setSelectedName('');
-            }}
+            onChange={(e) => handleItemTypeChange(e.target.value)}
           >
             <option value="" disabled>Select Type</option>
             {itemTypes.map((type) => (
@@ -699,7 +683,8 @@ const InventorySystem = () => {
               setNewItem({
                 ...newItem,
                 name: nameSelected,
-                weight: selectedItem ? selectedItem.weight : 0
+                weight: selectedItem ? selectedItem.weight : 0,
+                item_id: selectedItem ? selectedItem.id : null
               });
               setSelectedName(nameSelected);
             }}
