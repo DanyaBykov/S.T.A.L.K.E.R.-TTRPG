@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Journal.css";
 
 export default function StalkerJournal() {
@@ -254,39 +254,153 @@ function DetailView({ item, onBack, category }) {
   );
 }
 
-// Quest Log Section Component
+// Quest Log Section Component with Fetch API
 function QuestLogSection() {
-  const [quests, setQuests] = useState([
-    { id: 1, title: "Find the military documents", description: "Locate the secret documents in the abandoned military base", completed: false },
-    { id: 2, title: "Eliminate the bloodsucker nest", description: "Clear out the bloodsuckers in the old factory", completed: true },
-    { id: 3, title: "Retrieve the rare artifact", description: "Find the 'Moonlight' artifact for the scientist", completed: false }
-  ]);
-  
+  const [quests, setQuests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newQuestTitle, setNewQuestTitle] = useState("");
   const [newQuestDescription, setNewQuestDescription] = useState("");
   
-  const toggleQuestStatus = (id) => {
-    setQuests(quests.map(quest => 
-      quest.id === id ? { ...quest, completed: !quest.completed } : quest
-    ));
-  };
+  // For development - replace with actual character ID when available
+  const characterId = "current-character-id"; 
   
-  const addNewQuest = () => {
-    if (newQuestTitle.trim() === "") return;
-    
-    const newQuest = {
-      id: Date.now(),
-      title: newQuestTitle,
-      description: newQuestDescription,
-      completed: false
+  // Fetch quests on component mount
+  useEffect(() => {
+    const fetchQuests = async () => {
+      try {
+        setLoading(true);
+        
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`/characters/${characterId}/quests`, {
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setQuests(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching quests:", err);
+        setError("Failed to load quests. Using local data.");
+        
+        // Fallback to local data if API fails
+        setQuests([
+          { id: 1, title: "Find the military documents", description: "Locate the secret documents in the abandoned military base", completed: false },
+          { id: 2, title: "Eliminate the bloodsucker nest", description: "Clear out the bloodsuckers in the old factory", completed: true },
+          { id: 3, title: "Retrieve the rare artifact", description: "Find the 'Moonlight' artifact for the scientist", completed: false }
+        ]);
+      } finally {
+        setLoading(false);
+      }
     };
     
-    setQuests([...quests, newQuest]);
-    setNewQuestTitle("");
-    setNewQuestDescription("");
-    setShowAddForm(false);
+    fetchQuests();
+  }, [characterId]);
+  
+  const toggleQuestStatus = async (id) => {
+    try {
+      // Optimistic update
+      setQuests(quests.map(quest => 
+        quest.id === id ? { ...quest, completed: !quest.completed } : quest
+      ));
+      
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      // API call to update quest
+      const response = await fetch(`/characters/${characterId}/quests/${id}/toggle`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      // Update with server response if needed
+      const updatedQuest = await response.json();
+      console.log("Quest updated successfully:", updatedQuest);
+      
+    } catch (err) {
+      console.error("Error toggling quest status:", err);
+      // Revert on failure
+      setQuests(quests.map(quest => 
+        quest.id === id ? { ...quest, completed: !quest.completed } : quest
+      ));
+      setError("Failed to update quest. Change saved locally only.");
+    }
   };
+  
+  const addNewQuest = async () => {
+    if (newQuestTitle.trim() === "") return;
+    
+    try {
+      // Create new quest object
+      const newQuest = {
+        title: newQuestTitle,
+        description: newQuestDescription,
+        completed: false
+      };
+      
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      // API call to create quest
+      const response = await fetch(`/characters/${characterId}/quests`, {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newQuest)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      // Get the created quest with ID from server
+      const createdQuest = await response.json();
+      setQuests([...quests, createdQuest]);
+      
+      // Reset form
+      setNewQuestTitle("");
+      setNewQuestDescription("");
+      setShowAddForm(false);
+      setError(null);
+    } catch (err) {
+      console.error("Error creating quest:", err);
+      setError("Failed to save to server. Quest saved locally.");
+      
+      // Add locally if API fails
+      const localQuest = {
+        id: Date.now(), // Generate temp ID
+        title: newQuestTitle,
+        description: newQuestDescription,
+        completed: false
+      };
+      
+      setQuests([...quests, localQuest]);
+      setNewQuestTitle("");
+      setNewQuestDescription("");
+      setShowAddForm(false);
+    }
+  };
+  
+  if (loading) return <div className="loading">Loading quests...</div>;
   
   return (
     <div className="quest-section">
@@ -299,6 +413,10 @@ function QuestLogSection() {
           +
         </button>
       </div>
+      
+      {error && (
+        <div className="error-message">{error}</div>
+      )}
       
       {showAddForm && (
         <div className="add-form">
@@ -323,51 +441,135 @@ function QuestLogSection() {
       )}
       
       <div className="quest-list">
-        {quests.map(quest => (
-          <div key={quest.id} className={`quest-item ${quest.completed ? 'completed' : ''}`}>
-            <div className="quest-checkbox">
-              <input 
-                type="checkbox" 
-                checked={quest.completed}
-                onChange={() => toggleQuestStatus(quest.id)}
-              />
+        {quests.length === 0 ? (
+          <div className="empty-state">No quests available. Add your first quest!</div>
+        ) : (
+          quests.map(quest => (
+            <div key={quest.id} className={`quest-item ${quest.completed ? 'completed' : ''}`}>
+              <div className="quest-checkbox">
+                <input 
+                  type="checkbox" 
+                  checked={quest.completed}
+                  onChange={() => toggleQuestStatus(quest.id)}
+                />
+              </div>
+              <div className="quest-content">
+                <div className="quest-title">{quest.title}</div>
+                <div className="quest-description">{quest.description}</div>
+              </div>
             </div>
-            <div className="quest-content">
-              <div className="quest-title">{quest.title}</div>
-              <div className="quest-description">{quest.description}</div>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
 }
 
-// Notes Section Component
+// Notes Section Component with Fetch API
 function NotesSection() {
-  const [notes, setNotes] = useState([
-    { id: 1, title: "Safe paths through Garbage", content: "Avoid the center area with the car graveyard. The northern path seems safer, watch for anomalies near the fence." },
-    { id: 2, title: "Trader prices", content: "The trader in Rostok pays well for mutant parts. The one in the Bar has better prices for artifacts." }
-  ]);
-  
+  const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
   const [newNoteTitle, setNewNoteTitle] = useState("");
   const [newNoteContent, setNewNoteContent] = useState("");
   
-  const addNewNote = () => {
-    if (newNoteTitle.trim() === "") return;
-    
-    const newNote = {
-      id: Date.now(),
-      title: newNoteTitle,
-      content: newNoteContent
+  // For development - replace with actual character ID when available
+  const characterId = "current-character-id";
+  
+  // Fetch notes on component mount
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        setLoading(true);
+        
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`/characters/${characterId}/notes`, {
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setNotes(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching notes:", err);
+        setError("Failed to load notes. Using local data.");
+        
+        // Fallback to local data if API fails
+        setNotes([
+          { id: 1, title: "Safe paths through Garbage", content: "Avoid the center area with the car graveyard. The northern path seems safer, watch for anomalies near the fence." },
+          { id: 2, title: "Trader prices", content: "The trader in Rostok pays well for mutant parts. The one in the Bar has better prices for artifacts." }
+        ]);
+      } finally {
+        setLoading(false);
+      }
     };
     
-    setNotes([...notes, newNote]);
-    setNewNoteTitle("");
-    setNewNoteContent("");
-    setShowAddForm(false);
+    fetchNotes();
+  }, [characterId]);
+  
+  const addNewNote = async () => {
+    if (newNoteTitle.trim() === "") return;
+    
+    try {
+      // Create new note object
+      const newNote = {
+        title: newNoteTitle,
+        content: newNoteContent
+      };
+      
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      // API call to create note
+      const response = await fetch(`/characters/${characterId}/notes`, {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newNote)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      // Get the created note with ID from server
+      const createdNote = await response.json();
+      setNotes([...notes, createdNote]);
+      
+      // Reset form
+      setNewNoteTitle("");
+      setNewNoteContent("");
+      setShowAddForm(false);
+      setError(null);
+    } catch (err) {
+      console.error("Error creating note:", err);
+      setError("Failed to save to server. Note saved locally.");
+      
+      // Add locally if API fails
+      const localNote = {
+        id: Date.now(), // Generate temp ID
+        title: newNoteTitle,
+        content: newNoteContent
+      };
+      
+      setNotes([...notes, localNote]);
+      setNewNoteTitle("");
+      setNewNoteContent("");
+      setShowAddForm(false);
+    }
   };
   
   const viewNote = (note) => {
@@ -377,19 +579,106 @@ function NotesSection() {
     setShowAddForm(true);
   };
   
-  const updateNote = () => {
+  const updateNote = async () => {
     if (newNoteTitle.trim() === "") return;
     
-    setNotes(notes.map(note => 
-      note.id === selectedNote.id 
-        ? { ...note, title: newNoteTitle, content: newNoteContent } 
-        : note
-    ));
+    try {
+      // Create updated note object
+      const updatedNote = {
+        title: newNoteTitle,
+        content: newNoteContent
+      };
+      
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      // API call to update note
+      const response = await fetch(`/characters/${characterId}/notes/${selectedNote.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedNote)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      // Update state with the server response
+      const serverUpdatedNote = await response.json();
+      setNotes(notes.map(note => 
+        note.id === selectedNote.id ? serverUpdatedNote : note
+      ));
+      
+      // Reset form
+      setNewNoteTitle("");
+      setNewNoteContent("");
+      setSelectedNote(null);
+      setShowAddForm(false);
+      setError(null);
+    } catch (err) {
+      console.error("Error updating note:", err);
+      setError("Failed to update on server. Note updated locally.");
+      
+      // Update locally if API fails
+      setNotes(notes.map(note => 
+        note.id === selectedNote.id 
+          ? { ...note, title: newNoteTitle, content: newNoteContent } 
+          : note
+      ));
+      
+      setNewNoteTitle("");
+      setNewNoteContent("");
+      setSelectedNote(null);
+      setShowAddForm(false);
+    }
+  };
+  
+  const deleteNote = async (id, e) => {
+    e.stopPropagation(); // Prevent opening the note
     
-    setNewNoteTitle("");
-    setNewNoteContent("");
-    setSelectedNote(null);
-    setShowAddForm(false);
+    if (!confirm("Are you sure you want to delete this note?")) {
+      return;
+    }
+    
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      // API call to delete note
+      const response = await fetch(`/characters/${characterId}/notes/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      // Remove note from state
+      setNotes(notes.filter(note => note.id !== id));
+      
+      // If the deleted note was being edited, close the form
+      if (selectedNote && selectedNote.id === id) {
+        setSelectedNote(null);
+        setNewNoteTitle("");
+        setNewNoteContent("");
+        setShowAddForm(false);
+      }
+      
+      setError(null);
+    } catch (err) {
+      console.error("Error deleting note:", err);
+      setError("Failed to delete from server. Note removed locally.");
+      
+      // Delete locally if API fails
+      setNotes(notes.filter(note => note.id !== id));
+    }
   };
   
   const cancelForm = () => {
@@ -398,6 +687,8 @@ function NotesSection() {
     setSelectedNote(null);
     setShowAddForm(false);
   };
+  
+  if (loading) return <div className="loading">Loading notes...</div>;
   
   return (
     <div className="notes-section">
@@ -410,6 +701,10 @@ function NotesSection() {
           +
         </button>
       </div>
+      
+      {error && (
+        <div className="error-message">{error}</div>
+      )}
       
       {showAddForm && (
         <div className="add-form notes-form">
@@ -431,21 +726,44 @@ function NotesSection() {
             <button className="save-button" onClick={selectedNote ? updateNote : addNewNote}>
               {selectedNote ? 'Update' : 'Save'}
             </button>
+            {selectedNote && (
+              <button 
+                className="delete-button" 
+                onClick={(e) => deleteNote(selectedNote.id, e)}
+              >
+                Delete
+              </button>
+            )}
           </div>
         </div>
       )}
       
       <div className="notes-list">
-        {notes.map(note => (
-          <div 
-            key={note.id} 
-            className="note-item"
-            onClick={() => viewNote(note)}
-          >
-            <div className="note-title">{note.title}</div>
-            <div className="note-preview">{note.content.substring(0, 60)}...</div>
-          </div>
-        ))}
+        {notes.length === 0 ? (
+          <div className="empty-state">No notes available. Add your first note!</div>
+        ) : (
+          notes.map(note => (
+            <div 
+              key={note.id} 
+              className="note-item"
+              onClick={() => viewNote(note)}
+            >
+              <div className="note-title">{note.title}</div>
+              <div className="note-preview">
+                {note.content.length > 60 
+                  ? `${note.content.substring(0, 60)}...` 
+                  : note.content
+                }
+              </div>
+              <button 
+                className="delete-icon" 
+                onClick={(e) => deleteNote(note.id, e)}
+              >
+                ×
+              </button>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

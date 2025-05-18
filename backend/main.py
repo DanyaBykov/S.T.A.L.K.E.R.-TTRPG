@@ -101,11 +101,32 @@ class Character(CharacterBase):
         "tool": None,
         "pistol": None
     }
+class QuestBase(BaseModel):
+    title: str
+    description: str
+    completed: bool = False
 
-# In-memory storage (replace with a database in production)
+class Quest(QuestBase):
+    id: int
+
+class QuestCreate(QuestBase):
+    pass
+
+class NoteBase(BaseModel):
+    title: str
+    content: str
+
+class Note(NoteBase):
+    id: int
+
+class NoteCreate(NoteBase):
+    pass
+
 users_db = {}
 games_db = {}
 characters_db = {}
+quests_db = {}
+notes_db = {} 
 
 # --- HELPER FUNCTIONS ---
 
@@ -145,6 +166,286 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             return {"id": user_id, **user_data}
     
     raise credentials_exception
+
+# --- QUEST LOG ENDPOINTS ---
+@app.get("/characters/{character_id}/quests", response_model=List[Quest])
+async def get_quests(
+    character_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all quests for a character."""
+    if character_id not in characters_db:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Check if user has access to this character
+    character = characters_db[character_id]
+    if character["user_id"] != current_user["id"]:
+        # Allow DM access too
+        game = games_db.get(character["game_id"])
+        if not game or game["dm_id"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You don't have access to this character's quests")
+    
+    # Return quests or empty list if none exist
+    return quests_db.get(character_id, [])
+
+@app.post("/characters/{character_id}/quests", response_model=Quest)
+async def create_quest(
+    character_id: str,
+    quest: QuestCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new quest for a character."""
+    if character_id not in characters_db:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Check if user has access to this character
+    character = characters_db[character_id]
+    if character["user_id"] != current_user["id"]:
+        # Allow DM access too
+        game = games_db.get(character["game_id"])
+        if not game or game["dm_id"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You don't have permission to add quests to this character")
+    
+    # Initialize character's quests if not exists
+    if character_id not in quests_db:
+        quests_db[character_id] = []
+    
+    # Generate new quest ID
+    next_id = 1
+    if quests_db[character_id]:
+        next_id = max(q["id"] for q in quests_db[character_id]) + 1
+    
+    # Create new quest
+    new_quest = {
+        "id": next_id,
+        **quest.dict()
+    }
+    
+    # Add to quests
+    quests_db[character_id].append(new_quest)
+    
+    return new_quest
+
+@app.put("/characters/{character_id}/quests/{quest_id}", response_model=Quest)
+async def update_quest(
+    character_id: str,
+    quest_id: int,
+    quest: QuestCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update an existing quest."""
+    if character_id not in characters_db:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Check if user has access to this character
+    character = characters_db[character_id]
+    if character["user_id"] != current_user["id"]:
+        # Allow DM access too
+        game = games_db.get(character["game_id"])
+        if not game or game["dm_id"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You don't have permission to update this character's quests")
+    
+    # Check if quests exist for this character
+    if character_id not in quests_db:
+        raise HTTPException(status_code=404, detail="No quests found for this character")
+    
+    # Find and update the quest
+    for i, q in enumerate(quests_db[character_id]):
+        if q["id"] == quest_id:
+            updated_quest = {
+                "id": quest_id,
+                **quest.dict()
+            }
+            quests_db[character_id][i] = updated_quest
+            return updated_quest
+    
+    raise HTTPException(status_code=404, detail="Quest not found")
+
+@app.patch("/characters/{character_id}/quests/{quest_id}/toggle", response_model=Quest)
+async def toggle_quest_status(
+    character_id: str,
+    quest_id: int,
+    current_user: dict = Depends(get_current_user)
+):
+    """Toggle a quest's completed status."""
+    if character_id not in characters_db:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Check if user has access to this character
+    character = characters_db[character_id]
+    if character["user_id"] != current_user["id"]:
+        # Allow DM access too
+        game = games_db.get(character["game_id"])
+        if not game or game["dm_id"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You don't have permission to update this character's quests")
+    
+    # Check if quests exist for this character
+    if character_id not in quests_db:
+        raise HTTPException(status_code=404, detail="No quests found for this character")
+    
+    # Find and toggle the quest
+    for i, q in enumerate(quests_db[character_id]):
+        if q["id"] == quest_id:
+            quests_db[character_id][i]["completed"] = not quests_db[character_id][i]["completed"]
+            return quests_db[character_id][i]
+    
+    raise HTTPException(status_code=404, detail="Quest not found")
+
+@app.delete("/characters/{character_id}/quests/{quest_id}")
+async def delete_quest(
+    character_id: str,
+    quest_id: int,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a quest."""
+    if character_id not in characters_db:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Check if user has access to this character
+    character = characters_db[character_id]
+    if character["user_id"] != current_user["id"]:
+        # Allow DM access too
+        game = games_db.get(character["game_id"])
+        if not game or game["dm_id"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You don't have permission to delete this character's quests")
+    
+    # Check if quests exist for this character
+    if character_id not in quests_db:
+        raise HTTPException(status_code=404, detail="No quests found for this character")
+    
+    # Find and delete the quest
+    for i, q in enumerate(quests_db[character_id]):
+        if q["id"] == quest_id:
+            quests_db[character_id].pop(i)
+            return {"message": "Quest deleted successfully"}
+    
+    raise HTTPException(status_code=404, detail="Quest not found")
+
+
+# --- NOTES ENDPOINTS ---
+
+@app.get("/characters/{character_id}/notes", response_model=List[Note])
+async def get_notes(
+    character_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all notes for a character."""
+    if character_id not in characters_db:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Check if user has access to this character
+    character = characters_db[character_id]
+    if character["user_id"] != current_user["id"]:
+        # Allow DM access too
+        game = games_db.get(character["game_id"])
+        if not game or game["dm_id"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You don't have access to this character's notes")
+    
+    # Return notes or empty list if none exist
+    return notes_db.get(character_id, [])
+
+@app.post("/characters/{character_id}/notes", response_model=Note)
+async def create_note(
+    character_id: str,
+    note: NoteCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new note for a character."""
+    if character_id not in characters_db:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Check if user has access to this character
+    character = characters_db[character_id]
+    if character["user_id"] != current_user["id"]:
+        # Allow DM access too
+        game = games_db.get(character["game_id"])
+        if not game or game["dm_id"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You don't have permission to add notes to this character")
+    
+    # Initialize character's notes if not exists
+    if character_id not in notes_db:
+        notes_db[character_id] = []
+    
+    # Generate new note ID
+    next_id = 1
+    if notes_db[character_id]:
+        next_id = max(n["id"] for n in notes_db[character_id]) + 1
+    
+    # Create new note
+    new_note = {
+        "id": next_id,
+        **note.dict()
+    }
+    
+    # Add to notes
+    notes_db[character_id].append(new_note)
+    
+    return new_note
+
+@app.put("/characters/{character_id}/notes/{note_id}", response_model=Note)
+async def update_note(
+    character_id: str,
+    note_id: int,
+    note: NoteCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update an existing note."""
+    if character_id not in characters_db:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Check if user has access to this character
+    character = characters_db[character_id]
+    if character["user_id"] != current_user["id"]:
+        # Allow DM access too
+        game = games_db.get(character["game_id"])
+        if not game or game["dm_id"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You don't have permission to update this character's notes")
+    
+    # Check if notes exist for this character
+    if character_id not in notes_db:
+        raise HTTPException(status_code=404, detail="No notes found for this character")
+    
+    # Find and update the note
+    for i, n in enumerate(notes_db[character_id]):
+        if n["id"] == note_id:
+            updated_note = {
+                "id": note_id,
+                **note.dict()
+            }
+            notes_db[character_id][i] = updated_note
+            return updated_note
+    
+    raise HTTPException(status_code=404, detail="Note not found")
+
+@app.delete("/characters/{character_id}/notes/{note_id}")
+async def delete_note(
+    character_id: str,
+    note_id: int,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a note."""
+    if character_id not in characters_db:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Check if user has access to this character
+    character = characters_db[character_id]
+    if character["user_id"] != current_user["id"]:
+        # Allow DM access too
+        game = games_db.get(character["game_id"])
+        if not game or game["dm_id"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You don't have permission to delete this character's notes")
+    
+    # Check if notes exist for this character
+    if character_id not in notes_db:
+        raise HTTPException(status_code=404, detail="No notes found for this character")
+    
+    # Find and delete the note
+    for i, n in enumerate(notes_db[character_id]):
+        if n["id"] == note_id:
+            notes_db[character_id].pop(i)
+            return {"message": "Note deleted successfully"}
+    
+    raise HTTPException(status_code=404, detail="Note not found")
 
 
 # --- WIKI/DATABASE ACCESS ENDPOINTS ---
