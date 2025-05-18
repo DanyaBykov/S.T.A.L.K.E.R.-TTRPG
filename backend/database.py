@@ -344,7 +344,7 @@ class Database:
                         with self.get_connection() as conn:
                             with conn.cursor() as cursor:
                                 placeholders = ', '.join(['%s'] * len(valid_columns))
-                                columns_str = ', '.join(valid_columns)
+                                columns_str = ', '.join([f"`{col}`" if col.lower() in ['range', 'key', 'order', 'group', 'by', 'select', 'where'] else col for col in valid_columns])
                                 query = f"INSERT INTO {table_name} ({columns_str}) VALUES ({placeholders})"
                                 
                                 cursor.executemany(query, chunk)
