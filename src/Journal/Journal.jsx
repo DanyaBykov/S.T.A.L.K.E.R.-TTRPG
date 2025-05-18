@@ -332,12 +332,12 @@ function ArtifactsSection({ selectedItem, onItemClick }) {
 }
 
 // Detail View Component for Bestiary, Anomalies, and Artifacts
+// Detail View Component for Bestiary, Anomalies, and Artifacts
 function DetailView({ item, onBack, category }) {
   const [fullDetails, setFullDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Get the table name based on category
   const getTableName = () => {
     switch (category.toLowerCase()) {
       case 'bestiary': return 'beasts';
@@ -347,9 +347,68 @@ function DetailView({ item, onBack, category }) {
     }
   };
   
+  const renderBeastStats = () => {
+    if (category !== 'Bestiary' || !displayItem) return null;
+    
+    const getSizeIcon = (size) => {
+      switch(size?.toLowerCase()) {
+        case 'small': return '🐁';
+        case 'medium': return '🐺';
+        case 'large': return '🦁';
+        case 'humanoid': return '👤';
+        default: return '❓';
+      }
+    };
+    
+    return (
+      <div className="beast-stats-section">
+        <div className="stat-block-section">
+          <h2 className="stat-block-title">BEAST STATS</h2>
+          <div className="beast-stats-grid">
+            {displayItem.size && (
+              <div className="beast-stat">
+                <span className="stat-icon">{getSizeIcon(displayItem.size)}</span>
+                <span className="stat-label">Size:</span>
+                <span className="stat-value">{displayItem.size}</span>
+              </div>
+            )}
+            
+            {displayItem.HP && (
+              <div className="beast-stat">
+                <span className="stat-icon">❤️</span>
+                <span className="stat-label">HP:</span>
+                <span className="stat-value">{displayItem.HP}</span>
+              </div>
+            )}
+            
+            {displayItem.agility && (
+              <div className="beast-stat">
+                <span className="stat-icon">🏃</span>
+                <span className="stat-label">Agility:</span>
+                <span className="stat-value">{displayItem.agility}</span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {displayItem.abilities && (
+          <div className="stat-block-section">
+            <h2 className="stat-block-title">ABILITIES</h2>
+            <div className="stat-block-content">
+              <ul className="abilities-list">
+                {displayItem.abilities.split(';').map((ability, index) => (
+                  <li key={index}>{ability.trim()}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+  
   useEffect(() => {
     const fetchDetails = async () => {
-      // If we already have full details, no need to fetch
       if (item && item.description) {
         setFullDetails(item);
         setLoading(false);
@@ -371,8 +430,6 @@ function DetailView({ item, onBack, category }) {
       } catch (err) {
         console.error(`Error fetching ${category} details:`, err);
         setError(`Failed to load complete details for ${item.name}.`);
-        
-        // Use item as fallback
         setFullDetails(item);
       } finally {
         setLoading(false);
@@ -388,7 +445,6 @@ function DetailView({ item, onBack, category }) {
   
   const displayItem = fullDetails || item;
   
-  // Extract properties for display
   const getProperties = () => {
     if (category === 'Artifacts') {
       if (displayItem.properties) return displayItem.properties;
@@ -424,6 +480,8 @@ function DetailView({ item, onBack, category }) {
           <p className="detail-description">
             {displayItem.description}
           </p>
+          
+          {category === 'Bestiary' && renderBeastStats()}
           
           {(displayItem.properties || category === 'Artifacts') && (
             <div className="stat-block-section">

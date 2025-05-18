@@ -405,3 +405,50 @@
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   }
 }
+
+.beast-stats-section {
+  margin-top: 16px;
+}
+
+.beast-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.beast-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.stat-icon {
+  font-size: 1.2rem;
+}
+
+.stat-label {
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+.abilities-list {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.abilities-list li {
+  padding: 4px 0;
+  position: relative;
+  padding-left: 20px;
+}
+
+.abilities-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #ffa500;
+}
