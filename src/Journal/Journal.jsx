@@ -149,7 +149,7 @@ function BestiarySection({ selectedItem, onItemClick }) {
     const fetchBeasts = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}/wiki/mutants`);
+        const response = await fetch(`${API_URL}/wiki/beasts`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
