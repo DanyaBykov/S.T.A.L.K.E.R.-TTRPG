@@ -908,6 +908,8 @@ class JoinGameRequest(BaseModel):
     game_code: str
     guest_name: Optional[str] = "Anonymous Stalker"
 
+# Replace the existing join_game function with this updated version
+
 @app.post("/games/join")
 async def join_game(
     join_data: JoinGameRequest,
@@ -935,33 +937,14 @@ async def join_game(
         if current_user["id"] not in found_game["players"]:
             games_db[game_id]["players"].append(current_user["id"])
         
-        # Check if user already has a character
-        character_exists = False
-        existing_character_id = None
-        
-        for char_id, character in characters_db.items():
-            if character["user_id"] == current_user["id"] and character["game_id"] == game_id:
-                character_exists = True
-                existing_character_id = char_id
-                break
-        
-        if not character_exists:
-            # Create a new character for the registered user
-            character_id = create_sample_character(
-                current_user["id"],
-                game_id,
-                character_name=f"{current_user['username']}'s Character"
-            )
-        else:
-            character_id = existing_character_id
-        
+        # Return game info without creating a character
         return {
             "message": "Successfully joined the game",
             "game_id": game_id,
-            "character_id": character_id,
             "is_guest": False,
             "game_name": found_game.get("name", f"Game {game_id}"),
-            "game_code": found_game["game_code"]
+            "game_code": found_game["game_code"],
+            "redirect_to": "character-selection"  # Flag to redirect to character selection
         }
     else:
         # Anonymous/guest user flow
@@ -971,19 +954,13 @@ async def join_game(
         guest_user = {
             "id": guest_id,
             "username": join_data.guest_name,
+            "email": f"guest_{guest_id}@stalker.zone",  # Add email for token generation
             "is_guest": True,
             "created_at": datetime.now().isoformat()
         }
         
-        # Store in users_db (optionally with expiration)
+        # Store in users_db
         users_db[guest_id] = guest_user
-        
-        # Create a character for this guest
-        character_id = create_sample_character(
-            guest_id, 
-            game_id,
-            character_name=f"{join_data.guest_name}"
-        )
         
         # Add guest to players list
         games_db[game_id]["players"].append(guest_id)
@@ -991,19 +968,19 @@ async def join_game(
         # Generate session token for the guest
         access_token_expires = timedelta(hours=12)  # Guest sessions last 12 hours
         access_token = create_access_token(
-            data={"sub": f"guest:{guest_id}", "name": join_data.guest_name},
+            data={"sub": guest_user["email"]},  # Use email format for consistency
             expires_delta=access_token_expires
         )
         
         return {
             "message": "Successfully joined the game as a guest",
             "game_id": game_id,
-            "character_id": character_id,
             "is_guest": True,
             "guest_token": access_token,
             "guest_name": join_data.guest_name,
             "game_name": found_game.get("name", f"Game {game_id}"),
-            "game_code": found_game["game_code"]
+            "game_code": found_game["game_code"],
+            "redirect_to": "character-selection"  # Flag to redirect to character selection
         }
 # --- CHARACTER & INVENTORY ENDPOINTS ---
 
@@ -1512,6 +1489,82 @@ async def delete_game(
         del characters_db[char_id]
     
     return {"message": "Game deleted successfully"}
+
+# Add this endpoint for getting characters in a game
+
+@app.get("/games/{game_id}/characters")
+async def get_game_characters(
+    game_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all characters in a game for the current user"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    game = games_db[game_id]
+    game_characters = []
+    
+    # Get all characters for this game that belong to the current user
+    for character_id, character in characters_db.items():
+        if character["game_id"] == game_id and character["user_id"] == current_user["id"]:
+            game_characters.append({
+                "id": character_id,
+                "name": character["name"],
+                "money": character.get("money", 0),
+                "capacity": character.get("capacity", 60)
+            })
+    
+    return {
+        "game_id": game_id,
+        "game_name": game.get("name", f"Game {game_id}"),
+        "characters": game_characters
+    }
+
+@app.post("/games/{game_id}/characters")
+async def create_game_character(
+    game_id: str,
+    character_data: dict = Body(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new character for the current user in a game"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    character_name = character_data.get("name", "New Stalker")
+    if not character_name:
+        character_name = "New Stalker"
+    
+    # Create the character
+    character_id = str(uuid.uuid4())
+    inventory_items = create_sample_inventory()
+    
+    # Create equipment slots
+    equipment = {
+        "headgear": None,
+        "armor": None,
+        "primary": None,
+        "secondary": None,
+        "tool": None,
+        "pistol": None
+    }
+    
+    # Create the character entry
+    characters_db[character_id] = {
+        "user_id": current_user["id"],
+        "game_id": game_id,
+        "name": character_name,
+        "money": 10000,
+        "capacity": 80,
+        "inventory": inventory_items,
+        "equipment": equipment
+    }
+    
+    return {
+        "id": character_id,
+        "name": character_name,
+        "money": 10000,
+        "capacity": 80
+    }
     
 @app.get("/{path:path}", include_in_schema=False)
 async def serve_spa(path: str):
