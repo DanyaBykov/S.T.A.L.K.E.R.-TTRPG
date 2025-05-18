@@ -6,6 +6,7 @@ import Login from './Login/Login.jsx';
 import './Login/Login.css';
 import './Inventory/InventorySystem.css';
 import MapPage from './Map/MapModule.jsx';
+import StalkerJournal from './Journal/Journal.jsx'
 function App() {
   return (
     <Router>
@@ -13,6 +14,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/inventory" element={<InventorySystem />} />
         <Route path="/map" element={<MapPage />} />
+        <Route path="/journal" element={<StalkerJournal />} />
       </Routes>
     </Router>
   );
