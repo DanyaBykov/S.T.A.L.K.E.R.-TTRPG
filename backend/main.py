@@ -1267,12 +1267,6 @@ def create_sample_character(user_id, game_id, character_name=None):
     }
     
     return character_id
-# Add these endpoints near the end of your FastAPI application
-
-# Add these endpoints
-
-# Replace these endpoints with fixed versions
-
 @app.get("/api/item-types")
 async def get_item_types():
     """Get all available item categories from the database"""
@@ -1286,14 +1280,17 @@ async def get_item_types():
             {"id": "food", "name": "Food"},
             {"id": "artifacts", "name": "Artifacts"}
         ]
-        return item_types
+        print("Returning item types:", item_types)
+        return JSONResponse(content=item_types)
     except Exception as e:
+        print(f"Error in get_item_types: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/items/{category}")
 async def get_items_by_category(category: str):
     """Get all items from a specific category"""
     try:
+        print(f"Fetching items for category: {category}")
         # Map frontend categories to database tables
         table_mapping = {
             "weapons": "weapons",
@@ -1306,9 +1303,11 @@ async def get_items_by_category(category: str):
         
         table_name = table_mapping.get(category)
         if not table_name:
+            print(f"Category not found: {category}")
             raise HTTPException(status_code=404, detail=f"Category {category} not found")
             
         items = db.get_all(table_name)
+        print(f"Found {len(items)} items in category {category}")
         
         # Format the response based on category-specific fields
         formatted_items = []
@@ -1332,9 +1331,11 @@ async def get_items_by_category(category: str):
                 base_item["special"] = item.get("special", "")
             
             formatted_items.append(base_item)
-            
-        return formatted_items
+        
+        print("Returning formatted items")
+        return JSONResponse(content=formatted_items)
     except Exception as e:
+        print(f"Error in get_items_by_category: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 # Run the application
 if __name__ == "__main__":
