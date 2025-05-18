@@ -335,18 +335,15 @@ function Login() {
           navigate("/create-game");
         }
       } else if (selectedRole === "player") {
-        // Handle Player joining game
-        // First, need to authenticate (could add player login here)
+
         if (!gameCode) {
           throw new Error("Game code is required");
         }
-        
-        // For now, players can just join with a game code
-        // In a full implementation, you'd want player authentication too
+
         await joinGame(gameCode);
         localStorage.setItem("userRole", "player");
         
-        navigate("/characters", { state: { gameId: gameCode } });
+        navigate(`/game/${response.game_id}/characters`);
       }
     } catch (err) {
       setError(err.message);
