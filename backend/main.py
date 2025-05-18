@@ -12,6 +12,10 @@ from datetime import datetime, timedelta
 import jwt as pyjwt
 import os
 from passlib.context import CryptContext
+from database import db
+from fastapi import Query, Path
+from typing import Optional, Any, Dict
+
 
 # Initialize FastAPI
 app = FastAPI(title="S.T.A.L.K.E.R. TTRPG API")
@@ -141,6 +145,235 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             return {"id": user_id, **user_data}
     
     raise credentials_exception
+
+
+# --- WIKI/DATABASE ACCESS ENDPOINTS ---
+
+@app.get("/wiki/tables")
+async def get_all_tables():
+    """Get a list of all available tables in the database with their row counts."""
+    tables = db.get_tables()
+    result = {}
+    
+    for table in tables:
+        count = db.count(table)
+        result[table] = count
+        
+    return {"tables": result}
+
+@app.get("/wiki/tables/{table_name}")
+async def get_table_data(
+    table_name: str = Path(..., description="Name of the table to query"),
+    limit: int = Query(50, description="Maximum number of records to return"),
+    offset: int = Query(0, description="Number of records to skip"),
+    sort_by: Optional[str] = Query(None, description="Column to sort by"),
+    sort_desc: bool = Query(False, description="Sort in descending order")
+):
+    """Get data from a specific table with pagination and sorting."""
+    # Verify table exists
+    tables = db.get_tables()
+    if table_name not in tables:
+        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found")
+    
+    # Build query based on parameters
+    query = f"SELECT * FROM {table_name}"
+    
+    # Add sorting if requested
+    if sort_by:
+        # Verify the column exists
+        columns = db.get_column_names(table_name)
+        if sort_by not in columns:
+            raise HTTPException(status_code=400, detail=f"Column '{sort_by}' not found in table '{table_name}'")
+        
+        direction = "DESC" if sort_desc else "ASC"
+        query += f" ORDER BY {sort_by} {direction}"
+    
+    # Add pagination
+    query += f" LIMIT {limit} OFFSET {offset}"
+    
+    # Execute query
+    data = db.run_custom_query(query)
+    
+    # Get total count for pagination info
+    total_count = db.count(table_name)
+    
+    return {
+        "table": table_name,
+        "data": data,
+        "pagination": {
+            "total": total_count,
+            "limit": limit,
+            "offset": offset,
+            "has_more": offset + len(data) < total_count
+        }
+    }
+
+@app.get("/wiki/tables/{table_name}/{record_id}")
+async def get_record_by_id(
+    table_name: str = Path(..., description="Name of the table to query"),
+    record_id: Any = Path(..., description="ID of the record to retrieve"),
+    id_column: str = Query("id", description="Name of the ID column")
+):
+    """Get a specific record from a table by ID."""
+    # Verify table exists
+    tables = db.get_tables()
+    if table_name not in tables:
+        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found")
+    
+    # Verify column exists
+    columns = db.get_column_names(table_name)
+    if id_column not in columns:
+        raise HTTPException(status_code=400, detail=f"Column '{id_column}' not found in table '{table_name}'")
+    
+    # Get record
+    record = db.get_by_id(table_name, id_column, record_id)
+    if not record:
+        raise HTTPException(status_code=404, detail=f"Record with {id_column}={record_id} not found in {table_name}")
+    
+    return record
+
+@app.get("/wiki/search/{table_name}")
+async def search_table(
+    table_name: str = Path(..., description="Name of the table to search"),
+    column: str = Query(..., description="Column to search in"),
+    term: str = Query(..., description="Search term"),
+    limit: int = Query(50, description="Maximum number of results to return")
+):
+    """Search for records in a table that match the given term."""
+    # Verify table exists
+    tables = db.get_tables()
+    if table_name not in tables:
+        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found")
+    
+    # Verify column exists
+    columns = db.get_column_names(table_name)
+    if column not in columns:
+        raise HTTPException(status_code=400, detail=f"Column '{column}' not found in table '{table_name}'")
+    
+    # Perform search
+    results = db.search(table_name, column, term, limit)
+    
+    return {
+        "table": table_name,
+        "column": column,
+        "term": term,
+        "results": results,
+        "count": len(results)
+    }
+
+@app.get("/wiki/{category}")
+async def get_category_data(
+    category: str = Path(..., description="Category to retrieve"),
+    limit: int = Query(100, description="Maximum number of records to return"),
+    offset: int = Query(0, description="Number of records to skip"),
+    search: Optional[str] = Query(None, description="Optional search term")
+):
+    """Get data for a specific category (maps to table name)."""
+    # Map category to table name - add more mappings as needed
+    category_to_table = {
+        "weapons": "weapons",
+        "armor": "armor",
+        "artifacts": "artifacts",
+        "anomalies": "anomalies",
+        "items": "items",
+        "mutants": "mutants",
+        "locations": "locations",
+        "npc": "npc"
+        # Add more mappings as needed
+    }
+    
+    # Get the table name from the category
+    table_name = category_to_table.get(category.lower())
+    if not table_name:
+        # Check if the category directly matches a table name
+        tables = db.get_tables()
+        if category.lower() in [t.lower() for t in tables]:
+            table_name = next(t for t in tables if t.lower() == category.lower())
+        else:
+            raise HTTPException(status_code=404, detail=f"Category '{category}' not found")
+    
+    # Get data
+    if search:
+        # Try to search in name column first, then in description if available
+        columns = db.get_column_names(table_name)
+        search_column = "name" if "name" in columns else columns[0]
+        
+        results = db.search(table_name, search_column, search, limit)
+        return {
+            "category": category,
+            "data": results,
+            "count": len(results)
+        }
+    else:
+        # Get paginated data
+        data = db.get_all(table_name, limit, offset)
+        total_count = db.count(table_name)
+        
+        return {
+            "category": category,
+            "data": data,
+            "pagination": {
+                "total": total_count,
+                "limit": limit,
+                "offset": offset,
+                "has_more": offset + len(data) < total_count
+            }
+        }
+
+@app.get("/wiki/related/{table_name}/{record_id}")
+async def get_related_records(
+    table_name: str = Path(..., description="Primary table name"),
+    record_id: Any = Path(..., description="ID of the primary record"),
+    related_table: str = Query(..., description="Related table to query"),
+    foreign_key: str = Query(..., description="Foreign key column in related table"),
+    limit: int = Query(50, description="Maximum number of related records to return")
+):
+    """Get related records from another table that reference this record."""
+    # Verify tables exist
+    tables = db.get_tables()
+    if table_name not in tables:
+        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found")
+    if related_table not in tables:
+        raise HTTPException(status_code=404, detail=f"Related table '{related_table}' not found")
+    
+    # Verify foreign key column exists in related table
+    columns = db.get_column_names(related_table)
+    if foreign_key not in columns:
+        raise HTTPException(status_code=400, detail=f"Foreign key column '{foreign_key}' not found in table '{related_table}'")
+    
+    # Get related records
+    related = db.get_related(table_name, related_table, foreign_key, record_id, limit)
+    
+    return {
+        "table": table_name,
+        "record_id": record_id,
+        "related_table": related_table,
+        "related_records": related,
+        "count": len(related)
+    }
+
+# Optional: Add a catch-all route for flexible custom queries (admin only)
+@app.get("/wiki/query")
+async def run_custom_query(
+    query: str = Query(..., description="SQL query to run (SELECT only)"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Run a custom SQL query (SELECT only, admin use only)."""
+    # Security check - only allow SELECT queries
+    query = query.strip()
+    if not query.upper().startswith("SELECT"):
+        raise HTTPException(status_code=400, detail="Only SELECT queries are allowed")
+    
+    # Check if current user is an admin/DM
+    if not current_user.get("is_dm", False):
+        raise HTTPException(status_code=403, detail="Only DMs can run custom queries")
+    
+    # Run the query
+    try:
+        results = db.run_custom_query(query)
+        return {"results": results, "count": len(results) if isinstance(results, list) else 0}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Query error: {str(e)}")
 
 # --- AUTHENTICATION ENDPOINTS ---
 
