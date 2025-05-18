@@ -1276,6 +1276,7 @@ const handlePinStop = (pinId) => {
                 <li><Link to="/">MAIN TERMINAL</Link></li>
                 <li><Link to="/inventory">INVENTORY</Link></li>
                 <li><Link to="/map">ZONE MAP</Link></li>
+                <li><Link to="/journal">JOURNAL</Link></li>
               </ul>
             </MenuList>
           )}
