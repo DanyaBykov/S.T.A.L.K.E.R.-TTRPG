@@ -1115,7 +1115,8 @@ def create_sample_inventory():
 
 def create_sample_character(user_id, game_id, character_name=None):
     """Create a sample character with inventory for a new user"""
-    character_id = str(uuid.uuid4())
+    character_id = "1c5293ee-d3bd-4e7b-b91f-bb4f9f56a8a3"
+    print(character_id)
     inventory_items = create_sample_inventory()
     
     # Create equipment from inventory items

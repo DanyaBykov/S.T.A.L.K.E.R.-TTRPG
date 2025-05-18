@@ -263,7 +263,7 @@ function QuestLogSection() {
   const [newQuestTitle, setNewQuestTitle] = useState("");
   const [newQuestDescription, setNewQuestDescription] = useState("");
   
-  const characterId = "current-character-id"; 
+  const characterId = "1c5293ee-d3bd-4e7b-b91f-bb4f9f56a8a3"; 
   
   // Fetch quests on component mount
   useEffect(() => {
