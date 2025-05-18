@@ -340,7 +340,7 @@ function DetailView({ item, onBack, category }) {
   // Get the table name based on category
   const getTableName = () => {
     switch (category.toLowerCase()) {
-      case 'bestiary': return 'mutants';
+      case 'bestiary': return 'beasts';
       case 'anomalies': return 'anomalies';
       case 'artifacts': return 'artifacts';
       default: return category.toLowerCase();
