@@ -12,8 +12,19 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
     
+    - name: Create SSH key
+      run: |
+        mkdir -p ~/.ssh/
+        echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/private_key
+        chmod 600 ~/.ssh/private_key
+        ssh-keygen -y -f ~/.ssh/private_key > ~/.ssh/private_key.pub
+    
+    - name: Debug SSH connection
+      run: |
+        ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "echo SSH connection successful"
+      
     - name: Copy files to VPS
-      uses: appleboy/scp-action@v0.1.4
+      uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
@@ -23,7 +34,7 @@ jobs:
         target: "/opt/stalker-ttrpg"
     
     - name: Deploy on VPS
-      uses: appleboy/ssh-action@v0.1.10
+      uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
@@ -31,6 +42,15 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd /opt/stalker-ttrpg
+          
+          # Create/update .env file
+          touch .env
+          grep -v "CLOUDFLARE_TUNNEL_TOKEN\|MYSQL_ROOT_PASSWORD\|MYSQL_PASSWORD" .env > .env.tmp || touch .env.tmp
+          mv .env.tmp .env
           echo "CLOUDFLARE_TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" >> .env
-          docker-compose down
+          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+          
+          # Deploy with Docker Compose
+          docker-compose down || true
           docker-compose up -d --build
