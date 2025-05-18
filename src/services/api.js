@@ -119,11 +119,7 @@ export async function updateMoney(characterId, amount) {
 
 export const getItemTypes = async () => {
   try {
-    const response = await fetch('/api/item-types');
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return await response.json();
+    return await apiRequest('/api/item-types');
   } catch (error) {
     console.error('Error fetching item types:', error);
     return [
@@ -139,11 +135,7 @@ export const getItemTypes = async () => {
 
 export const getItemsByType = async (type) => {
   try {
-    const response = await fetch(`/api/items/${type}`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return await response.json();
+    return await apiRequest(`/api/items/${type}`);
   } catch (error) {
     console.error(`Error fetching items for type ${type}:`, error);
     return getMockItemsByType(type);
