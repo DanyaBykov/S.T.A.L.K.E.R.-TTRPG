@@ -1271,7 +1271,7 @@ def create_sample_character(user_id, game_id, character_name=None):
 
 # Add these endpoints
 
-@app.get("/api/item-types", response_model=JSONResponse)
+@app.get("/api/item-types")
 async def get_item_types():
     """Get all available item categories from the database"""
     try:
@@ -1288,7 +1288,7 @@ async def get_item_types():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/items/{category}", response_model=JSONResponse)
+@app.get("/api/items/{category}")
 async def get_items_by_category(category: str):
     """Get all items from a specific category"""
     try:
