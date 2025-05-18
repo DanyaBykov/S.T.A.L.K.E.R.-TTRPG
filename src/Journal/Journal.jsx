@@ -263,7 +263,6 @@ function QuestLogSection() {
   const [newQuestTitle, setNewQuestTitle] = useState("");
   const [newQuestDescription, setNewQuestDescription] = useState("");
   
-  // For development - replace with actual character ID when available
   const characterId = "current-character-id"; 
   
   // Fetch quests on component mount
@@ -271,9 +270,12 @@ function QuestLogSection() {
     const fetchQuests = async () => {
       try {
         setLoading(true);
-        
-        // Get token from localStorage
+
         const token = localStorage.getItem('token');
+        
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
         
         const response = await fetch(`/characters/${characterId}/quests`, {
           headers: {
