@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { Menu } from 'lucide-react';
 import { getCharacters, getCharacter, addInventoryItem, updateInventoryItem, deleteInventoryItem, equipItem, updateMoney } from '../services/api.js';
 import './InventorySystem.css';
 
@@ -32,8 +34,15 @@ const InventorySystem = () => {
   });
   const [deleteItem, setDeleteItem] = useState(null);
   const [deleteQuantity, setDeleteQuantity] = useState(1);
+  // const [contextItem, setContextItem] = useState(null); 
+  // const [isUpdateItemMenuOpen, setIsUpdateItemMenuOpen] = useState(false);
+  // const [updateItem, setUpdateItem] = useState(null);
+  // const [updateItemData, setUpdateItemData] = useState({ quantity: 1, notes: '' });
+  const [hoveredItem, setHoveredItem] = useState(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const totalQuickSlots = 6; // Total quick slots
   const [quickSlots, setQuickSlots] = useState(Array(totalQuickSlots).fill(null));
+  const [burgerOpen, setBurgerOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -107,6 +116,23 @@ const InventorySystem = () => {
     setDraggedItem(dragged);
   };
   
+  const getTooltipStyle = (x, y) => {
+    const padding = 10;
+    const tooltipElement = document.getElementById('tooltip');
+    const tooltipWidth = tooltipElement ? tooltipElement.offsetWidth : 220;
+    const tooltipHeight = tooltipElement ? tooltipElement.offsetHeight : 100;
+    let left = x + padding;
+    let top = y + padding;
+  
+    if (left + tooltipWidth > window.innerWidth) {
+      left = window.innerWidth - tooltipWidth - padding;
+    }
+    if (top + tooltipHeight > window.innerHeight) {
+      top = y - tooltipHeight - padding;
+      if (top < padding) top = padding;
+    }
+    return { left, top };
+  };
 
   const toggleAddItemMenu = () => {
     setIsAddItemMenuOpen((prev) => !prev);
@@ -163,39 +189,13 @@ const InventorySystem = () => {
     }
   };
 
-  const usedQuickSlots = useMemo(() => {
-    let used = 0;
-    ['headgear', 'armor'].forEach(slot => {
-      if (equipment[slot]) {
-        let slots = equipment[slot].quick_slots;
-        if (!slots) {
-          slots = equipment[slot].type === 'armor' ? 2 : equipment[slot].type === 'headgear' ? 1 : 0;
-        }
-        used += slots;
-      }
-    });
-    if (equipment.consumable) {
-      used += equipment.consumable.length;
-    }
-    return used;
-  }, [equipment]);
-
-  // (Optional) Keeping this helper if you ever need it separately
-  const calculateUsedQuickSlots = () => {
-    let used = 0;
-    ['headgear', 'armor'].forEach(slot => {
-      if (equipment[slot] && equipment[slot].quick_slots) {
-        used += equipment[slot].quick_slots;
-      }
-    });
-    return used;
-  };
+  
 
   const renderQuickAccess = () => {
     const headgearCount = equipment.headgear ? (equipment.headgear.quick_slots || 1) : 0;
     const armorCount = equipment.armor ? (equipment.armor.quick_slots || 2) : 0;
     const userSlotCount = totalQuickSlots - headgearCount - armorCount;
-  
+    
     return (
       <div className="quick-access-grid">
         {Array.from({ length: totalQuickSlots }, (_, index) => {
@@ -237,7 +237,6 @@ const InventorySystem = () => {
             );
           } else {
             // User-managed slot.
-            // Calculate the index within the user-managed quickSlots array.
             const userSlotIndex = index - headgearCount;
             const slot = quickSlots[userSlotIndex];
             return (
@@ -254,6 +253,14 @@ const InventorySystem = () => {
                     onDragStart={(e) =>
                       handleQuickSlotDragStart(e, userSlotIndex, slot)
                     }
+                    onMouseEnter={(e) => {
+                      setHoveredItem(slot.type === 'medication' ? { ...slot.item, quantity: slot.quantity } : slot.item);
+                      setTooltipPos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseMove={(e) => {
+                      setTooltipPos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseLeave={() => setHoveredItem(null)}
                   >
                     {slot.type === 'magazine' ? (
                       <>
@@ -475,20 +482,46 @@ const InventorySystem = () => {
     <div className="inventory-container">
       <div className="main-content">
         <div className="equipment-panel">
-          <div className="header">EQUIPMENT</div>
+        <div className="header">
+          <div 
+            className="burger-menu" 
+            onClick={() => setBurgerOpen((prev) => !prev)}
+            title="Options"
+          >
+            <Menu size={24} />
+          </div>
+          EQUIPMENT
+        </div>
+        {burgerOpen && (
+          <div className="burger-menu-list">
+            <ul>
+              <li><Link to="/">MAIN TERMINAL</Link></li>
+              <li><Link to="/inventory">INVENTORY</Link></li>
+              <li><Link to="/map">ZONE MAP</Link></li>
+            </ul>
+          </div>
+        )}
           <div className="equipment-grid">
-            {['primary', 'headgear', 'armor', 'secondary', 'tool', 'pistol'].map(slotType => (
+          {['primary', 'headgear', 'armor', 'secondary', 'tool', 'pistol'].map(slotType => (
               <div
                 key={slotType}
                 className="equipment-slot"
                 onDrop={(e) => handleEquipmentDrop(e, slotType)}
-                onDragOver={handleDragOver}
+                onDragOver={(e) => handleDragOver(e)}
               >
                 {equipment[slotType] ? (
                   <div
                     className="equipment-item"
                     draggable
                     onDragStart={(e) => handleDragStart(e, equipment[slotType])}
+                    onMouseEnter={(e) => {
+                      setHoveredItem(equipment[slotType]);
+                      setTooltipPos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseMove={(e) => {
+                      setTooltipPos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseLeave={() => setHoveredItem(null)}
                   >
                     <div className="text-center">
                       <div className="item-name">{equipment[slotType].name}</div>
@@ -501,7 +534,7 @@ const InventorySystem = () => {
                   </div>
                 )}
               </div>
-            ))}
+          ))}
           </div>
           <div className="quick-access">
             <div className="quick-access-label">QUICK ACCESS</div>
@@ -550,7 +583,19 @@ const InventorySystem = () => {
                     className="inventory-row"
                     draggable
                     onDragStart={(e) => handleDragStart(e, item)}
-                    onContextMenu={(e) => handleRightClick(e, item)} 
+                    onContextMenu={(e) => handleRightClick(e, item)}
+                    // onContextMenu={(e) => {
+                    //   e.preventDefault();
+                    //   setContextItem(item);
+                    // }}
+                    onMouseEnter={(e) => {
+                      setHoveredItem(item);
+                      setTooltipPos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseMove={(e) => {
+                      setTooltipPos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseLeave={() => setHoveredItem(null)}
                   >
                     <td>{item.name}</td>
                     <td className="text-center">{item.type}</td>
@@ -630,6 +675,86 @@ const InventorySystem = () => {
           </div>
         </div>
       )}
+      {hoveredItem && (
+        <div
+          className="item-tooltip"
+          style={getTooltipStyle(tooltipPos.x, tooltipPos.y)}
+        >
+          <div><strong>{hoveredItem.name}</strong></div>
+          <div>Type: {hoveredItem.type}</div>
+          <div>Quantity: {hoveredItem.quantity}</div>
+          <div>Weight: {hoveredItem.weight}</div>
+          {hoveredItem.total_weight && <div>Total Weight: {hoveredItem.total_weight}</div>}
+          {hoveredItem.notes && <div>Notes: {hoveredItem.notes}</div>}
+          {/* You can add more parameters that are available in your data */}
+        </div>
+      )}
+      {/* {contextItem && (
+        <div className="context-menu-overlay">
+          <div className="context-menu">
+            <p>{contextItem.name}</p>
+            <button onClick={() => {
+              setDeleteItem(contextItem);
+              setContextItem(null);
+            }}>Delete</button>
+            <button onClick={() => {
+              setIsUpdateItemMenuOpen(true);
+              setUpdateItem(contextItem);
+              setUpdateItemData({ quantity: contextItem.quantity, notes: contextItem.notes });
+              setContextItem(null);
+            }}>Update</button>
+            <button onClick={() => setContextItem(null)}>Cancel</button>
+          </div>
+        </div>
+      )}
+      {isUpdateItemMenuOpen && updateItem && (
+        <div className="update-item-menu-overlay">
+          <div className="update-item-menu">
+            <h3>Update Item: {updateItem.name}</h3>
+            <div>
+              <label>Quantity:</label>
+              <input
+                type="number"
+                min="1"
+                value={updateItemData.quantity}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  setUpdateItemData({ 
+                    ...updateItemData, 
+                    quantity: value < 1 ? 1 : value 
+                  });
+                }}
+              />
+            </div>
+            <div>
+              <label>Notes:</label>
+              <textarea
+                value={updateItemData.notes}
+                onChange={(e) =>
+                  setUpdateItemData({ ...updateItemData, notes: e.target.value })
+                }
+              />
+            </div>
+            <button onClick={async () => {
+              try {
+                const updated = await updateInventoryItem(characterId, updateItem.id, updateItemData);
+                const updatedInventory = inventoryItems.map(item =>
+                  item.id === updateItem.id ? updated : item
+                );
+                setInventoryItems(updatedInventory);
+                setIsUpdateItemMenuOpen(false);
+                setUpdateItem(null);
+              } catch (err) {
+                alert("Failed to update item: " + JSON.stringify(err));
+              }
+            }}>Update</button>
+            <button onClick={() => {
+              setIsUpdateItemMenuOpen(false);
+              setUpdateItem(null);
+            }}>Cancel</button>
+          </div>
+        </div>
+      )} */}
     </div>
   );
 };

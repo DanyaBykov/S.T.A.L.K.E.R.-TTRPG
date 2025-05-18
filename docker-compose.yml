@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  database:
+    image: mysql:8.0
+    restart: always
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: TTRPG_DB
+      MYSQL_USER: ttrpg_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-secretpass}
+    ports:
+      - "127.0.0.1:3306:3306"
+    networks:
+      - stalker-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=mysql+mysqlconnector://ttrpg_user:${MYSQL_PASSWORD:-secretpass}@database:3306/TTRPG_DB
+      - SECRET_KEY=${JWT_SECRET_KEY:-YOUR_SECRET_KEY}
+    networks:
+      - stalker-net
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+      - ./dist:/dist
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - app
+    networks:
+      - stalker-net
+
+networks:
+  stalker-net:
+    driver: bridge

@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import styled from 'styled-components';
+import Draggable from 'react-draggable';
+import { Plus, UserCircle } from 'lucide-react';
+import TileRenderer from './TileRenderer';
 
-// Styled components
+
+
 const Container = styled.div`
   display: flex;
   width: 100vw;
@@ -13,22 +17,22 @@ const Container = styled.div`
   background: #000;
   overflow: hidden;
 `;
-// Map area takes remaining width
+
 const MapContainer = styled.div`
   flex: 1;
   position: relative;
-  height: 100%; /* Add this */
-  overflow: hidden; /* Add this */
+  height: 100%; 
+  overflow: hidden; 
 `;
 
 const MapImg = styled.img`
   width: 100%;
   height: 100%; 
-  object-fit: contain; /* Change from cover to contain */
-  display: block; /* Add this */
+  object-fit: contain; 
+  display: block; 
 `;
 
-// Base overlay with STALKER-style theme
+
 const Overlay = styled.div`
   position: absolute;
   background-image: linear-gradient(to bottom, 
@@ -42,7 +46,7 @@ const Overlay = styled.div`
   font-family: 'Courier New', monospace;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   
-  /* Scanline effect */
+  
   &:before {
     content: "";
     position: absolute;
@@ -58,7 +62,7 @@ const Overlay = styled.div`
     pointer-events: none;
   }
   
-  /* Left border decoration - like STALKER UI elements */
+  
   &:after {
     content: "";
     position: absolute;
@@ -81,7 +85,7 @@ const Overlay = styled.div`
     padding-left: 10px;
     
     &:before {
-      content: "//";
+      content: "
       position: absolute;
       left: -5px;
       opacity: 0.7;
@@ -182,7 +186,7 @@ const ResultsGrid = styled.div`
   position: relative;
   z-index: 1;
   
-  /* STALKER-style scrollbar */
+  
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -208,7 +212,7 @@ const DiceResult = styled(motion.div)`
   font-size: 0.9rem;
   position: relative;
   
-  /* Subtle pulse animation for results */
+  
   @keyframes resultPulse {
     0% { box-shadow: 0 0 3px rgba(163, 255, 163, 0.3) inset; }
     50% { box-shadow: 0 0 5px rgba(163, 255, 163, 0.6) inset; }
@@ -218,7 +222,7 @@ const DiceResult = styled(motion.div)`
   animation: resultPulse 2s infinite;
 `;
 
-// Side panel styled like STALKER UI
+
 const AvatarPanel = styled.div`
   width: 30%;
   height: 100%;
@@ -235,7 +239,7 @@ const AvatarPanel = styled.div`
   border-left: 5px solid rgba(163, 255, 163, 0.5);
   position: relative;
   
-  /* Scanline effect */
+  
   &:before {
     content: "";
     position: absolute;
@@ -264,7 +268,7 @@ const PanelHeader = styled.h3`
   z-index: 1;
   
   &:before {
-    content: "// ";
+    content: "
     opacity: 0.7;
   }
 `;
@@ -321,7 +325,7 @@ const InventoryBlock = styled.div`
   position: relative;
   z-index: 1;
   
-  /* Corner markers like in STALKER interfaces */
+  
   &:before, &:after {
     content: "";
     position: absolute;
@@ -344,16 +348,16 @@ const InventoryBlock = styled.div`
     border-width: 0 2px 2px 0;
   }
 `;
-// Replace the MenuBtn and MenuList styled components with these:
+
 
 const MenuBtn = styled.div`
   position: absolute;
   top: 16px;
   right: 16px;
-  color: #a3ffa3; /* STALKER-style green text */
+  color: #a3ffa3; 
   z-index: 100;
   
-  /* Add subtle radiation pulse effect */
+  
   @keyframes pulse {
     0% { text-shadow: 0 0 5px rgba(163, 255, 163, 0.3); }
     50% { text-shadow: 0 0 10px rgba(163, 255, 163, 0.7); }
@@ -383,11 +387,11 @@ const MenuList = styled.div`
     rgba(30, 35, 30, 0.9)
   );
   border: 1px solid #444;
-  border-radius: 0; /* More angular STALKER-style UI */
+  border-radius: 0; 
   min-width: 200px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   
-  /* Scanline effect */
+  
   &:before {
     content: "";
     position: absolute;
@@ -404,7 +408,7 @@ const MenuList = styled.div`
     z-index: 1;
   }
   
-  /* Left border decoration - like STALKER UI elements */
+  
   &:after {
     content: "";
     position: absolute;
@@ -436,9 +440,9 @@ const MenuList = styled.div`
   a {
     display: block;
     padding: 12px 16px;
-    color: #a3ffa3; /* STALKER green text */
+    color: #a3ffa3; 
     text-decoration: none;
-    font-family: 'Courier New', monospace; /* Technical font */
+    font-family: 'Courier New', monospace; 
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -446,17 +450,325 @@ const MenuList = styled.div`
     
     &:hover {
       background: rgba(163, 255, 163, 0.1);
-      padding-left: 20px; /* Slight shift on hover */
+      padding-left: 20px; 
       text-shadow: 0 0 5px rgba(163, 255, 163, 0.8);
     }
     
-    /* Prefix with STALKER-like data marker */
+    
     &:before {
       content: "> ";
       opacity: 0.7;
     }
   }
 `;
+const GridContainer = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+`;
+
+const GridOverlay = styled.div`
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(to right, rgba(163, 255, 163, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(163, 255, 163, 0.1) 1px, transparent 1px);
+  background-size: ${props => props.gridSize * props.scale}px ${props => props.gridSize * props.scale}px;
+  background-position: ${props => {
+    // Use proper modulo that works with negative numbers for correct grid alignment
+    const moduloX = ((props.offsetX % (props.gridSize * props.scale)) + (props.gridSize * props.scale)) % (props.gridSize * props.scale);
+    const moduloY = ((props.offsetY % (props.gridSize * props.scale)) + (props.gridSize * props.scale)) % (props.gridSize * props.scale);
+    return `${moduloX}px ${moduloY}px`;
+  }};
+`;
+const GridControl = styled(Overlay)`
+  bottom: 16px;
+  left: 16px;
+  z-index: 5;
+  width: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const ControlRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+`;
+
+const ScaleLegend = styled.div`
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background-image: linear-gradient(to bottom, 
+    rgba(20, 25, 20, 0.9),
+    rgba(30, 35, 30, 0.9)
+  );
+  color: #a3ffa3;
+  border: 1px solid #444;
+  padding: 8px 12px;
+  font-family: 'Courier New', monospace;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background-color: #a3ffa3;
+    opacity: 0.7;
+  }
+`;
+
+const ScaleLine = styled.div`
+  height: 4px;
+  width: 100px;
+  background-color: #a3ffa3;
+  margin-right: 8px;
+`;
+const PinContainer = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none; 
+`;
+const CharacterPin = styled.div`
+  width: ${props => props.size}px;
+  height: ${props => props.size}px;
+  border-radius: 50%;
+  background: ${props => props.color || 'rgba(20, 25, 20, 0.8)'};
+  border: 2px solid rgba(163, 255, 163, 0.7);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6), 
+              ${props => props.isSnapped ? '0 0 0 1px #a3ffa3' : 'none'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto; 
+  user-select: none;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  overflow: hidden;
+  
+  
+  &:after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      ${props => props.isMonster ? 'rgba(255, 100, 100, 0.4)' : 'rgba(163, 255, 163, 0.4)'} 0%,
+      rgba(163, 255, 163, 0) 70%
+    );
+    z-index: -1;
+    opacity: 0.7;
+    animation: pulse 2s infinite;
+  }
+  
+  &:active {
+    cursor: grabbing;
+  }
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: ${props => props.isMonster ? 'sepia(0.3) hue-rotate(-20deg)' : 'sepia(0.2) hue-rotate(30deg)'};
+  }
+  
+  span {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    text-shadow: 0 0 3px #000, 0 0 3px #000, 0 0 3px #000;
+    font-size: 12px;
+    color: ${props => props.isMonster ? '#ff9999' : '#a3ffa3'};
+    pointer-events: none;
+  }
+`;
+const PinPanel = styled(Overlay)`
+  top: 16px;
+  left: 292px; 
+  width: 280px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  z-index: 5;
+  
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #444;
+  }
+`;
+
+const PinTabs = styled.div`
+  display: flex;
+  margin-bottom: 15px;
+`;
+
+const PinTab = styled.div`
+  flex: 1;
+  padding: 5px;
+  text-align: center;
+  background: ${props => props.active ? 'rgba(163, 255, 163, 0.2)' : 'transparent'};
+  border-bottom: 2px solid ${props => props.active ? '#a3ffa3' : 'transparent'};
+  cursor: pointer;
+  font-size: 14px;
+  text-transform: uppercase;
+  
+  &:hover {
+    background: rgba(163, 255, 163, 0.1);
+  }
+`;
+
+const PinItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(163, 255, 163, 0.2);
+  
+  &:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+`;
+const PinAvatar = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid ${props => props.isMonster ? '#ff9999' : '#a3ffa3'};
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const PinNameInput = styled.input`
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: ${props => props.isMonster ? '#ff9999' : '#a3ffa3'};
+  padding: 4px 8px;
+  width: 120px;
+  font-family: 'Courier New', monospace;
+  
+  &:focus {
+    outline: none;
+    border-color: ${props => props.isMonster ? '#ff9999' : '#a3ffa3'};
+    box-shadow: 0 0 5px rgba(163, 255, 163, 0.3);
+  }
+`;
+
+const PinControls = styled.div`
+  display: flex;
+  margin-left: auto;
+  gap: 8px;
+`;
+
+const PinButton = styled(Button)`
+  width: auto;
+  margin-top: 0;
+  padding: 4px 8px;
+  font-size: 12px;
+`;
+
+const AddPinButton = styled(Button)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  background: ${props => props.isMonster ? 'rgba(80, 20, 20, 0.8)' : '#1a2a1a'};
+  
+  &:hover {
+    background: ${props => props.isMonster ? 'rgba(100, 30, 30, 0.8)' : '#2a3a2a'};
+  }
+`;
+const AvatarSelector = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 15px 0;
+  
+  div {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    
+    &.selected {
+      border-color: ${props => props.isMonster ? '#ff9999' : '#a3ffa3'};
+      transform: scale(1.1);
+    }
+    
+    &:hover {
+      transform: scale(1.1);
+      border-color: rgba(163, 255, 163, 0.5);
+    }
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+`;
+
+const PLAYER_AVATARS = [
+  './avatars/stalker1.png',
+  './avatars/stalker2.png',
+  './avatars/stalker3.png',
+  './avatars/stalker4.png',
+  './avatars/stalker5.png',
+  './avatars/stalker6.png'
+];
+
+const MONSTER_AVATARS = [
+  './avatars/mutant1.png',
+  './avatars/mutant2.png',
+  './avatars/mutant3.png',
+  './avatars/mutant4.png',
+  './avatars/mutant5.png',
+  './avatars/mutant6.png'
+];
+
+
+const FALLBACK_PLAYER_AVATAR = 'https://placehold.co/100x100/1a2a1a/a3ffa3?text=S';
+const FALLBACK_MONSTER_AVATAR = 'https://placehold.co/100x100/2a1a1a/ff9999?text=M';
 
 const diceTypes = [
   { label: 'D2', sides: 2 },
@@ -471,10 +783,148 @@ export default function MapPage() {
   const [quantities, setQuantities] = useState(
     diceTypes.reduce((acc, d) => ({ ...acc, [d.label]: 0 }), {})
   );
+  const [characterPins, setCharacterPins] = useState([
+    { 
+      id: 'stalker-1', 
+      name: 'Stalker-1', 
+      avatar: PLAYER_AVATARS[0] || FALLBACK_PLAYER_AVATAR,
+      isMonster: false,
+      x: 200, 
+      y: 200
+    }
+  ]);
+  const pinRefs = useRef({});
   const [results, setResults] = useState([]);
   const [rolling, setRolling] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [gridEnabled, setGridEnabled] = useState(true);
+  const [gridSize, setGridSize] = useState(50);
+  const [scale, setScale] = useState(1);
+  const [pinTabActive, setPinTabActive] = useState('stalkers');
+  const [selectedAvatar, setSelectedAvatar] = useState(PLAYER_AVATARS[0] || FALLBACK_PLAYER_AVATAR);
+  const [mapDimensions, setMapDimensions] = useState({ width: 4096, height: 4096 }); 
+  const [viewportDimensions, setViewportDimensions] = useState({ 
+    width: window.innerWidth * 0.7, 
+    height: window.innerHeight 
+  });
+  const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
+  const mapContainerRef = useRef(null);
 
+  useEffect(() => {
+    setMapOffset({ x: 10, y: 10 });
+    setScale(1);
+  }, []);
+  
+  
+  useEffect(() => {
+    if (mapContainerRef.current) {
+      setViewportDimensions({
+        width: mapContainerRef.current.clientWidth,
+        height: mapContainerRef.current.clientHeight
+      });
+      
+      const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+          setViewportDimensions({
+            width: entry.contentRect.width,
+            height: entry.contentRect.height
+          });
+        }
+      });
+      
+      resizeObserver.observe(mapContainerRef.current);
+      return () => resizeObserver.disconnect();
+    }
+  }, []);
+  
+  const addCharacterPin = () => {
+    const isMonster = pinTabActive === 'monsters';
+    const newId = `${isMonster ? 'monster' : 'stalker'}-${Date.now()}`;
+    
+    setCharacterPins([
+      ...characterPins, 
+      {
+        id: newId,
+        name: isMonster ? `Mutant-${characterPins.filter(p => p.isMonster).length + 1}` 
+                        : `Stalker-${characterPins.filter(p => !p.isMonster).length + 1}`,
+        avatar: selectedAvatar || (isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
+        isMonster: isMonster,
+        x: 300,
+        y: 300
+      }
+    ]);
+  };
+
+  const removeCharacterPin = (pinId) => {
+    setCharacterPins(characterPins.filter(pin => pin.id !== pinId));
+  };
+  
+  const adjustPositionForScale = (position) => {
+    return {
+      x: position.x,
+      y: position.y
+    };
+  };
+  
+  const handlePinDrag = (pinId, data) => {
+    const adjustedPosition = adjustPositionForScale(data);
+    setCharacterPins(characterPins.map(pin => 
+      pin.id === pinId ? { ...pin, x: adjustedPosition.x, y: adjustedPosition.y } : pin
+    ));
+  };
+  
+  // 3. Update the handlePinStop function to correctly snap to grid
+const handlePinStop = (pinId) => {
+  setCharacterPins(characterPins.map(pin => {
+    if (pin.id !== pinId) return pin;
+    
+    if (gridEnabled) {
+      const adjustedGridSize = gridSize * scale;
+      
+      // Calculate grid cell coordinates
+      // Note: We no longer subtract mapOffset since pins are now in the same coordinate space as the grid
+      const cellX = Math.round(pin.x / adjustedGridSize);
+      const cellY = Math.round(pin.y / adjustedGridSize);
+      
+      // Convert to snap position
+      const snappedX = cellX * adjustedGridSize;
+      const snappedY = cellY * adjustedGridSize;
+      
+      console.log(`Snapping pin to grid: (${snappedX}, ${snappedY})`);
+      
+      return {
+        ...pin,
+        x: snappedX,
+        y: snappedY
+      };
+    }
+    
+    return pin;
+  }));
+};
+  
+  const renamePinById = (id, newName) => {
+    setCharacterPins(
+      characterPins.map(pin => 
+        pin.id === id ? { ...pin, name: newName } : pin
+      )
+    );
+  };
+  
+  const changePinAvatar = (id, avatarUrl) => {
+    setCharacterPins(
+      characterPins.map(pin => 
+        pin.id === id ? { ...pin, avatar: avatarUrl } : pin
+      )
+    );
+  };
+  const switchPinTab = (tab) => {
+    setPinTabActive(tab);
+    setSelectedAvatar(tab === 'monsters' ? 
+      (MONSTER_AVATARS[0] || FALLBACK_MONSTER_AVATAR) : 
+      (PLAYER_AVATARS[0] || FALLBACK_PLAYER_AVATAR)
+    );
+  };
   const rollDice = () => {
     setRolling(true);
     setResults([]);
@@ -493,13 +943,214 @@ export default function MapPage() {
 
   return (
     <Container>
-      <MapContainer>
-        <TransformWrapper initialScale={1} minScale={0.5} maxScale={4} wheel={{ step: 50 }} style={{'height': '100%'}}>
-          <TransformComponent wrapperStyle={{height: '100%'}} contentStyle={{height: '100%'}}>
-            <MapImg src="./map.png" alt="Game Map" />
-          </TransformComponent>
+      <MapContainer ref={mapContainerRef}>
+        <TransformWrapper 
+          initialScale={1} 
+          minScale={0.5} 
+          maxScale={4} 
+          wheel={{ step: 0.1, disabled: true }} 
+          style={{'height': '100%'}}
+          limitToBounds={false} 
+          onZoom={() => {
+          }}
+          onPanning={(ref) => {
+            console.log("Panning:", ref.state.positionX, ref.state.positionY);
+            setMapOffset({ 
+              x: ref.state.positionX, 
+              y: ref.state.positionY 
+            });
+          }}
+          panning={{ disabled: false }}
+          disablePadding={true}
+          doubleClick={{ disabled: true }}
+        >
+        {({ zoomIn, zoomOut, setTransform, instance }) => {
+          useEffect(() => {
+            const lastWheelTime = { current: 0 };
+            
+            const handleWheel = (e) => {
+              e.preventDefault();
+              
+              const now = Date.now();
+              if (now - lastWheelTime.current < 50) return; 
+              lastWheelTime.current = now;
+              
+              const currentScale = scale;
+              const currentOffsetX = mapOffset.x;
+              const currentOffsetY = mapOffset.y;
+              
+              const zoomFactor = e.deltaY > 0 ? 0.98 : 1.02; 
+              const newScale = Math.max(0.5, Math.min(4, currentScale * (e.deltaY > 0 ? 0.98 : 1.02)));
+              
+              
+              if (Math.abs(newScale - currentScale) < 0.01) return;
+              
+              
+              const rect = mapContainerRef.current.getBoundingClientRect();
+              
+              
+              const mouseX = e.clientX - rect.left;
+              const mouseY = e.clientY - rect.top;
+              
+              
+              const worldX = (mouseX - currentOffsetX) / currentScale;
+              const worldY = (mouseY - currentOffsetY) / currentScale;
+              
+              
+              const newOffsetX = mouseX - (worldX * newScale);
+              const newOffsetY = mouseY - (worldY * newScale);
+              
+              
+              setTransform(newOffsetX, newOffsetY, newScale, 0);
+              
+              
+              setScale(newScale);
+              setMapOffset({
+                x: newOffsetX, 
+                y: newOffsetY
+              });
+            };
+            
+            const container = mapContainerRef.current;
+            if (container) {
+              container.addEventListener('wheel', handleWheel, { passive: false });
+              return () => container.removeEventListener('wheel', handleWheel);
+            }
+          }, [scale, mapOffset, setTransform]);
+          return (
+          <>
+          
+            <TransformComponent  wrapperStyle={{
+                height: '100%',
+                position: 'relative',
+                overflow: 'visible'
+              }} 
+              contentStyle={{
+                height: '100%',
+                width: '100%',
+                position: 'relative'
+              }}
+            >
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 1
+              }}>
+                <TileRenderer
+                  viewportWidth={viewportDimensions.width}
+                  viewportHeight={viewportDimensions.height}
+                  scale={scale}
+                  offsetX={mapOffset.x}
+                  offsetY={mapOffset.y}
+                />
+              </div>
+              {gridEnabled && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  zIndex: 2,
+                  pointerEvents: 'none'
+                }}>
+                  <GridOverlay 
+                    gridSize={gridSize} 
+                    scale={scale} 
+                    offsetX={mapOffset.x} 
+                    offsetY={mapOffset.y}
+                  />
+                </div>
+              )}
+                            
+                <PinContainer>
+                  {characterPins.map(pin => {
+                    if (!pinRefs.current[pin.id]) {
+                      pinRefs.current[pin.id] = React.createRef();
+                    }
+                    
+                    return (
+                      <Draggable
+                      key={pin.id}
+                      position={{ x: pin.x, y: pin.y }}
+                      onDrag={(e, data) => {
+                        e.stopPropagation();
+                        handlePinDrag(pin.id, data);
+                      }}
+                      onStop={(e) => {
+                        e.stopPropagation();
+                        handlePinStop(pin.id);
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                      bounds="parent"
+                      grid={null}
+                      nodeRef={pinRefs.current[pin.id]}
+                    >
+                        <div 
+                          ref={pinRefs.current[pin.id]} 
+                          style={{position: 'absolute'}}
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
+                          <CharacterPin 
+                            size={gridSize * 0.8} 
+                            isMonster={pin.isMonster}
+                            title={pin.name}
+                            isSnapped={gridEnabled}
+                          >
+                            <img 
+                              src={pin.avatar} 
+                              alt={pin.name} 
+                              onError={(e) => {
+                                e.target.src = pin.isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
+                              }}
+                            />
+                            <span>{pin.name}</span>
+                          </CharacterPin>
+                        </div>
+                      </Draggable>
+                    );
+                  })}
+                </PinContainer>
+              </TransformComponent>
+              
+            </>
+          );
+        }}
         </TransformWrapper>
-  
+        {}
+        <GridControl>
+          <h3>Grid Controls</h3>
+          <ControlRow>
+            <span>Grid:</span>
+            <Button 
+              onClick={() => setGridEnabled(!gridEnabled)}
+              style={{ width: 'auto', padding: '5px 10px' }}
+            >
+              {gridEnabled ? 'Disable' : 'Enable'}
+            </Button>
+          </ControlRow>
+          <ControlRow>
+            <span>Cell Size:</span>
+            <NumberInput
+              type="number"
+              min="20"
+              max="100"
+              value={gridSize}
+              onChange={e => setGridSize(parseInt(e.target.value) || 50)}
+            />
+          </ControlRow>
+        </GridControl>
+        
+        {}
+        <ScaleLegend>
+          <ScaleLine />
+          <span>{Math.round(100 / scale)}m</span>
+        </ScaleLegend>
         <DicePanel>
           <h3>Tactical Dice Roller</h3>
           <DiceGrid>
@@ -534,6 +1185,84 @@ export default function MapPage() {
             </AnimatePresence>
           </ResultsGrid>
         </DicePanel>
+
+        <PinPanel>
+          <h3>Tactical Tokens</h3>
+          <PinTabs>
+            <PinTab 
+              active={pinTabActive === 'stalkers'} 
+              onClick={() => switchPinTab('stalkers')}
+            >
+              Stalkers
+            </PinTab>
+            <PinTab 
+              active={pinTabActive === 'monsters'} 
+              onClick={() => switchPinTab('monsters')}
+            >
+              Mutants
+            </PinTab>
+          </PinTabs>
+          
+          {}
+          <AvatarSelector isMonster={pinTabActive === 'monsters'}>
+            {(pinTabActive === 'stalkers' ? PLAYER_AVATARS : MONSTER_AVATARS).map((avatar, i) => (
+              <div 
+                key={i} 
+                className={selectedAvatar === avatar ? 'selected' : ''}
+                onClick={() => setSelectedAvatar(avatar)}
+              >
+                <img 
+                  src={avatar} 
+                  alt={`Avatar ${i+1}`}
+                  onError={(e) => {
+                    e.target.src = pinTabActive === 'monsters' ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
+                  }}
+                />
+              </div>
+            ))}
+          </AvatarSelector>
+          
+          {}
+          <AddPinButton 
+            onClick={addCharacterPin}
+            isMonster={pinTabActive === 'monsters'}
+          >
+            <Plus size={16} />
+            Add {pinTabActive === 'stalkers' ? 'Stalker' : 'Mutant'}
+          </AddPinButton>
+          
+          {}
+          <div style={{ marginTop: '15px' }}>
+            {characterPins
+              .filter(pin => pin.isMonster === (pinTabActive === 'monsters'))
+              .map(pin => (
+                <PinItem key={pin.id}>
+                  <PinAvatar isMonster={pin.isMonster}>
+                    <img 
+                      src={pin.avatar} 
+                      alt={pin.name}
+                      onError={(e) => {
+                        e.target.src = pin.isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
+                      }}
+                    />
+                  </PinAvatar>
+                  <PinNameInput
+                    value={pin.name}
+                    onChange={(e) => renamePinById(pin.id, e.target.value)}
+                    isMonster={pin.isMonster}
+                  />
+                  <PinControls>
+                    <PinButton onClick={() => removeCharacterPin(pin.id)}>X</PinButton>
+                  </PinControls>
+                </PinItem>
+              ))}
+            {characterPins.filter(pin => pin.isMonster === (pinTabActive === 'monsters')).length === 0 && (
+              <div style={{ textAlign: 'center', opacity: 0.7, marginTop: '20px' }}>
+                No {pinTabActive === 'stalkers' ? 'stalkers' : 'mutants'} added
+              </div>
+            )}
+          </div>
+        </PinPanel>
   
         <MenuBtn>
           <Menu 
@@ -552,7 +1281,9 @@ export default function MapPage() {
           )}
         </MenuBtn>
       </MapContainer>
-  
+      
+
+
       <AvatarPanel>
         <PanelHeader>Stalkers &amp; Equipment</PanelHeader>
         <Avatars>
