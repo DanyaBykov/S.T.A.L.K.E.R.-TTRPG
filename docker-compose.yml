@@ -5,7 +5,7 @@ services:
     image: mysql:8.0
     restart: always
     volumes:
-      - mysql_data:/var/lib/mysql
+      - data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
       MYSQL_DATABASE: TTRPG_DB
@@ -36,7 +36,8 @@ services:
       - stalker-net
     volumes:
       - ./backend:/app
-      - app_data:/app/data
+      - data:/app/data
+      - dist:/dist
 
   cloudflared:
     image: cloudflare/cloudflared:latest
