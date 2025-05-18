@@ -47,18 +47,18 @@ async function deleteGame(gameId) {
     throw error;
   }
 }
-
-async function joinGameByCode(gameCode) {
-  try {
-    return await apiRequest('/games/join', {
-      method: 'POST',
-      body: JSON.stringify({ game_code: gameCode }),
-    });
-  } catch (error) {
-    console.error('Failed to join game:', error);
-    throw error;
-  }
-}
+// moved to login screen
+// async function joinGameByCode(gameCode) {
+//   try {
+//     return await apiRequest('/games/join', {
+//       method: 'POST',
+//       body: JSON.stringify({ game_code: gameCode }),
+//     });
+//   } catch (error) {
+//     console.error('Failed to join game:', error);
+//     throw error;
+//   }
+// }
 
 const CreateGame = () => {
   const navigate = useNavigate();
@@ -66,7 +66,6 @@ const CreateGame = () => {
   const [newGameName, setNewGameName] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [joinCode, setJoinCode] = useState('');
   
   // States to handle editing
   const [editingGameId, setEditingGameId] = useState(null);
@@ -114,24 +113,6 @@ const CreateGame = () => {
     navigate(`/game/${gameId}`);
   };
   
-  const handleJoinByCode = async () => {
-    if (!joinCode.trim()) {
-      setError('Please enter a game code.');
-      return;
-    }
-    
-    try {
-      setLoading(true);
-      const joinedGame = await joinGameByCode(joinCode);
-      // Navigate to character selection for this game
-      navigate(`/game/${joinedGame.id}/characters`);
-    } catch (err) {
-      setError('Failed to join game. Please check your game code.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const startEditGame = (game) => {
     setEditingGameId(game.id);
@@ -260,24 +241,6 @@ const CreateGame = () => {
               disabled={loading}
             >
               {loading ? 'Creating...' : 'Create Game'}
-            </button>
-          </div>
-          
-          <div className="join-game">
-            <h2>Join Existing Game</h2>
-            <input
-              type="text"
-              placeholder="Game Code"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value)}
-              className="input-field"
-            />
-            <button 
-              onClick={handleJoinByCode} 
-              className="button join"
-              disabled={loading}
-            >
-              {loading ? 'Joining...' : 'Join Game'}
             </button>
           </div>
           
