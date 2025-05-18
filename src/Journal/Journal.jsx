@@ -1,8 +1,293 @@
 import { useState, useEffect } from "react";
 import "./Journal.css";
+import styled from 'styled-components';
+import { Menu } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// API URL constant - leave empty if backend is on same origin
 const API_URL = '';
+
+const JournalContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  background: #0a0a0a;
+  font-family: 'Courier New', monospace;
+  color: #a3ffa3;
+  overflow: hidden;
+  position: relative;
+  
+  &:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      transparent 50%, 
+      rgba(0, 0, 0, 0.1) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 10;
+    pointer-events: none;
+  }
+`;
+
+const NavBar = styled.div`
+  background-image: linear-gradient(to bottom, 
+    rgba(20, 25, 20, 0.9),
+    rgba(30, 35, 30, 0.9)
+  );
+  border-bottom: 1px solid #444;
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background-color: #a3ffa3;
+    opacity: 0.7;
+  }
+`;
+
+const NavContent = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+`;
+
+const DesktopNav = styled.div`
+  display: flex;
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+const NavItem = styled.button`
+  background: ${props => props.selected ? 'rgba(163, 255, 163, 0.2)' : 'transparent'};
+  border: none;
+  color: #a3ffa3;
+  padding: 0.5rem 1rem;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  
+  ${props => props.selected && `
+    &:before {
+      content: ">";
+      margin-right: 5px;
+      opacity: 0.7;
+    }
+  `}
+  
+  ${props => props.special && `
+    color: #ffcc00;
+    text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+  `}
+  
+  &:hover {
+    background: rgba(163, 255, 163, 0.1);
+  }
+`;
+
+const MenuBtn = styled.div`
+  color: #a3ffa3; 
+  margin-right: 1rem;
+  
+  @keyframes pulse {
+    0% { text-shadow: 0 0 5px rgba(163, 255, 163, 0.3); }
+    50% { text-shadow: 0 0 10px rgba(163, 255, 163, 0.7); }
+    100% { text-shadow: 0 0 5px rgba(163, 255, 163, 0.3); }
+  }
+  
+  svg {
+    filter: drop-shadow(0 0 2px rgba(163, 255, 163, 0.6));
+    animation: pulse 2s infinite;
+    padding: 4px;
+    cursor: pointer;
+  }
+  
+  &:hover svg {
+    filter: drop-shadow(0 0 3px rgba(163, 255, 163, 0.9));
+  }
+  
+  @media (min-width: 769px) {
+    display: none;
+  }
+`;
+
+const MenuList = styled.div`
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  background-image: linear-gradient(to bottom, 
+    rgba(20, 25, 20, 0.95),
+    rgba(30, 35, 30, 0.95)
+  );
+  border-bottom: 1px solid #444;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  
+  &:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      transparent 50%, 
+      rgba(0, 0, 0, 0.1) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+  }
+  
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background-color: #a3ffa3;
+    opacity: 0.7;
+  }
+`;
+
+const MobileNavItem = styled.button`
+  width: 100%;
+  padding: 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(163, 255, 163, 0.2);
+  color: #a3ffa3;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left;
+  cursor: pointer;
+  
+  ${props => props.selected && `
+    background: rgba(163, 255, 163, 0.2);
+    &:before {
+      content: "> ";
+      opacity: 0.8;
+    }
+  `}
+  
+  ${props => props.special && `
+    color: #ffcc00;
+    text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+  `}
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background: rgba(163, 255, 163, 0.1);
+    padding-left: 1.5rem;
+  }
+`;
+
+const MainContent = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #444;
+    border: 1px solid #a3ffa3;
+  }
+`;
+
+const JournalPage = styled.div`
+  background-image: linear-gradient(to bottom, 
+    rgba(15, 20, 15, 0.9),
+    rgba(25, 30, 25, 0.9)
+  );
+  border: 1px solid #444;
+  border-radius: 0;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  position: relative;
+  
+  &:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      transparent 50%, 
+      rgba(0, 0, 0, 0.1) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+  }
+  
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background-color: #a3ffa3;
+    opacity: 0.7;
+  }
+`;
+
+const NavLinks = styled.div`
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  display: flex;
+  gap: 1rem;
+  
+  a {
+    color: #a3ffa3;
+    text-decoration: none;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0.5rem;
+    
+    &:hover {
+      text-shadow: 0 0 5px rgba(163, 255, 163, 0.8);
+    }
+  }
+`;
 
 export default function StalkerJournal() {
   const [selectedTab, setSelectedTab] = useState("Bestiary");
@@ -51,70 +336,58 @@ export default function StalkerJournal() {
   };
   
   return (
-    <div className="journal-container">
-      {/* Navigation Bar */}
-      <div className="nav-bar">
-        <div className="nav-content">
-          <button 
-            className="menu-button"
-            onClick={toggleMobileMenu}
-          >
-            ☰
-          </button>
+    <JournalContainer>
+      <NavBar>
+        <NavContent>
+          <MenuBtn onClick={toggleMobileMenu}>
+            <Menu size={24} />
+          </MenuBtn>
           
-          {/* Desktop Navigation */}
-          <div className="desktop-nav">
+          <DesktopNav>
             {tabs.map((tab) => (
-              <button
+              <NavItem
                 key={tab.name}
-                className={`nav-item ${
-                  selectedTab === tab.name 
-                    ? "nav-selected" 
-                    : tab.special 
-                      ? "nav-special" 
-                      : ""
-                }`}
+                selected={selectedTab === tab.name}
+                special={tab.special}
                 onClick={() => handleTabClick(tab.name)}
               >
                 {tab.name}
-              </button>
+              </NavItem>
             ))}
-          </div>
-        </div>
+          </DesktopNav>
+        </NavContent>
         
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="mobile-nav">
-            {tabs.map((tab) => (
-              <button
-                key={tab.name}
-                className={`mobile-nav-item ${
-                  selectedTab === tab.name 
-                    ? "nav-selected" 
-                    : tab.special 
-                      ? "nav-special" 
-                      : ""
-                }`}
-                onClick={() => handleTabClick(tab.name)}
-              >
-                {tab.name}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+        <NavLinks>
+          <Link to="/">TERMINAL</Link>
+          <Link to="/map">MAP</Link>
+          <Link to="/inventory">INVENTORY</Link>
+        </NavLinks>
+      </NavBar>
       
-      {/* Main Content */}
-      <div className="main-content">
-        <div className="journal-page">
+      {mobileMenuOpen && (
+        <MenuList>
+          {tabs.map((tab) => (
+            <MobileNavItem
+              key={tab.name}
+              selected={selectedTab === tab.name}
+              special={tab.special}
+              onClick={() => handleTabClick(tab.name)}
+            >
+              {tab.name}
+            </MobileNavItem>
+          ))}
+        </MenuList>
+      )}
+      
+      <MainContent>
+        <JournalPage>
           {renderContent()}
-        </div>
-      </div>
-    </div>
+        </JournalPage>
+      </MainContent>
+    </JournalContainer>
   );
 }
 
-// Mock data - kept as fallback if API fails
 const mockBestiaryData = [
   { id: 1, name: "Bloodsucker", image: "/api/placeholder/280/280", description: "A terrifying mutant known for its ability to become nearly invisible and attack unsuspecting stalkers. Known for their distinctive tentacled faces and powerful claws." },
   { id: 2, name: "Pseudogiant", image: "/api/placeholder/280/280", description: "Massive, powerful mutants that cause the ground to shake when they move. Despite their name, they aren't giant humans but rather a horrifically mutated mass of flesh." },
@@ -139,7 +412,6 @@ const mockArtifactsData = [
   { id: 5, name: "Soul", image: "/api/placeholder/280/280", description: "A rare artifact with the unique property of enhancing mental resilience. It protects against psionic attacks but is highly radioactive.", properties: "+30% to psionic protection, +5 radiation/sec" }
 ];
 
-// Bestiary Section Component
 function BestiarySection({ selectedItem, onItemClick }) {
   const [beasts, setBeasts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -162,14 +434,12 @@ function BestiarySection({ selectedItem, onItemClick }) {
         console.error("Error fetching beasts:", err);
         setError("Failed to load bestiary data. Using local data.");
         
-        // Fallback to mock data if API fails
         setBeasts(mockBestiaryData);
       } finally {
         setLoading(false);
       }
     };
     
-    // Only fetch data if no item is selected for detail view
     if (!selectedItem) {
       fetchBeasts();
     }
@@ -203,7 +473,6 @@ function BestiarySection({ selectedItem, onItemClick }) {
   );
 }
 
-// Anomalies Section Component
 function AnomaliesSection({ selectedItem, onItemClick }) {
   const [anomalies, setAnomalies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -226,14 +495,12 @@ function AnomaliesSection({ selectedItem, onItemClick }) {
         console.error("Error fetching anomalies:", err);
         setError("Failed to load anomalies data. Using local data.");
         
-        // Fallback to mock data if API fails
         setAnomalies(mockAnomaliesData);
       } finally {
         setLoading(false);
       }
     };
     
-    // Only fetch data if no item is selected for detail view
     if (!selectedItem) {
       fetchAnomalies();
     }
@@ -267,7 +534,6 @@ function AnomaliesSection({ selectedItem, onItemClick }) {
   );
 }
 
-// Artifacts Section Component
 function ArtifactsSection({ selectedItem, onItemClick }) {
   const [artifacts, setArtifacts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -290,14 +556,12 @@ function ArtifactsSection({ selectedItem, onItemClick }) {
         console.error("Error fetching artifacts:", err);
         setError("Failed to load artifacts data. Using local data.");
         
-        // Fallback to mock data if API fails
         setArtifacts(mockArtifactsData);
       } finally {
         setLoading(false);
       }
     };
     
-    // Only fetch data if no item is selected for detail view
     if (!selectedItem) {
       fetchArtifacts();
     }
@@ -331,8 +595,6 @@ function ArtifactsSection({ selectedItem, onItemClick }) {
   );
 }
 
-// Detail View Component for Bestiary, Anomalies, and Artifacts
-// Detail View Component for Bestiary, Anomalies, and Artifacts
 function DetailView({ item, onBack, category }) {
   const [fullDetails, setFullDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -505,7 +767,6 @@ const getAuthHeaders = () => {
   };
 };
 
-// Quest Log Section Component with Fetch API
 function QuestLogSection() {
   const [quests, setQuests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -516,7 +777,6 @@ function QuestLogSection() {
   
   const characterId = "1c5293ee-d3bd-4e7b-b91f-bb4f9f56a8a3"; 
   
-  // Fetch quests on component mount
   useEffect(() => {
     const fetchQuests = async () => {
       try {
@@ -536,7 +796,6 @@ function QuestLogSection() {
         console.error("Error fetching quests:", err);
         setError("Failed to load quests. Using local data.");
         
-        // Fallback to local data if API fails
         setQuests([
           { id: 1, title: "Find the military documents", description: "Locate the secret documents in the abandoned military base", completed: false },
           { id: 2, title: "Eliminate the bloodsucker nest", description: "Clear out the bloodsuckers in the old factory", completed: true },
@@ -552,13 +811,10 @@ function QuestLogSection() {
   
   const toggleQuestStatus = async (id) => {
     try {
-      // Optimistic update
       setQuests(quests.map(quest => 
         quest.id === id ? { ...quest, completed: !quest.completed } : quest
       ));
       
-      
-      // API call to update quest
       const response = await fetch(`${API_URL}/characters/${characterId}/quests/${id}/toggle`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
@@ -568,13 +824,11 @@ function QuestLogSection() {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       
-      // Update with server response if needed
       const updatedQuest = await response.json();
       console.log("Quest updated successfully:", updatedQuest);
       
     } catch (err) {
       console.error("Error toggling quest status:", err);
-      // Revert on failure
       setQuests(quests.map(quest => 
         quest.id === id ? { ...quest, completed: !quest.completed } : quest
       ));
@@ -586,15 +840,12 @@ function QuestLogSection() {
     if (newQuestTitle.trim() === "") return;
     
     try {
-      // Create new quest object
       const newQuest = {
         title: newQuestTitle,
         description: newQuestDescription,
         completed: false
       };
       
-      
-      // API call to create quest
       const response = await fetch(`${API_URL}/characters/${characterId}/quests`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -605,11 +856,9 @@ function QuestLogSection() {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       
-      // Get the created quest with ID from server
       const createdQuest = await response.json();
       setQuests([...quests, createdQuest]);
       
-      // Reset form
       setNewQuestTitle("");
       setNewQuestDescription("");
       setShowAddForm(false);
@@ -618,9 +867,8 @@ function QuestLogSection() {
       console.error("Error creating quest:", err);
       setError("Failed to save to server. Quest saved locally.");
       
-      // Add locally if API fails
       const localQuest = {
-        id: Date.now(), // Generate temp ID
+        id: Date.now(),
         title: newQuestTitle,
         description: newQuestDescription,
         completed: false
@@ -698,7 +946,6 @@ function QuestLogSection() {
   );
 }
 
-// Notes Section Component with Fetch API
 function NotesSection() {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -710,13 +957,10 @@ function NotesSection() {
   
   const characterId = "1c5293ee-d3bd-4e7b-b91f-bb4f9f56a8a3";
   
-  // Fetch notes on component mount
   useEffect(() => {
     const fetchNotes = async () => {
       try {
         setLoading(true);
-
-        
         const response = await fetch(`${API_URL}/characters/${characterId}/notes`, {
           headers: getAuthHeaders()
         });
@@ -732,7 +976,6 @@ function NotesSection() {
         console.error("Error fetching notes:", err);
         setError("Failed to load notes. Using local data.");
         
-        // Fallback to local data if API fails
         setNotes([
           { id: 1, title: "Safe paths through Garbage", content: "Avoid the center area with the car graveyard. The northern path seems safer, watch for anomalies near the fence." },
           { id: 2, title: "Trader prices", content: "The trader in Rostok pays well for mutant parts. The one in the Bar has better prices for artifacts." }
@@ -749,14 +992,11 @@ function NotesSection() {
     if (newNoteTitle.trim() === "") return;
     
     try {
-      // Create new note object
       const newNote = {
         title: newNoteTitle,
         content: newNoteContent
       };
       
-      
-      // API call to create note
       const response = await fetch(`${API_URL}/characters/${characterId}/notes`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -767,11 +1007,9 @@ function NotesSection() {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       
-      // Get the created note with ID from server
       const createdNote = await response.json();
       setNotes([...notes, createdNote]);
       
-      // Reset form
       setNewNoteTitle("");
       setNewNoteContent("");
       setShowAddForm(false);
@@ -780,9 +1018,8 @@ function NotesSection() {
       console.error("Error creating note:", err);
       setError("Failed to save to server. Note saved locally.");
       
-      // Add locally if API fails
       const localNote = {
-        id: Date.now(), // Generate temp ID
+        id: Date.now(),
         title: newNoteTitle,
         content: newNoteContent
       };
@@ -805,14 +1042,11 @@ function NotesSection() {
     if (newNoteTitle.trim() === "") return;
     
     try {
-      // Create updated note object
       const updatedNote = {
         title: newNoteTitle,
         content: newNoteContent
       };
       
-      
-      // API call to update note
       const response = await fetch(`${API_URL}/characters/${characterId}/notes/${selectedNote.id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
@@ -823,13 +1057,11 @@ function NotesSection() {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       
-      // Update state with the server response
       const serverUpdatedNote = await response.json();
       setNotes(notes.map(note => 
         note.id === selectedNote.id ? serverUpdatedNote : note
       ));
       
-      // Reset form
       setNewNoteTitle("");
       setNewNoteContent("");
       setSelectedNote(null);
@@ -839,7 +1071,6 @@ function NotesSection() {
       console.error("Error updating note:", err);
       setError("Failed to update on server. Note updated locally.");
       
-      // Update locally if API fails
       setNotes(notes.map(note => 
         note.id === selectedNote.id 
           ? { ...note, title: newNoteTitle, content: newNoteContent } 
@@ -854,15 +1085,13 @@ function NotesSection() {
   };
   
   const deleteNote = async (id, e) => {
-    e.stopPropagation(); // Prevent opening the note
+    e.stopPropagation();
     
     if (!confirm("Are you sure you want to delete this note?")) {
       return;
     }
     
     try {
-      
-      // API call to delete note
       const response = await fetch(`${API_URL}/characters/${characterId}/notes/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
@@ -872,10 +1101,8 @@ function NotesSection() {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       
-      // Remove note from state
       setNotes(notes.filter(note => note.id !== id));
       
-      // If the deleted note was being edited, close the form
       if (selectedNote && selectedNote.id === id) {
         setSelectedNote(null);
         setNewNoteTitle("");
@@ -888,7 +1115,6 @@ function NotesSection() {
       console.error("Error deleting note:", err);
       setError("Failed to delete from server. Note removed locally.");
       
-      // Delete locally if API fails
       setNotes(notes.filter(note => note.id !== id));
     }
   };
