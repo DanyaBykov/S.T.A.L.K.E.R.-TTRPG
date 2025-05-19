@@ -352,7 +352,7 @@ const CoordinateDisplay = styled.div`
 const SidePanelToggle = styled.button`
   position: absolute;
   top: 15px;
-  right: ${props => props.isOpen ? '330px' : '15px'};
+  right: 150px;
   background: rgba(20, 25, 20, 0.8);
   color: #a3ffa3;
   border: 1px solid #444;
@@ -372,7 +372,7 @@ const SidePanelToggle = styled.button`
 `;
 
 // Side Panel Component implementation
-function SidePanel({ isOpen, onToggle, characterData, position }) {
+function SidePanel({ isOpen, onToggle, characterData, position, emissionActive }) {
   if (!characterData) {
     return (
       <>
