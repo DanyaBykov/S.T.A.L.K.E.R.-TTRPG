@@ -215,7 +215,7 @@ export default function MapPage() {
     <Container>
       <MapContainerStyled>
       <MapContainer 
-        center={[20, 20]} 
+        center={[0, 0]} 
         zoom={3} 
         minZoom={2}  // Increased minimum zoom for better visibility
         maxZoom={6}
