@@ -92,6 +92,28 @@ const InventorySystem = () => {
     };
     fetchItemTypes();
   }, []);
+  useEffect(() => {
+    async function fetchItemDetails() {
+      if (!hoveredItem || !hoveredItem.id || !hoveredItem.type) return;
+      
+      setLoadingItemDetails(true);
+      try {
+        const details = await getItemDetails(hoveredItem.id, hoveredItem.type);
+        setDetailedItemData(details);
+      } catch (err) {
+        console.error("Failed to fetch item details:", err);
+      } finally {
+        setLoadingItemDetails(false);
+      }
+    }
+
+    if (hoveredItem) {
+      fetchItemDetails();
+    } else {
+      setDetailedItemData(null);
+    }
+  }, [hoveredItem]);
+
   const calculateTotalWeight = () => {
     const inventoryWeight = inventoryItems.reduce((total, item) => total + item.total_weight, 0);
     const equipmentWeight = Object.values(equipment).reduce((total, item) => {
@@ -152,17 +174,6 @@ const InventorySystem = () => {
 
   const toggleAddItemMenu = () => {
     setIsAddItemMenuOpen((prev) => !prev);
-  };
-
-  const renderDynamicProperties = (item) => {
-    const standardKeys = ['id', 'name', 'type', 'quantity', 'weight', 'total_weight', 'notes'];
-    return Object.entries(item)
-      .filter(([key, value]) => !standardKeys.includes(key) && value !== null && value !== undefined)
-      .map(([key, value]) => (
-        <div key={key}>
-          <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {value}
-        </div>
-      ));
   };
 
   const handleDeleteItem = async () => {
@@ -499,6 +510,75 @@ const InventorySystem = () => {
     setSelectedName('');
   };
 
+  const renderTooltipContent = () => {
+    if (!hoveredItem) return null;
+    
+    // Basic item info that's always available
+    const basicInfo = [
+      { label: "Name", value: hoveredItem.name },
+      { label: "Type", value: hoveredItem.type },
+      { label: "Quantity", value: hoveredItem.quantity },
+      { label: "Weight", value: hoveredItem.weight },
+    ];
+    
+    if (hoveredItem.total_weight) {
+      basicInfo.push({ label: "Total Weight", value: hoveredItem.total_weight });
+    }
+    
+    if (hoveredItem.notes) {
+      basicInfo.push({ label: "Notes", value: hoveredItem.notes });
+    }
+    
+    // Render all properties from the detailed data
+    const renderDetailedProperties = () => {
+      if (!detailedItemData || loadingItemDetails) return null;
+      
+      // Filter out properties that are already shown in basic info
+      const basicProps = ['id', 'name', 'type', 'quantity', 'weight', 'total_weight', 'notes'];
+      
+      return Object.entries(detailedItemData)
+        .filter(([key]) => !basicProps.includes(key))
+        .map(([key, value]) => {
+          // Format the key for display (convert snake_case to Title Case)
+          const formattedKey = key
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+            
+          // Format the value based on its type
+          let formattedValue = value;
+          if (typeof value === 'boolean') {
+            formattedValue = value ? 'Yes' : 'No';
+          } else if (value === null) {
+            formattedValue = 'N/A';
+          }
+          
+          return (
+            <div key={key}>
+              <strong>{formattedKey}:</strong> {formattedValue}
+            </div>
+          );
+        });
+    };
+    
+    return (
+      <>
+        <div><strong>{hoveredItem.name}</strong></div>
+        {basicInfo.map((info, index) => (
+          info.value !== undefined && info.value !== null && 
+          <div key={index}><strong>{info.label}:</strong> {info.value}</div>
+        ))}
+        
+        {loadingItemDetails ? (
+          <div>Loading details...</div>
+        ) : (
+          renderDetailedProperties()
+        )}
+      </>
+    );
+  };
+
+
   if (loading) {
     return <div className="loading">Loading character data...</div>;
   }
@@ -730,14 +810,7 @@ const InventorySystem = () => {
           className="item-tooltip"
           style={getTooltipStyle(tooltipPos.x, tooltipPos.y)}
         >
-          <div><strong>{hoveredItem.name}</strong></div>
-          <div>Type: {hoveredItem.type}</div>
-          <div>Quantity: {hoveredItem.quantity}</div>
-          <div>Weight: {hoveredItem.weight}</div>
-          {hoveredItem.total_weight && <div>Total Weight: {hoveredItem.total_weight}</div>}
-          {hoveredItem.notes && <div>Notes: {hoveredItem.notes}</div>}
-          {/* Render any extra attributes not in the standard list */}
-          {renderDynamicProperties(hoveredItem)}
+          {renderTooltipContent()}
         </div>
       )}
       {contextItem && (
