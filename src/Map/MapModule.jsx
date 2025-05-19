@@ -546,14 +546,17 @@ const PinContainer = styled.div`
   z-index: 3;
   pointer-events: none; 
 `;
+
 const CharacterPin = styled.div`
   width: ${props => props.size}px;
   height: ${props => props.size}px;
   border-radius: 50%;
   background: ${props => props.color || 'rgba(20, 25, 20, 0.8)'};
-  border: 2px solid rgba(163, 255, 163, 0.7);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6), 
-              ${props => props.isSnapped ? '0 0 0 1px #a3ffa3' : 'none'};
+  border: 2px solid ${props => props.isCurrentPlayer ? '#ffcc00' : 
+                             props.isMonster ? 'rgba(255, 102, 102, 0.7)' : 
+                             'rgba(163, 255, 163, 0.7)'};
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6),
+              ${props => props.isCurrentPlayer ? '0 0 15px rgba(255, 204, 0, 0.7)' : 'none'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -563,7 +566,6 @@ const CharacterPin = styled.div`
   transform: translate(-50%, -50%);
   cursor: grab;
   overflow: hidden;
-  
   
   &:after {
     content: "";
@@ -1491,43 +1493,36 @@ const centerViewOnPin = (pinId, instance) => {
     ));
   };
   
-  // 3. Update the handlePinStop function to correctly snap to grid
-  const handlePinStop = async (pinId) => {
-    if (!canMovePin(pinId)) return;
-    
-    // Find the pin that was moved
-    const movedPin = characterPins.find(pin => pin.id === pinId);
-    if (!movedPin) return;
-    
-    let updatedPin = {...movedPin};
-    
-    // Apply grid snapping if enabled
-    if (gridEnabled) {
-      const adjustedGridSize = gridSize * scale;
-      const cellX = Math.round(movedPin.x / adjustedGridSize);
-      const cellY = Math.round(movedPin.y / adjustedGridSize);
-      updatedPin.x = cellX * adjustedGridSize;
-      updatedPin.y = cellY * adjustedGridSize;
-    }
-    
-    // Update local state
-    setCharacterPins(characterPins.map(pin => 
-      pin.id === pinId ? updatedPin : pin
-    ));
-    
-    // Save to backend
-    try {
-      await apiRequest(`/games/${gameId}/pins/${pinId}/position`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          x: updatedPin.x,
-          y: updatedPin.y
-        })
-      });
-    } catch (err) {
-      console.error("Failed to save pin position:", err);
-    }
-  };
+
+
+const handlePinStop = async (pinId) => {
+  if (!canMovePin(pinId)) return;
+  
+  // Find the pin that was moved
+  const movedPin = characterPins.find(pin => pin.id === pinId);
+  if (!movedPin) return;
+  
+  // No grid snapping - use exact position
+  const updatedPin = {...movedPin};
+  
+  // Update local state
+  setCharacterPins(characterPins.map(pin => 
+    pin.id === pinId ? updatedPin : pin
+  ));
+  
+  // Save to backend
+  try {
+    await apiRequest(`/games/${gameId}/pins/${pinId}/position`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        x: updatedPin.x,
+        y: updatedPin.y
+      })
+    });
+  } catch (err) {
+    console.error("Failed to save pin position:", err);
+  }
+};
   
   const renamePinById = (id, newName) => {
     setCharacterPins(
@@ -1730,7 +1725,6 @@ const centerViewOnPin = (pinId, instance) => {
                       size={gridSize * 0.8} 
                       isMonster={pin.isMonster}
                       title={pin.name}
-                      isSnapped={gridEnabled}
                       isCurrentPlayer={pin.id === characterId}
                     >
                       <img 
