@@ -49,8 +49,6 @@ const InventorySystem = () => {
   const [selectedType, setSelectedType] = useState('');
   const [selectedName, setSelectedName] = useState('');
   const [availableItems, setAvailableItems] = useState([]);
-  const [detailedItemData, setDetailedItemData] = useState(null);
-  const [loadingItemDetails, setLoadingItemDetails] = useState(false);
 
 
   useEffect(() => {
@@ -94,41 +92,6 @@ const InventorySystem = () => {
     };
     fetchItemTypes();
   }, []);
-
-  const getItemDetails = async (itemId, itemType) => {
-    try {
-      // This is a placeholder. You would need to implement or import the actual API call
-      // For now, we'll just return the basic item info we already have
-      const item = inventoryItems.find(item => item.id === itemId);
-      return item || {};
-    } catch (error) {
-      console.error("Error fetching item details:", error);
-      return {};
-    }
-  };
-  
-  useEffect(() => {
-    async function fetchItemDetails() {
-      if (!hoveredItem || !hoveredItem.id || !hoveredItem.type) return;
-      
-      setLoadingItemDetails(true);
-      try {
-        const details = await getItemDetails(hoveredItem.id, hoveredItem.type);
-        setDetailedItemData(details);
-      } catch (err) {
-        console.error("Failed to fetch item details:", err);
-      } finally {
-        setLoadingItemDetails(false);
-      }
-    }
-
-    if (hoveredItem) {
-      fetchItemDetails();
-    } else {
-      setDetailedItemData(null);
-    }
-  }, [hoveredItem]);
-
   const calculateTotalWeight = () => {
     const inventoryWeight = inventoryItems.reduce((total, item) => total + item.total_weight, 0);
     const equipmentWeight = Object.values(equipment).reduce((total, item) => {
@@ -525,75 +488,6 @@ const InventorySystem = () => {
     setSelectedName('');
   };
 
-  const renderTooltipContent = () => {
-    if (!hoveredItem) return null;
-    
-    // Basic item info that's always available
-    const basicInfo = [
-      { label: "Name", value: hoveredItem.name },
-      { label: "Type", value: hoveredItem.type },
-      { label: "Quantity", value: hoveredItem.quantity },
-      { label: "Weight", value: hoveredItem.weight },
-    ];
-    
-    if (hoveredItem.total_weight) {
-      basicInfo.push({ label: "Total Weight", value: hoveredItem.total_weight });
-    }
-    
-    if (hoveredItem.notes) {
-      basicInfo.push({ label: "Notes", value: hoveredItem.notes });
-    }
-    
-    // Render all properties from the detailed data
-    const renderDetailedProperties = () => {
-      if (!detailedItemData || loadingItemDetails) return null;
-      
-      // Filter out properties that are already shown in basic info
-      const basicProps = ['id', 'name', 'type', 'quantity', 'weight', 'total_weight', 'notes'];
-      
-      return Object.entries(detailedItemData)
-        .filter(([key]) => !basicProps.includes(key))
-        .map(([key, value]) => {
-          // Format the key for display (convert snake_case to Title Case)
-          const formattedKey = key
-            .split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-            
-          // Format the value based on its type
-          let formattedValue = value;
-          if (typeof value === 'boolean') {
-            formattedValue = value ? 'Yes' : 'No';
-          } else if (value === null) {
-            formattedValue = 'N/A';
-          }
-          
-          return (
-            <div key={key}>
-              <strong>{formattedKey}:</strong> {formattedValue}
-            </div>
-          );
-        });
-    };
-    
-    return (
-      <>
-        <div><strong>{hoveredItem.name}</strong></div>
-        {basicInfo.map((info, index) => (
-          info.value !== undefined && info.value !== null && 
-          <div key={index}><strong>{info.label}:</strong> {info.value}</div>
-        ))}
-        
-        {loadingItemDetails ? (
-          <div>Loading details...</div>
-        ) : (
-          renderDetailedProperties()
-        )}
-      </>
-    );
-  };
-
-
   if (loading) {
     return <div className="loading">Loading character data...</div>;
   }
@@ -825,7 +719,13 @@ const InventorySystem = () => {
           className="item-tooltip"
           style={getTooltipStyle(tooltipPos.x, tooltipPos.y)}
         >
-          {renderTooltipContent()}
+          <div><strong>{hoveredItem.name}</strong></div>
+          <div>Type: {hoveredItem.type}</div>
+          <div>Quantity: {hoveredItem.quantity}</div>
+          <div>Weight: {hoveredItem.weight}</div>
+          {hoveredItem.total_weight && <div>Total Weight: {hoveredItem.total_weight}</div>}
+          {hoveredItem.notes && <div>Notes: {hoveredItem.notes}</div>}
+          {/* You can add more parameters that are available in your data */}
         </div>
       )}
       {contextItem && (
