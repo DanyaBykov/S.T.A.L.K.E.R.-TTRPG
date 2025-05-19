@@ -863,7 +863,7 @@ export default function MapPage() {
 const handleMarkerDragend = async (event, pinId) => {
   const isOwnPin = characterPins.find(p => p.id === pinId)?.isCurrentUser;
   
-  if (!isGameMaster && !isOwnPin) {
+  if (!isOwnPin) {
     console.warn("Permission denied: You can only move your own character pin");
     
     const pin = characterPins.find(p => p.id === pinId);
