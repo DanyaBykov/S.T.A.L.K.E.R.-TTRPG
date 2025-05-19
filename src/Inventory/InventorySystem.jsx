@@ -94,6 +94,19 @@ const InventorySystem = () => {
     };
     fetchItemTypes();
   }, []);
+
+  const getItemDetails = async (itemId, itemType) => {
+    try {
+      // This is a placeholder. You would need to implement or import the actual API call
+      // For now, we'll just return the basic item info we already have
+      const item = inventoryItems.find(item => item.id === itemId);
+      return item || {};
+    } catch (error) {
+      console.error("Error fetching item details:", error);
+      return {};
+    }
+  };
+  
   useEffect(() => {
     async function fetchItemDetails() {
       if (!hoveredItem || !hoveredItem.id || !hoveredItem.type) return;
