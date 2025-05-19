@@ -206,15 +206,6 @@ export default function MapPage() {
     }
   };
 
-  function MapEvents({ onMove }) {
-    useMapEvents({
-      moveend: (e) => {
-        const center = e.target.getCenter();
-        if (onMove) onMove(center.lat, center.lng);
-      },
-    });
-    return null;
-  }
 
   // Handle map movement
   const handleMapMove = (lat, lng) => {
