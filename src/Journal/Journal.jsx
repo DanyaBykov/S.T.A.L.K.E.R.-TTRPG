@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import Rules from './Rules';
+import Rules from './Rules';    
 
 const API_URL = '';
 
