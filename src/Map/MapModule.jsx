@@ -1433,26 +1433,68 @@ const getSafetyColor = (value) => {
   return colorMap[value] || '#a3ffa3';
 };
 
+// Replace your addCharacterPin function with this implementation
+
 const addCharacterPin = () => {
   const isMonster = pinTabActive === 'monsters';
   const newId = `${isMonster ? 'monster' : 'stalker'}-${Date.now()}`;
   
-  // Use map center for new pins
-  const centerX = mapDimensions.width / 2;
-  const centerY = mapDimensions.height / 2;
+  // Get current viewport center in world coordinates
+  let centerX = 0;
+  let centerY = 0;
   
-  setCharacterPins([
-    ...characterPins, 
-    {
-      id: newId,
-      name: isMonster ? `Mutant-${characterPins.filter(p => p.isMonster).length + 1}` 
-                      : `Stalker-${characterPins.filter(p => !p.isMonster).length + 1}`,
-      avatar: selectedAvatar || (isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
-      isMonster: isMonster,
-      x: centerX,
-      y: centerY
+  // If we have a transform instance, use its state to get the current viewport center
+  if (transformInstance) {
+    const { state } = transformInstance;
+    
+    // Calculate the center of the current viewport in world coordinates
+    centerX = -state.positionX / state.scale + (viewportDimensions.width / 2 / state.scale);
+    centerY = -state.positionY / state.scale + (viewportDimensions.height / 2 / state.scale);
+    
+    console.log(`Adding new pin at viewport center: ${centerX}, ${centerY}`);
+  } else {
+    // Fallback to middle of the map if transform is not available
+    centerX = mapDimensions.width / 2;
+    centerY = mapDimensions.height / 2;
+    console.log(`Adding new pin at map center: ${centerX}, ${centerY}`);
+  }
+  
+  const newPin = {
+    id: newId,
+    name: isMonster ? `Mutant-${characterPins.filter(p => p.isMonster).length + 1}` 
+                    : `Stalker-${characterPins.filter(p => !p.isMonster).length + 1}`,
+    avatar: selectedAvatar || (isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
+    isMonster: isMonster,
+    x: centerX,
+    y: centerY
+  };
+  
+  setCharacterPins([...characterPins, newPin]);
+  
+  // If we're in a game, save to backend
+  if (gameId) {
+    if (isMonster) {
+      // For monsters, use the monster creation endpoint
+      apiRequest(`/games/${gameId}/monsters`, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: newPin.name,
+          position_x: newPin.x,
+          position_y: newPin.y,
+          avatar_url: newPin.avatar
+        })
+      }).catch(err => console.error("Failed to save new monster pin:", err));
+    } else {
+      // For characters, use the pin position endpoint
+      apiRequest(`/games/${gameId}/pins/${newId}/position`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          x: newPin.x,
+          y: newPin.y
+        })
+      }).catch(err => console.error("Failed to save new pin position:", err));
     }
-  ]);
+  }
 };
 const centerViewOnPin = (pinId) => {
   const pin = characterPins.find(p => p.id === pinId);
@@ -1697,69 +1739,76 @@ const handlePinStop = async (pinId) => {
     }
     
     return (
-      <Draggable
-        key={pin.id}
-        position={{ x: pin.x, y: pin.y }}
-        onDrag={(e, data) => {
-          e.stopPropagation();
-          if (canMovePin(pin.id)) {
-            setCharacterPins(characterPins.map(p => 
-              p.id === pin.id ? { ...p, x: data.x, y: data.y } : p
-            ));
-          }
+      <div 
+        key={pin.id} 
+        style={{
+          position: 'absolute',
+          left: pin.x,  // Position directly with CSS
+          top: pin.y,   // instead of using Draggable's position
+          transform: 'translate(-50%, -50%)',
+          cursor: canMovePin(pin.id) ? 'grab' : 'default',
+          zIndex: 100,
+          pointerEvents: 'auto'
         }}
-        onStop={(e, data) => {
-          e.stopPropagation();
-          if (canMovePin(pin.id)) {
-            const finalPosition = { x: data.x, y: data.y };
-            
-            setCharacterPins(characterPins.map(p => 
-              p.id === pin.id ? { ...p, x: finalPosition.x, y: finalPosition.y } : p
-            ));
-            
-            // Save to backend with the actual map coordinates
-            apiRequest(`/games/${gameId}/pins/${pin.id}/position`, {
-              method: 'PUT',
-              body: JSON.stringify({
-                x: finalPosition.x,
-                y: finalPosition.y
-              })
-            }).catch(err => console.error("Failed to save pin position:", err));
-          }
-        }}
-        disabled={!canMovePin(pin.id)}
-        bounds={null} // Remove bounds constraint
-        grid={null}
-        scale={scale} // Pass the current scale to Draggable
-        nodeRef={pinRefs.current[pin.id]}
       >
-        <div 
-          ref={pinRefs.current[pin.id]} 
-          style={{
-            position: 'absolute',
-            cursor: canMovePin(pin.id) ? 'grab' : 'not-allowed',
-            pointerEvents: 'auto', // Ensure this element receives mouse events
-            zIndex: 100
+        <Draggable
+          position={{ x: 0, y: 0 }} // Start with neutral position
+          onDrag={(e, data) => {
+            e.stopPropagation();
+            if (canMovePin(pin.id)) {
+              // Calculate new position based on drag delta
+              const newX = pin.x + data.deltaX / scale;
+              const newY = pin.y + data.deltaY / scale;
+              
+              setCharacterPins(characterPins.map(p => 
+                p.id === pin.id ? { ...p, x: newX, y: newY } : p
+              ));
+            }
           }}
-          onMouseDown={(e) => e.stopPropagation()}
+          onStop={(e, data) => {
+            e.stopPropagation();
+            // Reset the draggable component's internal position
+            if (canMovePin(pin.id)) {
+              // Save to backend
+              apiRequest(`/games/${gameId}/pins/${pin.id}/position`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                  x: pin.x,
+                  y: pin.y
+                })
+              }).catch(err => console.error("Failed to save pin position:", err));
+            }
+          }}
+          disabled={!canMovePin(pin.id)}
+          scale={scale}
+          nodeRef={pinRefs.current[pin.id]}
         >
-          <CharacterPin 
-            size={gridSize * 0.8} 
-            isMonster={pin.isMonster}
-            title={pin.name}
-            isCurrentPlayer={pin.id === characterId}
+          <div 
+            ref={pinRefs.current[pin.id]} 
+            style={{
+              cursor: canMovePin(pin.id) ? 'grab' : 'not-allowed',
+              pointerEvents: 'auto',
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
           >
-            <img 
-              src={pin.avatar} 
-              alt={pin.name} 
-              onError={(e) => {
-                e.target.src = pin.isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
-              }}
-            />
-            <span>{pin.name}</span>
-          </CharacterPin>
-        </div>
-      </Draggable>
+            <CharacterPin 
+              size={gridSize * 0.8} 
+              isMonster={pin.isMonster}
+              title={pin.name}
+              isCurrentPlayer={pin.id === characterId}
+            >
+              <img 
+                src={pin.avatar} 
+                alt={pin.name} 
+                onError={(e) => {
+                  e.target.src = pin.isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
+                }}
+              />
+              <span>{pin.name}</span>
+            </CharacterPin>
+          </div>
+        </Draggable>
+      </div>
     );
   })}
 </PinContainer>
