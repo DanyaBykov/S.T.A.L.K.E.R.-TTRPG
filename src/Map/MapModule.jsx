@@ -482,7 +482,7 @@ function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, 
               </InfoRow>
               
               <button
-                onClick={props.toggleEmission} // Connect to the toggleEmission function
+                onClick={toggleEmission}
                 style={{
                   width: '100%',
                   padding: '8px',
@@ -507,7 +507,6 @@ function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, 
             
             <SectionHeader>Stalkers in Zone</SectionHeader>
             <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-              {/* This would come from characterPins */}
               <InfoRow>
                 <span>Total Players:</span>
                 <span>{/* playerCount */}3</span>
@@ -537,34 +536,150 @@ function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, 
       </>
     );
   }
-  
-  // Player View (original code)
-  return (
-    <>
-      <SidePanelToggle 
-        isOpen={isOpen} 
-        onClick={onToggle}
-      >
-        {isOpen ? '>> Hide Panel' : '<< Info Panel'}
-      </SidePanelToggle>
+return (
+  <>
+    <SidePanelToggle 
+      isOpen={isOpen} 
+      onClick={onToggle}
+    >
+      {isOpen ? '>> Hide Panel' : '<< Info Panel'}
+    </SidePanelToggle>
+    
+    <SidePanelContainer isOpen={isOpen}>
+      <SidePanelHeader>
+        {characterData.name}
+        <span onClick={onToggle} style={{ cursor: 'pointer', opacity: 0.7 }}>[x]</span>
+      </SidePanelHeader>
       
-      <SidePanelContainer isOpen={isOpen}>
-        <SidePanelHeader>
-          {characterData.name}
-          <span onClick={onToggle} style={{ cursor: 'pointer', opacity: 0.7 }}>[x]</span>
-        </SidePanelHeader>
+      <SidePanelContent>
+        <SectionHeader>Character Status</SectionHeader>
         
-        <SidePanelContent>
-          <SectionHeader>Character Status</SectionHeader>
-          <InfoRow>
-            <span>Health:</span>
-            <span>{characterData.health || '100'}/100</span>
-          </InfoRow>
-        </SidePanelContent>
-      </SidePanelContainer>
-    </>
-  );
-}
+        <InfoRow>
+          <span>Health:</span>
+          <span>{characterData.health || '100'}/100</span>
+        </InfoRow>
+        
+        <InfoRow>
+          <span>Radiation:</span>
+          <span style={{
+            color: (characterData.radiation > 50) ? '#ff6b6b' : '#a3ffa3'
+          }}>{characterData.radiation || '0'}%</span>
+        </InfoRow>
+        
+        <InfoRow>
+          <span>Faction:</span>
+          <span>{characterData.faction || 'Loner'}</span>
+        </InfoRow>
+        
+        <InfoRow>
+          <span>Money:</span>
+          <span>{characterData.money || '0'} RU</span>
+        </InfoRow>
+        
+        <InfoRow>
+          <span>Carry Weight:</span>
+          <span>
+            {characterData.inventory?.length || '0'}/{characterData.capacity || '80'} kg
+          </span>
+        </InfoRow>
+        
+        <SectionHeader>Current Location</SectionHeader>
+        <CoordinateDisplay>
+          {position ? `X: ${position.lat.toFixed(1)} | Y: ${position.lng.toFixed(1)}` : 'Unknown Location'}
+        </CoordinateDisplay>
+        
+        <SectionHeader>Zone Status</SectionHeader>
+        <InfoRow>
+          <span>Emission Status:</span>
+          <span style={{ 
+            color: emissionActive ? '#ff6b6b' : '#a3ffa3',
+            fontWeight: emissionActive ? 'bold' : 'normal',
+            animation: emissionActive ? 'blink 1s infinite alternate' : 'none'
+          }}>
+            {emissionActive ? 'ACTIVE - SEEK SHELTER' : 'INACTIVE'}
+          </span>
+        </InfoRow>
+        
+        <InfoRow>
+          <span>Anomaly Density:</span>
+          <span>MEDIUM</span>
+        </InfoRow>
+        
+        <InfoRow>
+          <span>Radiation Level:</span>
+          <span>LOW</span>
+        </InfoRow>
+        
+        <SectionHeader>Equipment Status</SectionHeader>
+        
+        {characterData.equipment ? (
+          <>
+            <InfoRow>
+              <span>Headgear:</span>
+              <span>{characterData.equipment.headgear?.name || 'None'}</span>
+            </InfoRow>
+            
+            <InfoRow>
+              <span>Armor:</span>
+              <span>{characterData.equipment.armor?.name || 'None'}</span>
+            </InfoRow>
+            
+            <InfoRow>
+              <span>Primary:</span>
+              <span>{characterData.equipment.primary?.name || 'None'}</span>
+            </InfoRow>
+            
+            <InfoRow>
+              <span>Secondary:</span>
+              <span>{characterData.equipment.secondary?.name || 'None'}</span>
+            </InfoRow>
+          </>
+        ) : (
+          <div style={{ opacity: 0.6, fontStyle: 'italic' }}>Equipment data not available</div>
+        )}
+        
+        <SectionHeader>Active Missions</SectionHeader>
+        
+        {characterData.missions && characterData.missions.length > 0 ? (
+          <div style={{ marginBottom: '15px' }}>
+            {characterData.missions.map((mission, idx) => (
+              <div 
+                key={idx} 
+                style={{ 
+                  marginBottom: '8px', 
+                  borderLeft: '2px solid #a3ffa3', 
+                  paddingLeft: '10px',
+                  fontSize: '13px'
+                }}
+              >
+                <div style={{ fontWeight: 'bold' }}>{mission.title}</div>
+                <div style={{ opacity: 0.8 }}>{mission.description}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ opacity: 0.6, fontStyle: 'italic', marginBottom: '15px' }}>
+            No active missions
+          </div>
+        )}
+        
+        <SectionHeader>Notes</SectionHeader>
+        <div 
+          style={{ 
+            border: '1px solid rgba(163, 255, 163, 0.3)',
+            background: 'rgba(20, 30, 20, 0.5)',
+            padding: '10px',
+            fontSize: '13px',
+            minHeight: '80px',
+            fontStyle: 'italic'
+          }}
+        >
+          {characterData.notes || 'No notes available. Add notes through your PDA.'}
+        </div>
+      </SidePanelContent>
+    </SidePanelContainer>
+  </>
+);
 function DiceRoller({ isOpen, onToggle }) {
   const [result, setResult] = useState(null);
   const [diceType, setDiceType] = useState(null);
@@ -744,36 +859,50 @@ export default function MapPage() {
     }
   };
   
-  // Handle marker movement
-  const handleMarkerDragend = async (event, pinId) => {
-    if (!isGameMaster && pinId !== characterId) return;
+const handleMarkerDragend = async (event, pinId) => {
+  const isOwnPin = characterPins.find(p => p.id === pinId)?.isCurrentUser;
+  
+  if (!isGameMaster && !isOwnPin) {
+    console.warn("Permission denied: You can only move your own character pin");
     
-    const marker = event.target;
-    const position = marker.getLatLng();
-    
-    setCharacterPins(prevPins => prevPins.map(pin => 
-      pin.id === pinId ? { ...pin, position: [position.lat, position.lng] } : pin
-    ));
-    
-    if (pinId === characterId) {
-      setCurrentPosition({
-        lat: position.lat,
-        lng: position.lng
-      });
+    const pin = characterPins.find(p => p.id === pinId);
+    if (pin) {
+      event.target.setLatLng(pin.position);
     }
+    return;
+  }
+  
+  const marker = event.target;
+  const position = marker.getLatLng();
+  
+  setCharacterPins(prevPins => prevPins.map(pin => 
+    pin.id === pinId ? { ...pin, position: [position.lat, position.lng] } : pin
+  ));
+  
+  if (isOwnPin) {
+    setCurrentPosition({
+      lat: position.lat,
+      lng: position.lng
+    });
+  }
+  
+  try {
+    await apiRequest(`/games/${gameId}/pins/${pinId}/position`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        x: position.lat * 100,
+        y: position.lng * 100
+      })
+    });
+  } catch (err) {
+    console.error("Failed to save pin position:", err);
     
-    try {
-      await apiRequest(`/games/${gameId}/pins/${pinId}/position`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          x: position.lat * 100, 
-          y: position.lng * 100
-        })
-      });
-    } catch (err) {
-      console.error("Failed to save pin position:", err);
+    const failedPin = characterPins.find(p => p.id === pinId);
+    if (failedPin) {
+      marker.setLatLng(failedPin.position);
     }
-  };
+  }
+};
 
   const toggleEmission = () => {
     if (emissionActive) {
@@ -837,9 +966,16 @@ export default function MapPage() {
               key={pin.id}
               position={pin.position}
               icon={CharacterMarkerIcon}
-              draggable={isGameMaster || pin.id === characterId}
+              draggable={isGameMaster || pin.isCurrentUser} 
               eventHandlers={{
-                dragend: (e) => handleMarkerDragend(e, pin.id)
+                dragend: (e) => handleMarkerDragend(e, pin.id),
+                dragstart: (e) => {
+                  if (!isGameMaster && !pin.isCurrentUser) {
+                    e.target.setLatLng(pin.position);
+                    e.target._isDragging = false;
+                    e.originalEvent._stopped = true;
+                  }
+                }
               }}
             >
               <Popup>
@@ -953,6 +1089,8 @@ export default function MapPage() {
         characterData={characterData}
         position={currentPosition}
         emissionActive={emissionActive}
+        isGameMaster={isGameMaster}
+        toggleEmission={toggleEmission} 
       />
     </Container>
   );
