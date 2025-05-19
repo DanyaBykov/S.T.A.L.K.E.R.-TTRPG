@@ -1757,8 +1757,8 @@ const handlePinStop = async (pinId) => {
             e.stopPropagation();
             if (canMovePin(pin.id)) {
               // Calculate new position based on drag delta
-              const newX = pin.x + data.deltaX / scale;
-              const newY = pin.y + data.deltaY / scale;
+              const newX = pin.x + (data.deltaX / scale) * 0.25;
+              const newY = pin.y + (data.deltaY / scale) * 0.25;
               
               setCharacterPins(characterPins.map(p => 
                 p.id === pin.id ? { ...p, x: newX, y: newY } : p
