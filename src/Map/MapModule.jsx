@@ -679,7 +679,8 @@ return (
       </SidePanelContent>
     </SidePanelContainer>
   </>
-);
+);}
+
 function DiceRoller({ isOpen, onToggle }) {
   const [result, setResult] = useState(null);
   const [diceType, setDiceType] = useState(null);
