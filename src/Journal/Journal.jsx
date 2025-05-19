@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import "./Journal.css";
 import styled from 'styled-components';
 import { Menu } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Rules from './Rules';
 
@@ -840,14 +840,37 @@ const getAuthHeaders = () => {
 };
 
 function QuestLogSection() {
+  let characterId;
+  const params = typeof useParams === 'function' ? useParams() : {};
+  const location = typeof useLocation === 'function' ? useLocation() : {};
+  const navigate = typeof useNavigate === 'function' ? useNavigate() : () => {};
+  characterId = params.characterId || (location.state && location.state.characterId);
+  if (!characterId) {
+    characterId = localStorage.getItem('selectedCharacterId');
+  }
+  if (!characterId) {
+    const storedCharacters = localStorage.getItem('characters');
+    if (storedCharacters) {
+      try {
+        const parsed = JSON.parse(storedCharacters);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          characterId = parsed[0].id;
+        }
+      } catch (e) {}
+    }
+  }
+  if (!characterId) {
+    setTimeout(() => navigate && navigate('/'), 1000);
+    return <div className="error-message">No character selected. Please select a character first.</div>;
+  }
+
+  // Now hooks can be used
   const [quests, setQuests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newQuestTitle, setNewQuestTitle] = useState("");
   const [newQuestDescription, setNewQuestDescription] = useState("");
-
-  const characterId = "1c5293ee-d3bd-4e7b-b91f-bb4f9f56a8a3";
 
   useEffect(() => {
     const fetchQuests = async () => {
@@ -1019,6 +1042,29 @@ function QuestLogSection() {
 }
 
 function NotesSection() {
+  const navigate = useNavigate ? useNavigate() : () => {};
+  const params = useParams ? useParams() : {};
+  const location = useLocation ? useLocation() : {};
+  let characterId = params.characterId || (location.state && location.state.characterId);
+  if (!characterId) {
+    characterId = localStorage.getItem('selectedCharacterId');
+  }
+  if (!characterId) {
+    const storedCharacters = localStorage.getItem('characters');
+    if (storedCharacters) {
+      try {
+        const parsed = JSON.parse(storedCharacters);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          characterId = parsed[0].id;
+        }
+      } catch (e) {}
+    }
+  }
+  if (!characterId) {
+    setTimeout(() => navigate && navigate('/'), 1000);
+    return <div className="error-message">No character selected. Please select a character first.</div>;
+  }
+
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -1026,8 +1072,6 @@ function NotesSection() {
   const [selectedNote, setSelectedNote] = useState(null);
   const [newNoteTitle, setNewNoteTitle] = useState("");
   const [newNoteContent, setNewNoteContent] = useState("");
-
-  const characterId = "1c5293ee-d3bd-4e7b-b91f-bb4f9f56a8a3";
 
   useEffect(() => {
     const fetchNotes = async () => {
