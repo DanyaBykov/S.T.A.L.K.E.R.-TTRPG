@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLocation } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -86,7 +86,7 @@ const Overlay = styled.div`
     padding-left: 10px;
     
     &:before {
-      content: "
+      content: "";
       position: absolute;
       left: -5px;
       opacity: 0.7;
@@ -269,7 +269,7 @@ const PanelHeader = styled.h3`
   z-index: 1;
   
   &:before {
-    content: "
+    content: "";
     opacity: 0.7;
   }
 `;
@@ -1595,9 +1595,9 @@ export default function MapPage() {
 
   const handlePinDrag = (pinId, data) => {
     if (!canMovePin(pinId)) return;
-
-    // const adjustedPosition = adjustPositionForScale(data);
-    setCharacterPins(characterPins.map(pin =>
+    
+    const adjustedPosition = adjustPositionForScale(data);
+    setCharacterPins(characterPins.map(pin => 
       pin.id === pinId ? { ...pin, x: adjustedPosition.x, y: adjustedPosition.y } : pin
     ));
   };
