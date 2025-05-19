@@ -220,12 +220,12 @@ export default function MapPage() {
     <Container>
       <MapContainerStyled>
       <MapContainer 
-        center={[20, 20]}
+        center={[300, 300]}
         zoom={2}
         minZoom={0}  // Lower minimum zoom to see full map
         maxZoom={6}
         style={{ height: '100%' }}
-        maxBounds={[[-100, -100], [500, 500]]}  // Much wider bounds
+        maxBounds={[[0, 0], [600, 600]]}  // Much wider bounds
         maxBoundsViscosity={0.8}  // Slightly softer boundaries
         crs={customCRS}
         attributionControl={false}
@@ -242,7 +242,7 @@ export default function MapPage() {
           minZoom={0}  // Match with container minZoom
           tileSize={512}
           noWrap={true}
-          bounds={[[-100, -100], [500, 500]]}  // Match with maxBounds
+          bounds={[[0, 0], [600, 600]]}  // Match with maxBounds
         />
                 
           {characterPins.map(pin => (
