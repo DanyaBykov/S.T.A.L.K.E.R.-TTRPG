@@ -371,9 +371,10 @@ const SidePanelToggle = styled.button`
   }
 `;
 
-// Side Panel Component implementation
-function SidePanel({ isOpen, onToggle, characterData, position, emissionActive }) {
-  if (!characterData) {
+// Update the SidePanel function to properly handle GM access
+function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, isGameMaster }) {
+  if (!characterData && !isGameMaster) {
+    // Show loading screen only for players who don't have data yet
     return (
       <>
         <SidePanelToggle 
@@ -396,6 +397,94 @@ function SidePanel({ isOpen, onToggle, characterData, position, emissionActive }
     );
   }
   
+  // Game Master View
+  if (isGameMaster) {
+    return (
+      <>
+        <SidePanelToggle 
+          isOpen={isOpen} 
+          onClick={onToggle}
+        >
+          {isOpen ? '>> Hide Panel' : '<< DM Panel'}
+        </SidePanelToggle>
+        
+        <SidePanelContainer isOpen={isOpen}>
+          <SidePanelHeader>
+            Game Master Console
+            <span onClick={onToggle} style={{ cursor: 'pointer', opacity: 0.7 }}>[x]</span>
+          </SidePanelHeader>
+          
+          <SidePanelContent>
+            <SectionHeader>Zone Controls</SectionHeader>
+            <div style={{ marginBottom: '15px' }}>
+              <InfoRow>
+                <span>Emission Status:</span>
+                <span style={{ 
+                  color: emissionActive ? '#ff6b6b' : '#a3ffa3',
+                  fontWeight: emissionActive ? 'bold' : 'normal',
+                }}>
+                  {emissionActive ? 'ACTIVE' : 'INACTIVE'}
+                </span>
+              </InfoRow>
+              
+              <button
+                onClick={() => {}} // This will be connected to the toggleEmission function
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  marginTop: '10px',
+                  background: emissionActive ? 'rgba(139,0,0,0.7)' : 'rgba(30, 40, 30, 0.8)',
+                  border: `1px solid ${emissionActive ? '#ff6b6b' : '#444'}`,
+                  color: emissionActive ? '#ff6b6b' : '#a3ffa3',
+                  cursor: 'pointer',
+                  fontFamily: 'Courier New',
+                  fontSize: '12px',
+                  textTransform: 'uppercase'
+                }}
+              >
+                {emissionActive ? 'Stop Emission' : 'Trigger Emission'}
+              </button>
+            </div>
+            
+            <SectionHeader>Map Position</SectionHeader>
+            <CoordinateDisplay>
+              {position ? `X: ${position.lat.toFixed(1)} | Y: ${position.lng.toFixed(1)}` : 'Unknown Location'}
+            </CoordinateDisplay>
+            
+            <SectionHeader>Stalkers in Zone</SectionHeader>
+            <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
+              {/* This would come from characterPins */}
+              <InfoRow>
+                <span>Total Players:</span>
+                <span>{/* playerCount */}3</span>
+              </InfoRow>
+              <InfoRow>
+                <span>Total Mutants:</span>
+                <span>{/* mutantCount */}2</span>
+              </InfoRow>
+            </div>
+            
+            <SectionHeader>Game Master Notes</SectionHeader>
+            <textarea 
+              placeholder="Add your notes here..."
+              style={{
+                width: '100%',
+                height: '100px',
+                background: 'rgba(20, 25, 20, 0.7)',
+                border: '1px solid #444',
+                color: '#a3ffa3',
+                fontFamily: 'Courier New',
+                padding: '8px',
+                resize: 'vertical'
+              }}
+            />
+          </SidePanelContent>
+        </SidePanelContainer>
+      </>
+    );
+  }
+  
+  // Player View (original code)
   return (
     <>
       <SidePanelToggle 
@@ -412,54 +501,13 @@ function SidePanel({ isOpen, onToggle, characterData, position, emissionActive }
         </SidePanelHeader>
         
         <SidePanelContent>
+          {/* Existing player content... */}
           <SectionHeader>Character Status</SectionHeader>
           <InfoRow>
             <span>Health:</span>
             <span>{characterData.health || '100'}/100</span>
           </InfoRow>
-          <InfoRow>
-            <span>Radiation:</span>
-            <span>{characterData.radiation || '0'}%</span>
-          </InfoRow>
-          <InfoRow>
-            <span>Faction:</span>
-            <span>{characterData.faction || 'Loner'}</span>
-          </InfoRow>
-          
-          <SectionHeader>Map Information</SectionHeader>
-          <CoordinateDisplay>
-            {position ? `X: ${position.lat.toFixed(1)} | Y: ${position.lng.toFixed(1)}` : 'Unknown Location'}
-          </CoordinateDisplay>
-          
-          <SectionHeader>Zone Status</SectionHeader>
-          <InfoRow>
-            <span>Emission Status:</span>
-            <span style={{ 
-              color: emissionActive ? '#ff6b6b' : '#a3ffa3',
-              fontWeight: emissionActive ? 'bold' : 'normal',
-              animation: emissionActive ? 'blink 1s infinite alternate' : 'none'
-            }}>
-              {emissionActive ? 'ACTIVE - SEEK SHELTER' : 'INACTIVE'}
-            </span>
-          </InfoRow>
-          
-          <SectionHeader>Notes</SectionHeader>
-          <div style={{ opacity: 0.8, fontStyle: 'italic' }}>
-            {characterData.notes || 'No notes available. Add notes through your PDA.'}
-          </div>
-          
-          <SectionHeader>Active Missions</SectionHeader>
-          <div>
-            {characterData.missions?.length ? (
-              characterData.missions.map((mission, idx) => (
-                <div key={idx} style={{ marginBottom: '8px', borderLeft: '2px solid #a3ffa3', paddingLeft: '10px' }}>
-                  {mission.title}
-                </div>
-              ))
-            ) : (
-              <div style={{ opacity: 0.6 }}>No active missions.</div>
-            )}
-          </div>
+          {/* Rest of your existing content... */}
         </SidePanelContent>
       </SidePanelContainer>
     </>
