@@ -1378,10 +1378,10 @@ useEffect(() => {
           
           setCharacterPins(prevPins => [...prevPins, newPin]);
           
-          // Center the view on the new pin
-          if (instance) {
+          // Center the view on the new pin - using transformInstance instead of undefined instance
+          if (transformInstance) {
             setTimeout(() => {
-              instance.setTransform(
+              transformInstance.setTransform(
                 -centerX + (viewportDimensions.width / 2),
                 -centerY + (viewportDimensions.height / 2),
                 1,
@@ -1397,10 +1397,10 @@ useEffect(() => {
       // Center the map view on the player's character if it exists
       if (characterId && !isGameMaster) {
         const playerPin = pinsData.pins.find(pin => pin.character_id === characterId);
-        if (playerPin && instance) {
-          // Apply a slight delay to ensure instance is ready
+        if (playerPin && transformInstance) { // Changed instance to transformInstance
+          // Apply a slight delay to ensure transformInstance is ready
           setTimeout(() => {
-            setTransform(
+            transformInstance.setTransform( // Use transformInstance instead
               -playerPin.position_x + (viewportDimensions.width / 2), 
               -playerPin.position_y + (viewportDimensions.height / 2), 
               1, 
@@ -1414,9 +1414,10 @@ useEffect(() => {
     }
   }
   
-  loadGameData();
-}, [gameId, characterId, mapDimensions]);
-  
+  if (gameId && characterId) {
+    loadGameData();
+  }
+}, [gameId, characterId, viewportDimensions, transformInstance]); // Added transformInstance to dependencies
 // Add these utility functions in the MapPage component
 
 // Helper functions for formatting
