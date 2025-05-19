@@ -765,7 +765,7 @@ function MapEvents({ onMove }) {
 export default function MapPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [characterPins, setCharacterPins] = useState([]);
-  const [isGameMaster, setIsGameMaster] = useState(false);
+  const [isGameMaster, setIsGameMaster] = useState(true);
   const [characterData, setCharacterData] = useState(null);
   const [loadingCharacter, setLoadingCharacter] = useState(true);
   const [diceRollerOpen, setDiceRollerOpen] = useState(false);
@@ -799,7 +799,7 @@ export default function MapPage() {
       setCharacterData(data);
       
       const gameData = await apiRequest(`/games/${gameId}`);
-      setIsGameMaster(gameData.is_dm);
+      setIsGameMaster(gameData.dm);
       
       const pinsData = await apiRequest(`/games/${gameId}/pins`);
       const pins = pinsData.pins.map(pin => ({
