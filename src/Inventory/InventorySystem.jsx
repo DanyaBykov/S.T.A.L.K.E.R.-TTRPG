@@ -85,6 +85,7 @@ const InventorySystem = () => {
     const fetchItemTypes = async () => {
       try {
         const types = await getItemTypes();
+        console.log(types);
         setItemTypes(types.map(type => type.id));
       } catch (err) {
         setError("Failed to load item types: " + err.message);
