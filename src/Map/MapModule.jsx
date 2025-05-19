@@ -2018,7 +2018,7 @@ const centerViewOnPin = (pinId, instance) => {
         <ResourceMeters>
           <ResourceMeter>
             <div className="label">MONEY</div>
-            <div className="value">{characterData.money || 0} ₽</div>
+            <div className="value">{characterData.money || 0} ГРН</div>
           </ResourceMeter>
           
           <ResourceMeter>
