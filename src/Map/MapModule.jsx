@@ -1272,8 +1272,8 @@ export default function MapPage() {
   const characterIdFromState = location.state?.characterId;
   const characterIdFromStorage = localStorage.getItem("currentCharacterId");
   
-  characterId = characterIdFromParams || characterIdFromState || characterIdFromStorage;
-  gameId = params.gameId;
+  const haracterId = characterIdFromParams || characterIdFromState || characterIdFromStorage;
+  const gameId = params.gameId;
   
   console.log("Map loaded with:", {
     gameIdFromURL: params.gameId,
