@@ -1247,6 +1247,7 @@ export default function MapPage() {
   const [isGameMaster, setIsGameMaster] = useState(characterId === 'dm' || false);
   const [characterPins, setCharacterPins] = useState([]);
   const [currentUserRole, setCurrentUserRole] = useState('player');
+  const [transformInstance, setTransformInstance] = useState(null);
   const pinRefs = useRef({});
   const [results, setResults] = useState([]);
   const [rolling, setRolling] = useState(false);
@@ -1265,7 +1266,7 @@ export default function MapPage() {
   const mapContainerRef = useRef(null);
   
 
-  useEffect(() => {
+  useEffect(() => {F
     setMapOffset({ x: 10, y: 10 });
     setScale(1);
   }, []);
@@ -1456,11 +1457,16 @@ const addCharacterPin = () => {
     }
   ]);
 };
-const centerViewOnPin = (pinId, instance) => {
+const centerViewOnPin = (pinId) => {
   const pin = characterPins.find(p => p.id === pinId);
-  if (!pin || !instance) return;
+  if (!pin || !transformInstance) {
+    console.log("Cannot center - pin or instance missing", { pinId, pin, hasInstance: !!transformInstance });
+    return;
+  }
   
-  instance.setTransform(
+  console.log("Centering pin:", pin.name, "at", pin.x, pin.y);
+  
+  transformInstance.setTransform(
     -pin.x + (viewportDimensions.width / 2), 
     -pin.y + (viewportDimensions.height / 2), 
     1,
@@ -1572,8 +1578,8 @@ const handlePinStop = async (pinId) => {
           wheel={{ step: 0.1, disabled: true }} 
           style={{'height': '100%'}}
           limitToBounds={false} 
-          onZoom={() => {
-          }}
+          onInit={(instance) => setTransformInstance(instance)}
+          onZoom={() => {}}
           onPanning={(ref) => {
             console.log("Panning:", ref.state.positionX, ref.state.positionY);
             setMapOffset({ 
@@ -1877,8 +1883,7 @@ const handlePinStop = async (pinId) => {
                     isMonster={pin.isMonster}
                   />
                   <PinControls>
-                    <PinButton onClick={() => removeCharacterPin(pin.id)}>X</PinButton>
-                    <PinButton onClick={() => centerViewOnPin(pin.id, instance)}>Center</PinButton>
+                    <PinButton onClick={() => centerViewOnPin(pin.id)}>Center</PinButton>
                     <PinButton onClick={() => removeCharacterPin(pin.id)}>X</PinButton>
                   </PinControls>
                 </PinItem>
