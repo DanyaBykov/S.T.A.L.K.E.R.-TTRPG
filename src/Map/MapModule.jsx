@@ -1326,9 +1326,6 @@ useEffect(() => {
         pin.character_id === characterId && pin.is_current_user
       );
       
-      // Get center of map for default position
-      const centerX = mapDimensions.width / 2;
-      const centerY = mapDimensions.height / 2;
       
       // If first time for current player, they'll be centered on map
       setCharacterPins(pinsData.pins.map(pin => {
@@ -1343,8 +1340,8 @@ useEffect(() => {
           name: pin.name,
           avatar: pin.avatar_url || (pin.is_monster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
           isMonster: pin.is_monster,
-          x: isNewCurrentPlayer ? centerX : pin.position_x,
-          y: isNewCurrentPlayer ? centerY : pin.position_y
+          x: isNewCurrentPlayer ? 0 : pin.position_x,
+          y: isNewCurrentPlayer ? 0 : pin.position_y
         };
       }));
       
@@ -1694,77 +1691,76 @@ const handlePinStop = async (pinId) => {
               )}
                             
                             <PinContainer>
-            {characterPins.map(pin => {
-              if (!pinRefs.current[pin.id]) {
-                pinRefs.current[pin.id] = React.createRef();
-              }
-              
-              return (
-                <Draggable
-                  key={pin.id}
-                  position={{ x: pin.x, y: pin.y }}
-                  onDrag={(e, data) => {
-                    e.stopPropagation();
-                    if (canMovePin(pin.id)) {
-                      // Update directly from data without any adjustments
-                      setCharacterPins(characterPins.map(pin => 
-                        pin.id === pinId ? { ...pin, x: data.x, y: data.y } : pin
-                      ));
-                    }
-                  }}
-                  onStop={(e, data) => {
-                    e.stopPropagation();
-                    if (canMovePin(pin.id)) {
-                      // Capture final position directly from data
-                      const finalPosition = { x: data.x, y: data.y };
-                      
-                      // Update local state with exact position
-                      setCharacterPins(characterPins.map(pin => 
-                        pin.id === pin.id ? { ...pin, ...finalPosition } : pin
-                      ));
-                      
-                      // Save to backend with exact position
-                      apiRequest(`/games/${gameId}/pins/${pin.id}/position`, {
-                        method: 'PUT',
-                        body: JSON.stringify(finalPosition)
-                      }).catch(err => console.error("Failed to save pin position:", err));
-                    }
-                  }}
-                  disabled={!canMovePin(pin.id)}
-                  bounds="parent"
-                  grid={null}
-                  scale={1}  // Ensure no scaling is applied during dragging
-                  nodeRef={pinRefs.current[pin.id]}
-                >
-                  {/* existing pin rendering */}
-                  <div 
-                    ref={pinRefs.current[pin.id]} 
-                    style={{
-                      position: 'absolute',
-                      cursor: canMovePin(pin.id) ? 'grab' : 'not-allowed'
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                  >
-                    <CharacterPin 
-                      size={gridSize * 0.8} 
-                      isMonster={pin.isMonster}
-                      title={pin.name}
-                      isCurrentPlayer={pin.id === characterId}
-                    >
-                      <img 
-                        src={pin.avatar} 
-                        alt={pin.name} 
-                        onError={(e) => {
-                          e.target.src = pin.isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
-                        }}
-                      />
-                      <span>{pin.name}</span>
-                    </CharacterPin>
-                  </div>
-                </Draggable>
-              );
-            })}
-          </PinContainer>
+  {characterPins.map(pin => {
+    if (!pinRefs.current[pin.id]) {
+      pinRefs.current[pin.id] = React.createRef();
+    }
+    
+    return (
+      <Draggable
+        key={pin.id}
+        position={{ x: pin.x, y: pin.y }}
+        onDrag={(e, data) => {
+          e.stopPropagation();
+          if (canMovePin(pin.id)) {
+            // Update directly from data without any adjustments
+            setCharacterPins(characterPins.map(p => 
+              p.id === pin.id ? { ...p, x: data.x, y: data.y } : p
+            ));
+          }
+        }}
+        onStop={(e, data) => {
+          e.stopPropagation();
+          if (canMovePin(pin.id)) {
+            // Capture final position directly from data
+            const finalPosition = { x: data.x, y: data.y };
+            
+            // Update local state with exact position
+            setCharacterPins(characterPins.map(p => 
+              p.id === pin.id ? { ...p, ...finalPosition } : p
+            ));
+            
+            // Save to backend with exact position
+            apiRequest(`/games/${gameId}/pins/${pin.id}/position`, {
+              method: 'PUT',
+              body: JSON.stringify(finalPosition)
+            }).catch(err => console.error("Failed to save pin position:", err));
+          }
+        }}
+        disabled={!canMovePin(pin.id)}
+        bounds="parent"
+        grid={null}
+        scale={1}
+        nodeRef={pinRefs.current[pin.id]}
+      >
+        <div 
+          ref={pinRefs.current[pin.id]} 
+          style={{
+            position: 'absolute',
+            cursor: canMovePin(pin.id) ? 'grab' : 'not-allowed'
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <CharacterPin 
+            size={gridSize * 0.8} 
+            isMonster={pin.isMonster}
+            title={pin.name}
+            isCurrentPlayer={pin.id === characterId}
+          >
+            <img 
+              src={pin.avatar} 
+              alt={pin.name} 
+              onError={(e) => {
+                e.target.src = pin.isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
+              }}
+            />
+            <span>{pin.name}</span>
+          </CharacterPin>
+        </div>
+      </Draggable>
+    );
+  })}
+</PinContainer>
               </TransformComponent>
               
             </>
