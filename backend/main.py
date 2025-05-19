@@ -17,6 +17,7 @@ from fastapi import Query, Path
 from typing import Optional, Any, Dict
 from PIL import Image
 import io
+import copy
 import os
 
 
@@ -1676,7 +1677,7 @@ async def create_game_character(
     
     # Create the character
     character_id = str(uuid.uuid4())
-    inventory_items = create_sample_inventory()
+    inventory_items = copy.deepcopy(create_sample_inventory())
     
     # Create equipment slots
     equipment = {

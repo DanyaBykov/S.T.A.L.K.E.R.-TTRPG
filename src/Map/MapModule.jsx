@@ -434,15 +434,13 @@ function SidePanel({ isOpen, onToggle, characterData, position }) {
           <SectionHeader>Zone Status</SectionHeader>
           <InfoRow>
             <span>Emission Status:</span>
-            <span style={{ color: '#ff6b6b' }}>INACTIVE</span>
-          </InfoRow>
-          <InfoRow>
-            <span>Anomaly Density:</span>
-            <span>MEDIUM</span>
-          </InfoRow>
-          <InfoRow>
-            <span>Radiation Level:</span>
-            <span>LOW</span>
+            <span style={{ 
+              color: emissionActive ? '#ff6b6b' : '#a3ffa3',
+              fontWeight: emissionActive ? 'bold' : 'normal',
+              animation: emissionActive ? 'blink 1s infinite alternate' : 'none'
+            }}>
+              {emissionActive ? 'ACTIVE - SEEK SHELTER' : 'INACTIVE'}
+            </span>
           </InfoRow>
           
           <SectionHeader>Notes</SectionHeader>
@@ -572,6 +570,9 @@ export default function MapPage() {
   const [pinMenuOpen, setPinMenuOpen] = useState(false);
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const [currentPosition, setCurrentPosition] = useState({ lat: 0, lng: 0 });
+  const [emissionActive, setEmissionActive] = useState(false);
+  const [emissionCountdown, setEmissionCountdown] = useState(0);
+
   
   const params = useParams();
   const location = useLocation();
@@ -586,39 +587,49 @@ export default function MapPage() {
                  (location.state && location.state.gameId) || 
                  localStorage.getItem("currentGameId");
   
-  
   useEffect(() => {
-    async function loadGameData() {
-      if (!gameId || !characterId) return;
-      
-      try {
-        // Load character data
-        setLoadingCharacter(true);
-        const data = await apiRequest(`/games/${gameId}/characters/${characterId}`);
-        setCharacterData(data);
-        
-        // Load game metadata
-        const gameData = await apiRequest(`/games/${gameId}`);
-        setIsGameMaster(gameData.is_dm);
-        
-        // Load pins
-        const pinsData = await apiRequest(`/games/${gameId}/pins`);
-        setCharacterPins(pinsData.pins.map(pin => ({
-          id: pin.character_id,
-          name: pin.name,
-          isMonster: pin.is_monster,
-          position: [pin.position_x / 100, pin.position_y / 100], // Scale position for map
-          isCurrentUser: pin.character_id === characterId
-        })));
-      } catch (err) {
-        console.error("Failed to load game data:", err);
-      } finally {
-        setLoadingCharacter(false);
-      }
-    }
+  async function loadGameData() {
+    if (!gameId || !characterId) return;
     
-    loadGameData();
-  }, [gameId, characterId]);
+    try {
+      // Load character data
+      setLoadingCharacter(true);
+      const data = await apiRequest(`/games/${gameId}/characters/${characterId}`);
+      setCharacterData(data);
+      
+      // Load game metadata
+      const gameData = await apiRequest(`/games/${gameId}`);
+      setIsGameMaster(gameData.is_dm);
+      
+      // Load pins
+      const pinsData = await apiRequest(`/games/${gameId}/pins`);
+      const pins = pinsData.pins.map(pin => ({
+        id: pin.character_id,
+        name: pin.name,
+        isMonster: pin.is_monster,
+        position: [pin.position_x / 100, pin.position_y / 100], // Scale position for map
+        isCurrentUser: pin.character_id === characterId
+      }));
+      
+      setCharacterPins(pins);
+      
+      // Set current position based on player pin
+      const playerPin = pins.find(pin => pin.isCurrentUser);
+      if (playerPin) {
+        setCurrentPosition({ 
+          lat: playerPin.position[0], 
+          lng: playerPin.position[1] 
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load game data:", err);
+    } finally {
+      setLoadingCharacter(false);
+    }
+  }
+  
+  loadGameData();
+}, [gameId, characterId]);
 
   const handlePinFocus = (pinId) => {
     const pin = characterPins.find(p => p.id === pinId);
@@ -640,17 +651,22 @@ export default function MapPage() {
     const marker = event.target;
     const position = marker.getLatLng();
     
-    // Update local state
     setCharacterPins(prevPins => prevPins.map(pin => 
       pin.id === pinId ? { ...pin, position: [position.lat, position.lng] } : pin
     ));
     
-    // Save to backend
+    if (pinId === characterId) {
+      setCurrentPosition({
+        lat: position.lat,
+        lng: position.lng
+      });
+    }
+    
     try {
       await apiRequest(`/games/${gameId}/pins/${pinId}/position`, {
         method: 'PUT',
         body: JSON.stringify({
-          x: position.lat * 100, // Scale back for API
+          x: position.lat * 100, 
           y: position.lng * 100
         })
       });
@@ -659,6 +675,24 @@ export default function MapPage() {
     }
   };
 
+  const toggleEmission = () => {
+    if (emissionActive) {
+      setEmissionActive(false);
+      setEmissionCountdown(0);
+    } else {
+      setEmissionActive(true);
+      setEmissionCountdown(60); 
+      const countdownInterval = setInterval(() => {
+        setEmissionCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+  };
 
   const handleMapMove = (lat, lng) => {
     console.log(`Map moved to: ${lat}, ${lng}`);
@@ -790,12 +824,35 @@ export default function MapPage() {
           onPinFocus={handlePinFocus}
           isGameMaster={isGameMaster}
         />
+      {emissionActive && <EmissionOverlay />}
+
+      {emissionActive && (
+        <EmissionAlert>
+          ⚠️ Emission in progress {emissionCountdown > 0 && `- ${emissionCountdown}s`}
+        </EmissionAlert>
+      )}
+
+      {isGameMaster && (
+        <div style={{
+          position: 'absolute',
+          bottom: '80px',
+          right: '20px'
+        }}>
+          <EmissionButton 
+            active={emissionActive}
+            onClick={toggleEmission}
+          >
+            {emissionActive ? 'Stop Emission' : 'Trigger Emission'}
+          </EmissionButton>
+        </div>
+      )}
       </MapContainerStyled>
       <SidePanel
         isOpen={sidePanelOpen}
         onToggle={() => setSidePanelOpen(!sidePanelOpen)}
         characterData={characterData}
         position={currentPosition}
+        emissionActive={emissionActive}
       />
     </Container>
   );
