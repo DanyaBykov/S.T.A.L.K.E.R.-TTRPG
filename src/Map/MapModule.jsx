@@ -46,7 +46,7 @@ const MapContainerStyled = styled.div`
 const MenuBtn = styled.div`
   position: absolute;
   top: 16px;
-  right: 16px;
+  left: 16px;
   color: #a3ffa3;
   z-index: 1000;
   
@@ -165,7 +165,7 @@ const DiceButton = styled.button`
   cursor: pointer;
   font-family: 'Courier New', monospace;
   transition: all 0.2s;
-  
+  z-index: 1000;
   &:hover {
     background: rgba(50, 70, 50, 0.8);
     box-shadow: 0 0 5px rgba(163, 255, 163, 0.5);
@@ -352,7 +352,7 @@ const CoordinateDisplay = styled.div`
 const SidePanelToggle = styled.button`
   position: absolute;
   top: 15px;
-  right: 150px;
+  right: 15px;
   background: rgba(20, 25, 20, 0.8);
   color: #a3ffa3;
   border: 1px solid #444;
