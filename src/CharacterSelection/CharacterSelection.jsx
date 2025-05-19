@@ -488,8 +488,9 @@ const CharacterSelection = () => {
   };
 
   const handleSelectCharacter = (characterId) => {
+    localStorage.setItem("currentCharacterId", characterId);
     // Navigate to game with selected character
-    navigate(`/game/${currentGameId}/character/${characterId}`);
+    navigate(`/game/${currentGameId}/map`, state={ gameId: currentGameId });
   };
 
   // Handle editing character name
