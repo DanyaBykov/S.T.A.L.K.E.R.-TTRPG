@@ -1918,7 +1918,6 @@ const centerViewOnPin = (pinId, instance) => {
       
 
 
-      // Replace the entire AvatarPanel section
 <AvatarPanel>
   <PanelHeader>STALKER PROFILE</PanelHeader>
   
