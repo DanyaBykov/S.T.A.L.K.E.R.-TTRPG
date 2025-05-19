@@ -453,16 +453,16 @@
   color: #ffa500;
 }
 
-.artifact-properties-table {
+.properties-table {
   width: 100%;
   border-collapse: collapse;
   margin: 0.5rem 0;
 }
-.artifact-properties-table td {
+.properties-table td {
   border: 1px solid #444;
   padding: 4px 8px;
   color: #a3ffa3;
 }
-.artifact-properties-table tr:nth-child(even) {
+.properties-table tr:nth-child(even) {
   background: rgba(163,255,163,0.05);
 }

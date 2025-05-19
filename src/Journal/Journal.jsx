@@ -726,7 +726,7 @@ function DetailView({ item, onBack, category }) {
       <div className="stat-block-section">
         <h2 className="stat-block-title">ANOMALY PROPERTIES</h2>
         <div className="stat-block-content">
-          <table className="anomaly-properties-table">
+          <table className="properties-table">
             <tbody>
               <tr>
                 <td><b>Strength</b></td>
@@ -766,7 +766,7 @@ function DetailView({ item, onBack, category }) {
       <div className="stat-block-section">
         <h2 className="stat-block-title">ARTIFACT PROPERTIES</h2>
         <div className="stat-block-content">
-          <table className="artifact-properties-table">
+          <table className="properties-table">
             <tbody>
               <tr>
                 <td><b>Property</b></td>
