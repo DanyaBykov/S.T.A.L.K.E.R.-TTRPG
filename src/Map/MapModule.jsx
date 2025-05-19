@@ -217,7 +217,7 @@ export default function MapPage() {
       <MapContainer 
         center={[0, 0]} 
         zoom={3} 
-        minZoom={2}  // Increased minimum zoom for better visibility
+        minZoom={1}  // Increased minimum zoom for better visibility
         maxZoom={6}
         style={{ height: '100%' }}
         maxBounds={[[0, 0], [40, 40]]}  // Set map boundaries
@@ -227,9 +227,9 @@ export default function MapPage() {
           url="https://joric.github.io/stalker2_tileset/tiles/{z}/{x}/{y}.jpg"
           attribution='&copy; S.T.A.L.K.E.R. TTRPG Map'
           maxZoom={6}
-          minZoom={2}  // Match minZoom with the container
+          minZoom={1}  // Match minZoom with the container
           tileSize={512}
-          noWrap={true}  // Prevent the map from cycling/wrapping
+          noWrap={false}  // Prevent the map from cycling/wrapping
           bounds={[[0, 0], [40, 40]]}  // Match with maxBounds for consistency
         />
           
