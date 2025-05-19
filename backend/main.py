@@ -1821,6 +1821,8 @@ async def create_monster_pin(
         "position_y": monster_data.position_y,
         "is_monster": True
     }
+
+
 @app.get("/{path:path}", include_in_schema=False)
 async def serve_spa(path: str):
     # First check if the requested path exists as a file

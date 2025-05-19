@@ -748,6 +748,461 @@ const AvatarSelector = styled.div`
     }
   }
 `;
+// Add these styled components before the MapPage function
+
+const LoadingIndicator = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #a3ffa3;
+  position: relative;
+  overflow: hidden;
+  
+  span {
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  
+  .scanner-line {
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, 
+      rgba(163, 255, 163, 0) 0%,
+      rgba(163, 255, 163, 0.8) 50%,
+      rgba(163, 255, 163, 0) 100%
+    );
+    animation: scan 2s infinite;
+  }
+  
+  @keyframes scan {
+    0% { top: 0; }
+    100% { top: 100%; }
+  }
+`;
+
+const NoCharacterData = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #a3ffa3;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-style: italic;
+`;
+
+const CharacterHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid rgba(163, 255, 163, 0.3);
+  padding-bottom: 15px;
+`;
+
+const CharacterAvatar = styled.div`
+  width: 70px;
+  height: 70px;
+  border: 1px solid #444;
+  position: relative;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) inset;
+  background: rgba(30, 30, 30, 0.6);
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: sepia(0.2) hue-rotate(30deg);
+  }
+`;
+
+const StatusIndicator = styled.div`
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: ${props => props.active ? '#a3ffa3' : '#ff6666'};
+  bottom: 5px;
+  right: 5px;
+  border: 1px solid #1a1a1a;
+  box-shadow: 0 0 5px ${props => props.active ? 'rgba(163, 255, 163, 0.8)' : 'rgba(255, 102, 102, 0.8)'};
+  animation: pulse 2s infinite;
+`;
+
+const CharacterNameplate = styled.div`
+  flex: 1;
+  
+  h3 {
+    font-size: 18px;
+    margin: 0 0 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #a3ffa3;
+    text-shadow: 0 0 5px rgba(163, 255, 163, 0.5);
+  }
+  
+  .class {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+`;
+
+const RadiationMeter = styled.div`
+  height: 5px;
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  position: relative;
+  
+  &:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: ${props => Math.min(100, props.value * 10)}%;
+    background: linear-gradient(90deg, 
+      rgba(163, 255, 163, 0.7) 0%,
+      rgba(255, 255, 163, 0.7) 50%,
+      rgba(255, 102, 102, 0.7) 100%
+    );
+  }
+  
+  &:after {
+    content: "RADIATION";
+    position: absolute;
+    right: 5px;
+    top: -16px;
+    font-size: 8px;
+    opacity: 0.7;
+  }
+`;
+
+const StatsPanels = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  
+  @media (max-width: 1400px) {
+    flex-direction: column;
+  }
+`;
+
+const StatsPanel = styled.div`
+  background: rgba(20, 25, 20, 0.5);
+  padding: 8px;
+  flex: 1;
+  border: 1px solid #444;
+  
+  h4 {
+    font-size: 12px;
+    margin: 0 0 8px;
+    color: #a3ffa3;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: normal;
+    position: relative;
+    padding-left: 12px;
+    
+    &:before {
+      content: "//";
+      position: absolute;
+      left: 0;
+      opacity: 0.7;
+    }
+  }
+`;
+
+const StatsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+`;
+
+const StatItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  
+  .label {
+    width: 30px;
+    text-align: right;
+    opacity: 0.8;
+    text-transform: uppercase;
+  }
+  
+  .value {
+    width: 20px;
+    text-align: right;
+  }
+`;
+
+const StatBar = styled.div`
+  flex: 1;
+  height: 4px;
+  background: #1a1a1a;
+  position: relative;
+  
+  &:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: ${props => Math.min(100, props.value * 10)}%;
+    background: #a3ffa3;
+  }
+`;
+
+const SkillGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3px;
+`;
+
+const SkillItem = styled.div`
+  background: ${props => props.proficient ? 'rgba(163, 255, 163, 0.1)' : 'transparent'};
+  padding: 3px 5px;
+  font-size: 10px;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid ${props => props.proficient ? 'rgba(163, 255, 163, 0.3)' : 'transparent'};
+  
+  .label {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 9px;
+    opacity: 0.8;
+  }
+  
+  .value {
+    color: ${props => props.proficient ? '#a3ffa3' : 'inherit'};
+  }
+`;
+
+const EquipmentBlock = styled.div`
+  background: rgba(20, 25, 20, 0.5);
+  padding: 10px;
+  border: 1px solid #444;
+  margin-bottom: 10px;
+  
+  h4, h5 {
+    font-size: 12px;
+    margin: 0 0 8px;
+    color: #a3ffa3;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: normal;
+    position: relative;
+    padding-left: 12px;
+    
+    &:before {
+      content: "//";
+      position: absolute;
+      left: 0;
+      opacity: 0.7;
+    }
+  }
+  
+  h5 {
+    font-size: 10px;
+    margin-top: 10px;
+  }
+`;
+
+const EquipmentGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+`;
+
+const EquipmentSlot = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px;
+  background: rgba(30, 30, 30, 0.4);
+  font-size: 11px;
+  
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+const EquipmentIcon = styled.div`
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  font-size: 8px;
+  color: rgba(163, 255, 163, 0.7);
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: brightness(1.2) sepia(0.2) hue-rotate(50deg);
+  }
+`;
+
+const ResourceMeters = styled.div`
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+`;
+
+const ResourceMeter = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  
+  .label {
+    width: 70px;
+    opacity: 0.8;
+    text-transform: uppercase;
+  }
+  
+  .value {
+    width: 70px;
+    text-align: right;
+  }
+  
+  .bar-container {
+    flex: 1;
+    height: 5px;
+    background: #1a1a1a;
+    position: relative;
+    
+    .bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #a3ffa3, #66ccff);
+    }
+  }
+`;
+
+const InventoryMini = styled.div`
+  margin-top: 10px;
+`;
+
+const ScrollableItems = styled.div`
+  max-height: 100px;
+  overflow-y: auto;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #444;
+  }
+`;
+
+const InventoryItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(163, 255, 163, 0.1);
+  
+  .item-name {
+    opacity: 0.9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+  }
+  
+  .item-weight {
+    opacity: 0.7;
+  }
+`;
+
+const EmptyInventory = styled.div`
+  font-size: 10px;
+  opacity: 0.6;
+  font-style: italic;
+  text-align: center;
+  padding: 10px 0;
+`;
+
+const MoreItems = styled.div`
+  font-size: 10px;
+  opacity: 0.7;
+  text-align: center;
+  padding: 5px 0;
+  font-style: italic;
+`;
+
+const EnvironmentStatus = styled.div`
+  background: rgba(20, 25, 20, 0.5);
+  padding: 10px;
+  border: 1px solid #444;
+  
+  h4 {
+    font-size: 12px;
+    margin: 0 0 8px;
+    color: #a3ffa3;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: normal;
+    position: relative;
+    padding-left: 12px;
+    
+    &:before {
+      content: "//";
+      position: absolute;
+      left: 0;
+      opacity: 0.7;
+    }
+  }
+`;
+
+const StatusGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+`;
+
+const StatusCell = styled.div`
+  background: rgba(30, 30, 30, 0.4);
+  padding: 5px;
+  text-align: center;
+  
+  .label {
+    font-size: 9px;
+    opacity: 0.8;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  
+  .value {
+    font-size: 12px;
+  }
+`;
 
 const PLAYER_AVATARS = [
   './avatars/stalker1.png',
@@ -785,6 +1240,8 @@ export default function MapPage() {
     diceTypes.reduce((acc, d) => ({ ...acc, [d.label]: 0 }), {})
   );
   const { gameId, characterId } = useParams();
+  const [characterData, setCharacterData] = useState(null);
+  const [loadingCharacter, setLoadingCharacter] = useState(true);
   const [isGameMaster, setIsGameMaster] = useState(false);
   const [characterPins, setCharacterPins] = useState([]);
   const [currentUserRole, setCurrentUserRole] = useState('player');
@@ -832,6 +1289,23 @@ export default function MapPage() {
       return () => resizeObserver.disconnect();
     }
   }, []);
+  useEffect(() => {
+    async function loadCharacterData() {
+      if (!characterId) return;
+      
+      try {
+        setLoadingCharacter(true);
+        const data = await apiRequest(`/games/${gameId}/characters/${characterId}`);
+        setCharacterData(data);
+      } catch (err) {
+        console.error("Failed to load character data:", err);
+      } finally {
+        setLoadingCharacter(false);
+      }
+    }
+    
+    loadCharacterData();
+  }, [gameId, characterId]);
 
 // Update the useEffect function that loads game data
 
@@ -906,6 +1380,58 @@ useEffect(() => {
   loadGameData();
 }, [gameId, characterId, mapDimensions]);
   
+// Add these utility functions in the MapPage component
+
+// Helper functions for formatting
+const formatStatName = (key) => {
+  const statMap = {
+    str: 'STR',
+    dex: 'DEX',
+    int: 'INT',
+    wis: 'WIS',
+    cha: 'CHA',
+    sta: 'STA',
+    luk: 'LUK'
+  };
+  return statMap[key] || key.toUpperCase();
+};
+
+const formatSkillName = (key) => {
+  // Convert snake_case to normal text and capitalize
+  return key
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+const formatRadiationColor = (value) => {
+  if (value < 1) return '#a3ffa3';
+  if (value < 3) return '#a3ffff';
+  if (value < 5) return '#ffffa3';
+  if (value < 8) return '#ffcc66';
+  return '#ff6666';
+};
+
+const getProximityColor = (value) => {
+  const colorMap = {
+    'SAFE': '#a3ffa3',
+    'DETECTED': '#ffffa3',
+    'NEAR': '#ffcc66',
+    'DANGER': '#ff6666'
+  };
+  return colorMap[value] || '#a3ffa3';
+};
+
+const getSafetyColor = (value) => {
+  const colorMap = {
+    'SECURE': '#a3ffa3',
+    'NEUTRAL': '#a3ffff',
+    'CONTESTED': '#ffffa3',
+    'DANGER': '#ffcc66',
+    'HOSTILE': '#ff6666'
+  };
+  return colorMap[value] || '#a3ffa3';
+};
 
 const addCharacterPin = () => {
   const isMonster = pinTabActive === 'monsters';
@@ -1392,14 +1918,171 @@ const centerViewOnPin = (pinId, instance) => {
       
 
 
-      <AvatarPanel>
-        <PanelHeader>Stalkers &amp; Equipment</PanelHeader>
-        <Avatars>
-          <Avatar />
-          <Avatar />
-          <Avatar />
-        </Avatars>
-        <InventoryBlock>Equipment Status Monitor</InventoryBlock>
-      </AvatarPanel>
+      // Replace the entire AvatarPanel section
+<AvatarPanel>
+  <PanelHeader>STALKER PROFILE</PanelHeader>
+  
+  {loadingCharacter ? (
+    <LoadingIndicator>
+      <span>Loading character data...</span>
+      <div className="scanner-line"></div>
+    </LoadingIndicator>
+  ) : !characterData ? (
+    <NoCharacterData>
+      No character data available
+    </NoCharacterData>
+  ) : (
+    <>
+      <CharacterHeader>
+        <CharacterAvatar>
+          <img 
+            src={characterData.avatar_url || FALLBACK_PLAYER_AVATAR} 
+            alt={characterData.name}
+            onError={(e) => { e.target.src = FALLBACK_PLAYER_AVATAR; }}
+          />
+          <StatusIndicator active={true} />
+        </CharacterAvatar>
+        
+        <CharacterNameplate>
+          <h3>{characterData.name}</h3>
+          <div className="class">{characterData.class}</div>
+          <RadiationMeter value={characterData.radiation || 0} />
+        </CharacterNameplate>
+      </CharacterHeader>
+      
+      <StatsPanels>
+        <StatsPanel>
+          <h4>ATTRIBUTES</h4>
+          <StatsList>
+            {characterData.stats && Object.entries(characterData.stats).map(([key, value]) => (
+              <StatItem key={key}>
+                <span className="label">{formatStatName(key)}</span>
+                <StatBar value={value} />
+                <span className="value">{value}</span>
+              </StatItem>
+            ))}
+          </StatsList>
+        </StatsPanel>
+        
+        <StatsPanel>
+          <h4>SKILLS</h4>
+          <SkillGrid>
+            {characterData.profs && Object.entries(characterData.profs)
+              .slice(0, 6) // Show only top skills to save space
+              .sort(([,a], [,b]) => b - a)
+              .map(([key, value]) => (
+                <SkillItem key={key} proficient={value > 0}>
+                  <span className="label">{formatSkillName(key)}</span>
+                  <span className="value">{value > 0 ? `+${value}` : value}</span>
+                </SkillItem>
+              ))}
+          </SkillGrid>
+        </StatsPanel>
+      </StatsPanels>
+      
+      <EquipmentBlock>
+        <h4>EQUIPMENT STATUS</h4>
+        <EquipmentGrid>
+          <EquipmentSlot type="headgear">
+            <EquipmentIcon>{characterData.equipment?.headgear ? 
+              <img src={`./equipment/${characterData.equipment.headgear.icon || 'helmet.png'}`} alt="Headgear" /> : 
+              'HEAD'
+            }</EquipmentIcon>
+            <span>{characterData.equipment?.headgear?.name || '-'}</span>
+          </EquipmentSlot>
+          
+          <EquipmentSlot type="armor">
+            <EquipmentIcon>{characterData.equipment?.armor ? 
+              <img src={`./equipment/${characterData.equipment.armor.icon || 'armor.png'}`} alt="Armor" /> : 
+              'BODY'
+            }</EquipmentIcon>
+            <span>{characterData.equipment?.armor?.name || '-'}</span>
+          </EquipmentSlot>
+          
+          <EquipmentSlot type="primary">
+            <EquipmentIcon>{characterData.equipment?.primary ? 
+              <img src={`./equipment/${characterData.equipment.primary.icon || 'weapon.png'}`} alt="Primary" /> : 
+              'PRI'
+            }</EquipmentIcon>
+            <span>{characterData.equipment?.primary?.name || '-'}</span>
+          </EquipmentSlot>
+          
+          <EquipmentSlot type="secondary">
+            <EquipmentIcon>{characterData.equipment?.secondary ? 
+              <img src={`./equipment/${characterData.equipment.secondary.icon || 'backpack.png'}`} alt="Secondary" /> : 
+              'SEC'
+            }</EquipmentIcon>
+            <span>{characterData.equipment?.secondary?.name || '-'}</span>
+          </EquipmentSlot>
+        </EquipmentGrid>
+        
+        <ResourceMeters>
+          <ResourceMeter>
+            <div className="label">MONEY</div>
+            <div className="value">{characterData.money || 0} ₽</div>
+          </ResourceMeter>
+          
+          <ResourceMeter>
+            <div className="label">CAPACITY</div>
+            <div className="bar-container">
+              <div 
+                className="bar" 
+                style={{
+                  width: `${Math.min(100, (characterData.inventory?.reduce((acc, item) => acc + (item.weight || 0), 0) / characterData.capacity) * 100) || 0}%`
+                }}
+              ></div>
+            </div>
+            <div className="value">
+              {characterData.inventory?.reduce((acc, item) => acc + (item.weight || 0), 0) || 0}/{characterData.capacity || 0}
+            </div>
+          </ResourceMeter>
+        </ResourceMeters>
+        
+        <InventoryMini>
+          <h5>INVENTORY ({characterData.inventory?.length || 0})</h5>
+          <ScrollableItems>
+            {characterData.inventory && characterData.inventory.length > 0 ? (
+              characterData.inventory.slice(0, 5).map((item, index) => (
+                <InventoryItem key={index}>
+                  <div className="item-name">{item.name}</div>
+                  <div className="item-weight">{item.weight}kg</div>
+                </InventoryItem>
+              ))
+            ) : (
+              <EmptyInventory>Empty inventory</EmptyInventory>
+            )}
+            {characterData.inventory && characterData.inventory.length > 5 && (
+              <MoreItems>+ {characterData.inventory.length - 5} more items</MoreItems>
+            )}
+          </ScrollableItems>
+        </InventoryMini>
+      </EquipmentBlock>
+      
+      <EnvironmentStatus>
+        <h4>ENVIRONMENT</h4>
+        <StatusGrid>
+          <StatusCell>
+            <div className="label">RADS</div>
+            <div className="value" style={{color: formatRadiationColor(characterData.radiation || 0)}}>
+              {characterData.radiation || 0} mSv
+            </div>
+          </StatusCell>
+          <StatusCell>
+            <div className="label">ANOMALIES</div>
+            <div className="value" style={{color: getProximityColor(characterData.anomaly_proximity || 'SAFE')}}>
+              {characterData.anomaly_proximity || 'SAFE'}
+            </div>
+          </StatusCell>
+          <StatusCell>
+            <div className="label">SAFETY</div>
+            <div className="value" style={{color: getSafetyColor(characterData.safety_level || 'SECURE')}}>
+              {characterData.safety_level || 'SECURE'}
+            </div>
+          </StatusCell>
+        </StatusGrid>
+      </EnvironmentStatus>
+    </>
+  )}
+</AvatarPanel>
     </Container>
   );}
