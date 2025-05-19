@@ -322,7 +322,6 @@ const InventorySystem = () => {
     e.preventDefault();
     if (!characterId || !draggedItem) return;
   
-    // Create a copy and normalize the type if needed.
     let normalizedDraggedItem = { ...draggedItem };
     const lowerType = normalizedDraggedItem.type.toLowerCase();
     if (
@@ -335,7 +334,6 @@ const InventorySystem = () => {
       normalizedDraggedItem.type = 'weapons';
     }
   
-    // Use the normalized type for all checks.
     let canEquip = false;
     if (normalizedDraggedItem.type === slotType) canEquip = true;
     if (
@@ -374,7 +372,6 @@ const InventorySystem = () => {
   
     if (canEquip) {
       try {
-        // Use the normalizedDraggedItem.id in the API call.
         await equipItem(characterId, slotType, normalizedDraggedItem.id);
         const currentItem = equipment[slotType];
         const newEquipment = { ...equipment, [slotType]: normalizedDraggedItem };
