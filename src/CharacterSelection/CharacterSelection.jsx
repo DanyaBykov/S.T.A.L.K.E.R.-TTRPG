@@ -467,10 +467,8 @@ const CharacterSelection = () => {
         name: newCharacterName
       });
       
-      // Add new character to list
       setCharacters([...characters, newCharacter]);
       
-      // Reset form
       setNewCharacterName('');
       setShowCreateForm(false);
       setError(null);
@@ -507,12 +505,10 @@ const CharacterSelection = () => {
         name: editName
       });
       
-      // Update character in list
       setCharacters(characters.map(char => 
         char.id === editingId ? { ...char, name: editName } : char
       ));
       
-      // Reset form
       setEditingId(null);
       setEditName('');
       setError(null);

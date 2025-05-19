@@ -607,7 +607,6 @@ const InventorySystem = () => {
                     className="inventory-row"
                     draggable
                     onDragStart={(e) => handleDragStart(e, item)}
-                    // onContextMenu={(e) => handleRightClick(e, item)}
                     onContextMenu={(e) => {
                       e.preventDefault();
                       setContextItem(item);
@@ -641,7 +640,6 @@ const InventorySystem = () => {
       {isAddItemMenuOpen && (
         <div className="add-item-menu">
           <h3>Add New Item</h3>
-          {/* First Dropdown: Select Type */}
           <select
             value={newItem.type}
             onChange={(e) => handleItemTypeChange(e.target.value)}
@@ -654,7 +652,6 @@ const InventorySystem = () => {
             ))}
           </select>
 
-          {/* Second Dropdown: Select Item Name */}
           <select
             value={newItem.name}
             onChange={(e) => {
@@ -678,7 +675,6 @@ const InventorySystem = () => {
             ))}
           </select>
 
-          {/* Other inputs for quantity and notes (weight input removed) */}
           <input
             type="number"
             placeholder="Quantity"

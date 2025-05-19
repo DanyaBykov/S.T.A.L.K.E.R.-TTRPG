@@ -8,17 +8,14 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { apiRequest } from '../services/api';
 
-// Delete custom icon reference in Leaflet to fix marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 
-// Setup default icons for Leaflet
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-// Styled components
 const Container = styled.div`
   display: flex;
   width: 100vw;
@@ -113,9 +110,7 @@ const CharacterMarkerIcon = L.divIcon({
   iconSize: [30, 30],
   iconAnchor: [15, 15],
 });
-// Add these styled components after your existing styled components
 
-// Dice Roller Styled Components
 const DiceRollerContainer = styled.div`
   position: absolute;
   bottom: 20px;
@@ -185,7 +180,6 @@ const DiceResultText = styled.div`
   opacity: 0.8;
 `;
 
-// Pin Menu Styled Components
 const PinMenuContainer = styled.div`
   position: absolute;
   top: 20px;
@@ -261,9 +255,7 @@ const PinButton = styled.button`
   }
 `;
 
-// Add these styled components after your existing styled components
 
-// Side Panel Styled Components
 const SidePanelContainer = styled.div`
   position: absolute;
   top: 0;
@@ -425,10 +417,8 @@ const EmissionButton = styled.button`
   }
 `;
 
-// Update the SidePanel function to properly handle GM access
 function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, isGameMaster, toggleEmission }) {
   if (!characterData && !isGameMaster) {
-    // Show loading screen only for players who don't have data yet
     return (
       <>
         <SidePanelToggle 
@@ -451,7 +441,6 @@ function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, 
     );
   }
   
-  // Game Master View
   if (isGameMaster) {
     return (
       <>
@@ -726,7 +715,6 @@ function DiceRoller({ isOpen, onToggle }) {
   );
 }
 
-// Pin Menu Component
 function PinMenu({ isOpen, onToggle, pins, onPinFocus, isGameMaster }) {
   if (!isOpen) return null;
   
@@ -764,7 +752,6 @@ function PinMenu({ isOpen, onToggle, pins, onPinFocus, isGameMaster }) {
     </PinMenuContainer>
   );
 }
-// Map event handler component
 function MapEvents({ onMove }) {
   const map = useMapEvents({
     moveend: () => {
@@ -775,7 +762,6 @@ function MapEvents({ onMove }) {
   return null;
 }
 
-// Main MapPage component
 export default function MapPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [characterPins, setCharacterPins] = useState([]);
@@ -808,28 +794,24 @@ export default function MapPage() {
     if (!gameId || !characterId) return;
     
     try {
-      // Load character data
       setLoadingCharacter(true);
       const data = await apiRequest(`/games/${gameId}/characters/${characterId}`);
       setCharacterData(data);
       
-      // Load game metadata
       const gameData = await apiRequest(`/games/${gameId}`);
       setIsGameMaster(gameData.is_dm);
       
-      // Load pins
       const pinsData = await apiRequest(`/games/${gameId}/pins`);
       const pins = pinsData.pins.map(pin => ({
         id: pin.character_id,
         name: pin.name,
         isMonster: pin.is_monster,
-        position: [pin.position_x / 100, pin.position_y / 100], // Scale position for map
+        position: [pin.position_x / 100, pin.position_y / 100], 
         isCurrentUser: pin.character_id === characterId
       }));
       
       setCharacterPins(pins);
       
-      // Set current position based on player pin
       const playerPin = pins.find(pin => pin.isCurrentUser);
       if (playerPin) {
         setCurrentPosition({ 
@@ -854,7 +836,7 @@ export default function MapPage() {
       if (mapElement && mapElement._leaflet_id) {
         const map = L.DomUtil.get(mapElement)._leaflet;
         if (map) {
-          map.setView(pin.position, 4); // Zoom to pin position
+          map.setView(pin.position, 4); 
         }
       }
     }
@@ -938,13 +920,12 @@ const handleMarkerDragend = async (event, pinId) => {
     <Container>
       <MapContainerStyled>
       <MapContainer 
-        center={[300, 300]}  // Try center of the map
-        zoom={1}             // Start more zoomed out
+        center={[300, 300]}  
+        zoom={1}       
         minZoom={0}
         maxZoom={6}
         style={{ height: '100%' }}
-        // maxBounds={[[0, 0], [600, 600]]}
-        maxBoundsViscosity={0.7}  // Slightly softer boundaries
+        maxBoundsViscosity={0.7}  
         crs={customCRS}
         attributionControl={false}
         zoomControl={true}

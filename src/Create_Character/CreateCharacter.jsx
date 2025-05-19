@@ -5,7 +5,6 @@ import { ArrowLeft, ArrowRight, Save, Menu, Check, Plus, Minus } from 'lucide-re
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
-// --- Data Definitions remain the same ---
 const CLASSES = {
   Hunter: { name: "Мисливець" },
   Soldier: { name: "Солдат" },

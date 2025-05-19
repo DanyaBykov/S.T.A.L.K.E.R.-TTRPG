@@ -349,13 +349,11 @@ function Login() {
   return (
     <LoginBackground>
       <LoginContent>
-        {/* Title Section */}
         <TitleSection>
           <MainTitle>S.T.A.L.K.E.R.</MainTitle>
           <Subtitle>Tabletop RPG Platform</Subtitle>
         </TitleSection>
 
-        {/* Login Screen */}
         <LoginScreen>
           <h3>Select Your Role</h3>
           <StyledSelect value={selectedRole} onChange={handleRoleChange}>
