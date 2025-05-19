@@ -1906,7 +1906,30 @@ async def create_monster_pin(
         "position_y": monster_data.position_y,
         "is_monster": True
     }
-
+@app.get("/games/{game_id}")
+async def get_game_by_id(
+    game_id: str,
+    current_user: dict = Depends(get_current_user_or_none)
+):
+    """Get details for a specific game"""
+    # Check if game exists
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    game = games_db[game_id]
+    
+    # For authenticated users, check if they're DM or player
+    is_dm = current_user and game["dm_id"] == current_user["id"]
+    is_player = current_user and current_user["id"] in game["players"]
+    
+    return {
+        "id": game_id,
+        "name": game.get("name", f"Game {game_id}"),
+        "game_code": game["game_code"],
+        "created_at": game.get("created_at", datetime.now().isoformat()),
+        "is_dm": is_dm,
+        "player_count": len(game.get("players", []))
+    }
 
 @app.get("/{path:path}", include_in_schema=False)
 async def serve_spa(path: str):

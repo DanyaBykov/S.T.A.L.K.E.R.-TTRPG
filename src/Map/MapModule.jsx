@@ -1326,8 +1326,7 @@ useEffect(() => {
         pin.character_id === characterId && pin.is_current_user
       );
       
-      
-      // If first time for current player, they'll be centered on map
+      // Process existing pins
       setCharacterPins(pinsData.pins.map(pin => {
         // For a player joining for the first time, center their token
         const isNewCurrentPlayer = pin.character_id === characterId && 
@@ -1345,20 +1344,58 @@ useEffect(() => {
         };
       }));
       
-      // If the player is joining for the first time with a centered position,
-      // save this position to the backend
-      if (!currentPlayerExists && characterId) {
-        await apiRequest(`/games/${gameId}/pins/${characterId}/position`, {
-          method: 'PUT',
-          body: JSON.stringify({
+      // If the player is joining for the first time, create a new pin for them
+      if (!currentPlayerExists && characterId && !isGameMaster) {
+        // Calculate center position based on viewport or map dimensions
+        const centerX = viewportDimensions.width / 2;
+        const centerY = viewportDimensions.height / 2;
+        
+        console.log("Creating new pin for first-time player at:", centerX, centerY);
+        
+        try {
+          // First create a character pin on the server
+          const characterResponse = await apiRequest(`/games/${gameId}/characters/${characterId}`);
+          
+          // Then create a pin with its position
+          await apiRequest(`/games/${gameId}/pins/${characterId}/position`, {
+            method: 'PUT',
+            body: JSON.stringify({
+              x: centerX,
+              y: centerY
+            })
+          });
+          
+          // Add the new pin to local state so it appears immediately
+          const newPin = {
+            id: characterId,
+            name: characterResponse.name || "New Stalker",
+            avatar: characterResponse.avatar_url || FALLBACK_PLAYER_AVATAR,
+            isMonster: false,
+            is_current_user: true,
             x: centerX,
             y: centerY
-          })
-        }).catch(err => console.error("Failed to save initial position:", err));
+          };
+          
+          setCharacterPins(prevPins => [...prevPins, newPin]);
+          
+          // Center the view on the new pin
+          if (instance) {
+            setTimeout(() => {
+              instance.setTransform(
+                -centerX + (viewportDimensions.width / 2),
+                -centerY + (viewportDimensions.height / 2),
+                1,
+                0
+              );
+            }, 300);
+          }
+        } catch (err) {
+          console.error("Failed to create initial player pin:", err);
+        }
       }
       
       // Center the map view on the player's character if it exists
-      if (characterId) {
+      if (characterId && !isGameMaster) {
         const playerPin = pinsData.pins.find(pin => pin.character_id === characterId);
         if (playerPin && instance) {
           // Apply a slight delay to ensure instance is ready
