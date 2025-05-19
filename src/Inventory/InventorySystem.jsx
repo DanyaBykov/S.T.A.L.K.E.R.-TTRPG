@@ -154,6 +154,17 @@ const InventorySystem = () => {
     setIsAddItemMenuOpen((prev) => !prev);
   };
 
+  const renderDynamicProperties = (item) => {
+    const standardKeys = ['id', 'name', 'type', 'quantity', 'weight', 'total_weight', 'notes'];
+    return Object.entries(item)
+      .filter(([key, value]) => !standardKeys.includes(key) && value !== null && value !== undefined)
+      .map(([key, value]) => (
+        <div key={key}>
+          <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {value}
+        </div>
+      ));
+  };
+
   const handleDeleteItem = async () => {
     if (!characterId || !deleteItem) return;
     try {
@@ -725,7 +736,8 @@ const InventorySystem = () => {
           <div>Weight: {hoveredItem.weight}</div>
           {hoveredItem.total_weight && <div>Total Weight: {hoveredItem.total_weight}</div>}
           {hoveredItem.notes && <div>Notes: {hoveredItem.notes}</div>}
-          {/* You can add more parameters that are available in your data */}
+          {/* Render any extra attributes not in the standard list */}
+          {renderDynamicProperties(hoveredItem)}
         </div>
       )}
       {contextItem && (
