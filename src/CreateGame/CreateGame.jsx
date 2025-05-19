@@ -498,7 +498,7 @@ const CreateGame = () => {
 
   const handleJoinGame = (gameId) => {
     // Navigate to the game dashboard
-    navigate(`/games/${gameId}/characters`);
+    navigate(`/game/${gameId}/map/dm`);
   };
 
   const startEditGame = (game) => {

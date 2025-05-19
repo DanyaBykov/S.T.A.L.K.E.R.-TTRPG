@@ -1244,7 +1244,7 @@ export default function MapPage() {
   const { gameId, characterId } = useParams();
   const [characterData, setCharacterData] = useState(null);
   const [loadingCharacter, setLoadingCharacter] = useState(true);
-  const [isGameMaster, setIsGameMaster] = useState(false);
+  const [isGameMaster, setIsGameMaster] = useState(characterId === 'dm' || false);
   const [characterPins, setCharacterPins] = useState([]);
   const [currentUserRole, setCurrentUserRole] = useState('player');
   const pinRefs = useRef({});
