@@ -113,7 +113,443 @@ const CharacterMarkerIcon = L.divIcon({
   iconSize: [30, 30],
   iconAnchor: [15, 15],
 });
+// Add these styled components after your existing styled components
 
+// Dice Roller Styled Components
+const DiceRollerContainer = styled.div`
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background-image: linear-gradient(to bottom, 
+    rgba(20, 25, 20, 0.9),
+    rgba(30, 35, 30, 0.9)
+  );
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 10px;
+  color: #a3ffa3;
+  font-family: 'Courier New', monospace;
+  z-index: 1000;
+  width: 200px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+`;
+
+const DiceHeader = styled.div`
+  text-transform: uppercase;
+  font-size: 14px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(163, 255, 163, 0.3);
+  padding-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  &:before {
+    content: "//";
+    opacity: 0.7;
+  }
+`;
+
+const DiceOptions = styled.div`
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+`;
+
+const DiceButton = styled.button`
+  background: rgba(30, 40, 30, 0.8);
+  border: 1px solid #444;
+  color: #a3ffa3;
+  padding: 5px;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(50, 70, 50, 0.8);
+    box-shadow: 0 0 5px rgba(163, 255, 163, 0.5);
+  }
+`;
+
+const DiceResult = styled.div`
+  text-align: center;
+  font-size: 24px;
+  margin: 10px 0;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(163, 255, 163, 0.5);
+`;
+
+const DiceResultText = styled.div`
+  font-size: 12px;
+  opacity: 0.8;
+`;
+
+// Pin Menu Styled Components
+const PinMenuContainer = styled.div`
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-image: linear-gradient(to bottom, 
+    rgba(20, 25, 20, 0.9),
+    rgba(30, 35, 30, 0.9)
+  );
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 10px;
+  color: #a3ffa3;
+  font-family: 'Courier New', monospace;
+  z-index: 1000;
+  width: 250px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+`;
+
+const PinMenuHeader = styled.div`
+  text-transform: uppercase;
+  font-size: 14px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(163, 255, 163, 0.3);
+  padding-bottom: 5px;
+  
+  &:before {
+    content: "//";
+    opacity: 0.7;
+  }
+`;
+
+const PinList = styled.div`
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(163, 255, 163, 0.3);
+  }
+`;
+
+const PinItem = styled.div`
+  padding: 5px;
+  border-bottom: 1px solid rgba(163, 255, 163, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  &:hover {
+    background: rgba(163, 255, 163, 0.05);
+  }
+`;
+
+const PinButton = styled.button`
+  background: rgba(30, 40, 30, 0.8);
+  border: 1px solid #444;
+  color: #a3ffa3;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  
+  &:hover {
+    background: rgba(50, 70, 50, 0.8);
+  }
+`;
+
+// Add these styled components after your existing styled components
+
+// Side Panel Styled Components
+const SidePanelContainer = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 320px;
+  background-image: linear-gradient(to bottom, 
+    rgba(20, 25, 20, 0.9),
+    rgba(30, 35, 30, 0.9)
+  );
+  border-left: 1px solid #444;
+  color: #a3ffa3;
+  font-family: 'Courier New', monospace;
+  z-index: 999;
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease;
+  transform: ${props => props.isOpen ? 'translateX(0)' : 'translateX(100%)'};
+  display: flex;
+  flex-direction: column;
+`;
+
+const SidePanelHeader = styled.div`
+  text-transform: uppercase;
+  font-size: 16px;
+  padding: 15px;
+  border-bottom: 1px solid rgba(163, 255, 163, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  &:before {
+    content: "//";
+    opacity: 0.7;
+    margin-right: 5px;
+  }
+`;
+
+const SidePanelContent = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(163, 255, 163, 0.3);
+  }
+`;
+
+const SectionHeader = styled.div`
+  text-transform: uppercase;
+  font-size: 14px;
+  margin: 15px 0 10px;
+  opacity: 0.8;
+  
+  &:first-child {
+    margin-top: 0;
+  }
+`;
+
+const InfoRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  border-bottom: 1px dotted rgba(163, 255, 163, 0.2);
+  padding-bottom: 3px;
+`;
+
+const CoordinateDisplay = styled.div`
+  border: 1px solid rgba(163, 255, 163, 0.3);
+  background: rgba(20, 30, 20, 0.7);
+  padding: 8px;
+  text-align: center;
+  margin: 10px 0;
+  font-weight: bold;
+  letter-spacing: 1px;
+  font-family: monospace;
+`;
+
+const SidePanelToggle = styled.button`
+  position: absolute;
+  top: 15px;
+  right: ${props => props.isOpen ? '330px' : '15px'};
+  background: rgba(20, 25, 20, 0.8);
+  color: #a3ffa3;
+  border: 1px solid #444;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  z-index: 998;
+  transition: right 0.3s ease;
+  text-transform: uppercase;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  
+  &:hover {
+    background: rgba(30, 40, 30, 0.8);
+  }
+`;
+
+// Side Panel Component implementation
+function SidePanel({ isOpen, onToggle, characterData, position }) {
+  if (!characterData) {
+    return (
+      <>
+        <SidePanelToggle 
+          isOpen={isOpen} 
+          onClick={onToggle}
+        >
+          {isOpen ? '>> Hide Panel' : '<< Info Panel'}
+        </SidePanelToggle>
+        
+        <SidePanelContainer isOpen={isOpen}>
+          <SidePanelHeader>
+            Loading Data...
+            <span onClick={onToggle} style={{ cursor: 'pointer', opacity: 0.7 }}>[x]</span>
+          </SidePanelHeader>
+          <SidePanelContent>
+            Please wait while data loads...
+          </SidePanelContent>
+        </SidePanelContainer>
+      </>
+    );
+  }
+  
+  return (
+    <>
+      <SidePanelToggle 
+        isOpen={isOpen} 
+        onClick={onToggle}
+      >
+        {isOpen ? '>> Hide Panel' : '<< Info Panel'}
+      </SidePanelToggle>
+      
+      <SidePanelContainer isOpen={isOpen}>
+        <SidePanelHeader>
+          {characterData.name}
+          <span onClick={onToggle} style={{ cursor: 'pointer', opacity: 0.7 }}>[x]</span>
+        </SidePanelHeader>
+        
+        <SidePanelContent>
+          <SectionHeader>Character Status</SectionHeader>
+          <InfoRow>
+            <span>Health:</span>
+            <span>{characterData.health || '100'}/100</span>
+          </InfoRow>
+          <InfoRow>
+            <span>Radiation:</span>
+            <span>{characterData.radiation || '0'}%</span>
+          </InfoRow>
+          <InfoRow>
+            <span>Faction:</span>
+            <span>{characterData.faction || 'Loner'}</span>
+          </InfoRow>
+          
+          <SectionHeader>Map Information</SectionHeader>
+          <CoordinateDisplay>
+            {position ? `X: ${position.lat.toFixed(1)} | Y: ${position.lng.toFixed(1)}` : 'Unknown Location'}
+          </CoordinateDisplay>
+          
+          <SectionHeader>Zone Status</SectionHeader>
+          <InfoRow>
+            <span>Emission Status:</span>
+            <span style={{ color: '#ff6b6b' }}>INACTIVE</span>
+          </InfoRow>
+          <InfoRow>
+            <span>Anomaly Density:</span>
+            <span>MEDIUM</span>
+          </InfoRow>
+          <InfoRow>
+            <span>Radiation Level:</span>
+            <span>LOW</span>
+          </InfoRow>
+          
+          <SectionHeader>Notes</SectionHeader>
+          <div style={{ opacity: 0.8, fontStyle: 'italic' }}>
+            {characterData.notes || 'No notes available. Add notes through your PDA.'}
+          </div>
+          
+          <SectionHeader>Active Missions</SectionHeader>
+          <div>
+            {characterData.missions?.length ? (
+              characterData.missions.map((mission, idx) => (
+                <div key={idx} style={{ marginBottom: '8px', borderLeft: '2px solid #a3ffa3', paddingLeft: '10px' }}>
+                  {mission.title}
+                </div>
+              ))
+            ) : (
+              <div style={{ opacity: 0.6 }}>No active missions.</div>
+            )}
+          </div>
+        </SidePanelContent>
+      </SidePanelContainer>
+    </>
+  );
+}
+function DiceRoller({ isOpen, onToggle }) {
+  const [result, setResult] = useState(null);
+  const [diceType, setDiceType] = useState(null);
+  
+  const rollDice = (sides) => {
+    setDiceType(sides);
+    const roll = Math.floor(Math.random() * sides) + 1;
+    setResult(roll);
+  };
+  
+  if (!isOpen) return null;
+  
+  return (
+    <DiceRollerContainer>
+      <DiceHeader>
+        Dice Roller
+        <span 
+          onClick={onToggle}
+          style={{ cursor: 'pointer', opacity: 0.7 }}
+        >
+          [x]
+        </span>
+      </DiceHeader>
+      <DiceOptions>
+        <DiceButton onClick={() => rollDice(4)}>D4</DiceButton>
+        <DiceButton onClick={() => rollDice(6)}>D6</DiceButton>
+        <DiceButton onClick={() => rollDice(8)}>D8</DiceButton>
+        <DiceButton onClick={() => rollDice(10)}>D10</DiceButton>
+        <DiceButton onClick={() => rollDice(12)}>D12</DiceButton>
+        <DiceButton onClick={() => rollDice(20)}>D20</DiceButton>
+        <DiceButton onClick={() => rollDice(100)}>D100</DiceButton>
+      </DiceOptions>
+      
+      {result !== null && (
+        <>
+          <DiceResult>{result}</DiceResult>
+          <DiceResultText>
+            Rolled d{diceType}: {result}
+          </DiceResultText>
+        </>
+      )}
+    </DiceRollerContainer>
+  );
+}
+
+// Pin Menu Component
+function PinMenu({ isOpen, onToggle, pins, onPinFocus, isGameMaster }) {
+  if (!isOpen) return null;
+  
+  return (
+    <PinMenuContainer>
+      <PinMenuHeader>
+        Zone Stalkers
+        <span 
+          onClick={onToggle}
+          style={{ cursor: 'pointer', opacity: 0.7, float: 'right' }}
+        >
+          [x]
+        </span>
+      </PinMenuHeader>
+      
+      <PinList>
+        {pins.map(pin => (
+          <PinItem key={pin.id}>
+            <span>{pin.isMonster ? '☣ ' : ''}
+              {pin.name}
+              {pin.isCurrentUser && ' (You)'}
+            </span>
+            <PinButton onClick={() => onPinFocus(pin.id)}>
+              LOCATE
+            </PinButton>
+          </PinItem>
+        ))}
+      </PinList>
+      
+      {isGameMaster && (
+        <PinButton style={{ width: '100%' }}>
+          + ADD NEW STALKER
+        </PinButton>
+      )}
+    </PinMenuContainer>
+  );
+}
 // Map event handler component
 function MapEvents({ onMove }) {
   const map = useMapEvents({
@@ -132,6 +568,10 @@ export default function MapPage() {
   const [isGameMaster, setIsGameMaster] = useState(false);
   const [characterData, setCharacterData] = useState(null);
   const [loadingCharacter, setLoadingCharacter] = useState(true);
+  const [diceRollerOpen, setDiceRollerOpen] = useState(false);
+  const [pinMenuOpen, setPinMenuOpen] = useState(false);
+  const [sidePanelOpen, setSidePanelOpen] = useState(false);
+  const [currentPosition, setCurrentPosition] = useState({ lat: 0, lng: 0 });
   
   const params = useParams();
   const location = useLocation();
@@ -179,6 +619,19 @@ export default function MapPage() {
     
     loadGameData();
   }, [gameId, characterId]);
+
+  const handlePinFocus = (pinId) => {
+    const pin = characterPins.find(p => p.id === pinId);
+    if (pin) {
+      const mapElement = document.querySelector('.leaflet-container');
+      if (mapElement && mapElement._leaflet_id) {
+        const map = L.DomUtil.get(mapElement)._leaflet;
+        if (map) {
+          map.setView(pin.position, 4); // Zoom to pin position
+        }
+      }
+    }
+  };
   
   // Handle marker movement
   const handleMarkerDragend = async (event, pinId) => {
@@ -207,9 +660,9 @@ export default function MapPage() {
   };
 
 
-  // Handle map movement
   const handleMapMove = (lat, lng) => {
     console.log(`Map moved to: ${lat}, ${lng}`);
+    setCurrentPosition({ lat, lng });
   };
   const customCRS = L.extend({}, L.CRS.Simple, {
     transformation: new L.Transformation(0.25, 0, 0.25, 0),
@@ -286,7 +739,64 @@ export default function MapPage() {
             </MenuList>
           )}
         </MenuBtn>
+        <div style={{ 
+          position: 'absolute', 
+          bottom: '20px', 
+          right: '20px',
+          display: 'flex',
+          gap: '10px'
+        }}>
+          <button
+            onClick={() => setDiceRollerOpen(!diceRollerOpen)}
+            style={{
+              background: 'rgba(20, 25, 20, 0.7)',
+              color: '#a3ffa3',
+              border: '1px solid #444',
+              padding: '8px 12px',
+              cursor: 'pointer',
+              fontFamily: 'Courier New',
+              fontSize: '12px',
+              textTransform: 'uppercase'
+            }}
+          >
+            {diceRollerOpen ? 'Hide Dice' : 'Roll Dice'}
+          </button>
+          
+          <button
+            onClick={() => setPinMenuOpen(!pinMenuOpen)}
+            style={{
+              background: 'rgba(20, 25, 20, 0.7)',
+              color: '#a3ffa3',
+              border: '1px solid #444',
+              padding: '8px 12px',
+              cursor: 'pointer',
+              fontFamily: 'Courier New',
+              fontSize: '12px',
+              textTransform: 'uppercase'
+            }}
+          >
+            {pinMenuOpen ? 'Hide Stalkers' : 'Show Stalkers'}
+          </button>
+        </div>
+        <DiceRoller 
+          isOpen={diceRollerOpen} 
+          onToggle={() => setDiceRollerOpen(!diceRollerOpen)} 
+        />
+
+        <PinMenu 
+          isOpen={pinMenuOpen}
+          onToggle={() => setPinMenuOpen(!pinMenuOpen)}
+          pins={characterPins}
+          onPinFocus={handlePinFocus}
+          isGameMaster={isGameMaster}
+        />
       </MapContainerStyled>
+      <SidePanel
+        isOpen={sidePanelOpen}
+        onToggle={() => setSidePanelOpen(!sidePanelOpen)}
+        characterData={characterData}
+        position={currentPosition}
+      />
     </Container>
   );
 }
