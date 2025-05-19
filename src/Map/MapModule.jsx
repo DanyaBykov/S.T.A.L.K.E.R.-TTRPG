@@ -232,7 +232,7 @@ export default function MapPage() {
         zoomControl={true}
         scrollWheelZoom={true}
         dragging={true}
-        inertia={true}
+        inertia={false}
         worldCopyJump={false}
       >
         <TileLayer
