@@ -114,6 +114,22 @@ const InventorySystem = () => {
     }
   };
 
+  const normalizeWeaponsType = (items) => {
+    return items.map(item => {
+      const lowerType = item.type.toLowerCase();
+      if (
+        lowerType.includes('rifle') ||
+        lowerType.includes('pistol') ||
+        lowerType.includes('shotgun') ||
+        lowerType.includes('assault') ||
+        lowerType.includes('sub-machine')
+      ) {
+        return { ...item, type: 'weapons' };
+      }
+      return item;
+    });
+  };
+
   const toggleMoneyMenu = () => {
     setIsMoneyMenuOpen((prev) => !prev);
   };
@@ -308,7 +324,7 @@ const InventorySystem = () => {
 
     let canEquip = false;
     if (draggedItem.type === slotType) canEquip = true;
-    if (draggedItem.type === 'weapons'  && (slotType === 'primary' || slotType === 'secondary'))
+    if (draggedItem.type === 'weapons' && (slotType === 'primary' || slotType === 'secondary'))
       canEquip = true;
 
     if (draggedItem.type === 'headgear' || draggedItem.type === 'armor') {
@@ -479,9 +495,10 @@ const InventorySystem = () => {
   const handleItemTypeChange = async (typeSelected) => {
     setNewItem({ ...newItem, type: typeSelected, name: '', weight: 0 });
     setSelectedType(typeSelected);
-
+  
     try {
-      const items = await getItemsByType(typeSelected);
+      let items = await getItemsByType(typeSelected);
+      items = normalizeWeaponsType(items);
       setAvailableItems(items);
     } catch (err) {
       setError("Failed to load items: " + err.message);
