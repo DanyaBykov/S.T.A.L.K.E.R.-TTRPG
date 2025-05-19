@@ -211,20 +211,29 @@ export default function MapPage() {
     console.log(`Map moved to: ${lat}, ${lng}`);
   };
   const customCRS = L.extend({}, L.CRS.Simple, {
-    transformation: new L.Transformation(0.025, 0, 0.025, 0)
+    transformation: new L.Transformation(1, 0, 1, 0),
+    scale: function(zoom) {
+      return Math.pow(2, zoom);
+    }
   });
   return (
     <Container>
       <MapContainerStyled>
       <MapContainer 
-        center={[20, 20]}  // Start at the center of the map area
-        zoom={2}           // Start more zoomed out
+        center={[20, 20]}
+        zoom={2}
         minZoom={1}
         maxZoom={6}
         style={{ height: '100%' }}
         maxBounds={[[0, 0], [40, 40]]}
         maxBoundsViscosity={1.0}
-        crs={customCRS}  // Use simple coordinates for custom maps
+        crs={customCRS}
+        attributionControl={false}
+        zoomControl={true}
+        scrollWheelZoom={true}
+        dragging={true}
+        inertia={true}
+        worldCopyJump={false}
       >
         <TileLayer
           url="https://joric.github.io/stalker2_tileset/tiles/{z}/{x}/{y}.jpg"
