@@ -1074,6 +1074,91 @@ async def get_character(character_id: str, current_user: dict = Depends(get_curr
         "id": character_id,
         **character
     }
+@app.get("/games/{game_id}/characters/{character_id}")
+async def get_character_details(
+    game_id: str,
+    character_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get detailed character information"""
+    # Check if game exists
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    # Check if character exists
+    if character_id not in characters_db:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    character = characters_db[character_id]
+    game = games_db[game_id]
+    
+    # Check permissions - must be DM or the character's owner
+    is_dm = game["dm_id"] == current_user["id"]
+    is_owner = character["user_id"] == current_user["id"]
+    
+    if not (is_dm or is_owner):
+        raise HTTPException(
+            status_code=403, 
+            detail="You don't have permission to view this character"
+        )
+    
+    # Get environmental data for the character
+    environment_data = {
+        "radiation": 0,  # Default values
+        "anomaly_proximity": "SAFE",
+        "safety_level": "SECURE"
+    }
+    
+    if game_id in pins_db and character_id in pins_db[game_id]:
+        pos_x = pins_db[game_id][character_id]["x"]
+        pos_y = pins_db[game_id][character_id]["y"]
+        
+
+        center_x = 2048 
+        center_y = 2048
+        distance_from_center = ((pos_x - center_x)**2 + (pos_y - center_y)**2)**0.5
+        
+        environment_data["radiation"] = min(10, max(0, (5000 - distance_from_center) / 1000))
+        
+        if distance_from_center < 500:
+            environment_data["safety_level"] = "HOSTILE"
+        elif distance_from_center < 1000:
+            environment_data["safety_level"] = "DANGER"
+        elif distance_from_center < 2000:
+            environment_data["safety_level"] = "CONTESTED"
+        elif distance_from_center < 3000:
+            environment_data["safety_level"] = "NEUTRAL"
+        else:
+            environment_data["safety_level"] = "SECURE"
+        
+        if (1000 < pos_x < 3000) and (1000 < pos_y < 3000):
+            if distance_from_center < 800:
+                environment_data["anomaly_proximity"] = "DANGER"
+            elif distance_from_center < 1500:
+                environment_data["anomaly_proximity"] = "NEAR"
+            elif distance_from_center < 2500:
+                environment_data["anomaly_proximity"] = "DETECTED"
+    
+    response = {
+        "id": character_id,
+        "name": character["name"],
+        "class": character.get("class", "Unknown"),
+        "stats": character.get("stats", {}),
+        "mods": character.get("mods", {}),
+        "profs": character.get("profs", {}),
+        "personality": character.get("personality", {}),
+        "money": character.get("money", 0),
+        "capacity": character.get("capacity", 50),
+        "inventory": character.get("inventory", []),
+        "equipment": character.get("equipment", {}),
+        "avatar_url": character.get("avatar_url"),
+        
+        "radiation": environment_data["radiation"],
+        "anomaly_proximity": environment_data["anomaly_proximity"],
+        "safety_level": environment_data["safety_level"]
+    }
+    
+    return response
 
 @app.post("/characters/{character_id}/inventory", response_model=InventoryItem)
 async def add_inventory_item(
