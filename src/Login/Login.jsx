@@ -340,9 +340,9 @@ function Login() {
           throw new Error("Game code is required");
         }
 
-        await joinGame(gameCode);
+        const responce = await joinGame(gameCode);
         localStorage.setItem("userRole", "player");
-        localStorage.setItem("currentGameId", gameCode);
+        localStorage.setItem("currentGameId", responce.game_id);
         
         navigate("/characters");
       }
