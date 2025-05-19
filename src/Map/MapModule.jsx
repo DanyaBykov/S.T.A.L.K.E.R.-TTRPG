@@ -269,7 +269,7 @@ const PanelHeader = styled.h3`
   z-index: 1;
   
   &:before {
-    content: "
+    content: "";
     opacity: 0.7;
   }
 `;
