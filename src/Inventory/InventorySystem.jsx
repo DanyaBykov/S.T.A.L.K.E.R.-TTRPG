@@ -338,18 +338,19 @@ const InventorySystem = () => {
 
     if (canEquip) {
       try {
-        await equipItem(characterId, slotType, draggedItem.id);
-        const currentItem = equipment[slotType];
-        const newEquipment = { ...equipment, [slotType]: draggedItem };
         const originalSlot = Object.keys(equipment).find(
           (key) => equipment[key]?.id === draggedItem.id
         );
         if (originalSlot && originalSlot !== slotType) {
-          newEquipment[originalSlot] = null;
+          await equipItem(characterId, originalSlot, null);
+          const newEquipmentTemp = { ...equipment };
+          newEquipmentTemp[originalSlot] = null;
+          setEquipment(newEquipmentTemp);
         }
-        let newInventory = inventoryItems.filter(
-          (item) => item.id !== draggedItem.id
-        );
+        await equipItem(characterId, slotType, draggedItem.id);
+        const currentItem = equipment[slotType];
+        const newEquipment = { ...equipment, [slotType]: draggedItem };
+        let newInventory = inventoryItems.filter(item => item.id !== draggedItem.id);
         if (currentItem) newInventory.push(currentItem);
         setEquipment(newEquipment);
         setInventoryItems(newInventory);
