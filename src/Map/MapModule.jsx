@@ -1264,6 +1264,25 @@ export default function MapPage() {
   });
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const mapContainerRef = useRef(null);
+
+  const params = useParams();
+  const location = useLocation();
+  
+  const characterIdFromParams = params.characterId;
+  const characterIdFromState = location.state?.characterId;
+  const characterIdFromStorage = localStorage.getItem("currentCharacterId");
+  
+  characterId = characterIdFromParams || characterIdFromState || characterIdFromStorage;
+  gameId = params.gameId;
+  
+  console.log("Map loaded with:", {
+    gameIdFromURL: params.gameId,
+    gameId: gameId,
+    characterIdFromParams,
+    characterIdFromState,
+    characterIdFromStorage,
+    characterId
+  });
   
 
   useEffect(() => {
@@ -1315,46 +1334,52 @@ export default function MapPage() {
 useEffect(() => {
   async function loadGameData() {
     try {
+      // Make sure we have both gameId and characterId
+      console.log("Loading game data with:", gameId, characterId);
+      
+      if (!gameId || !characterId) {
+        console.log("Missing gameId or characterId, can't load game data");
+        return;
+      }
+      
+      // First load the game metadata
       const gameData = await apiRequest(`/games/${gameId}`);
       setIsGameMaster(gameData.is_dm);
       setCurrentUserRole(gameData.is_dm ? 'dm' : 'player');
       
+      // Then load the pins
       const pinsData = await apiRequest(`/games/${gameId}/pins`);
+      console.log("Loaded pins:", pinsData);
       
-      // Check if this is the first time loading and current player doesn't have a pin
+      // Check if current player already has a pin
       const currentPlayerExists = pinsData.pins.some(pin => 
-        pin.character_id === characterId && pin.is_current_user
+        pin.character_id === characterId
       );
+      console.log("Current player exists:", currentPlayerExists);
       
       // Process existing pins
-      setCharacterPins(pinsData.pins.map(pin => {
-        // For a player joining for the first time, center their token
-        const isNewCurrentPlayer = pin.character_id === characterId && 
-                                  pin.is_current_user && 
-                                  pin.position_x === 500 && 
-                                  pin.position_y === 500;
-        
-        return {
-          id: pin.character_id,
-          name: pin.name,
-          avatar: pin.avatar_url || (pin.is_monster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
-          isMonster: pin.is_monster,
-          x: isNewCurrentPlayer ? 0 : pin.position_x,
-          y: isNewCurrentPlayer ? 0 : pin.position_y
-        };
-      }));
+      setCharacterPins(pinsData.pins.map(pin => ({
+        id: pin.character_id,
+        name: pin.name,
+        avatar: pin.avatar_url || (pin.is_monster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
+        isMonster: pin.is_monster,
+        x: pin.position_x,
+        y: pin.position_y,
+        is_current_user: pin.character_id === characterId
+      })));
       
       // If the player is joining for the first time, create a new pin for them
-      if (!currentPlayerExists && characterId && !isGameMaster) {
-        // Calculate center position based on viewport or map dimensions
+      if (!currentPlayerExists && characterId && !gameData.is_dm) {
+        console.log("Creating new pin for first-time player");
+        
+        // Calculate center position based on viewport dimensions
         const centerX = viewportDimensions.width / 2;
         const centerY = viewportDimensions.height / 2;
         
-        console.log("Creating new pin for first-time player at:", centerX, centerY);
-        
         try {
-          // First create a character pin on the server
+          // First get the character data
           const characterResponse = await apiRequest(`/games/${gameId}/characters/${characterId}`);
+          console.log("Character data:", characterResponse);
           
           // Then create a pin with its position
           await apiRequest(`/games/${gameId}/pins/${characterId}/position`, {
@@ -1364,8 +1389,9 @@ useEffect(() => {
               y: centerY
             })
           });
+          console.log("Pin position created successfully");
           
-          // Add the new pin to local state so it appears immediately
+          // Add the new pin to local state
           const newPin = {
             id: characterId,
             name: characterResponse.name || "New Stalker",
@@ -1378,7 +1404,7 @@ useEffect(() => {
           
           setCharacterPins(prevPins => [...prevPins, newPin]);
           
-          // Center the view on the new pin - using transformInstance instead of undefined instance
+          // Center the view on the new pin
           if (transformInstance) {
             setTimeout(() => {
               transformInstance.setTransform(
@@ -1392,32 +1418,32 @@ useEffect(() => {
         } catch (err) {
           console.error("Failed to create initial player pin:", err);
         }
-      }
-      
-      // Center the map view on the player's character if it exists
-      if (characterId && !isGameMaster) {
+      } else if (characterId && !gameData.is_dm) {
+        // Player already exists, center on their pin
         const playerPin = pinsData.pins.find(pin => pin.character_id === characterId);
-        if (playerPin && transformInstance) { // Changed instance to transformInstance
-          // Apply a slight delay to ensure transformInstance is ready
+        if (playerPin && transformInstance) {
           setTimeout(() => {
-            transformInstance.setTransform( // Use transformInstance instead
-              -playerPin.position_x + (viewportDimensions.width / 2), 
-              -playerPin.position_y + (viewportDimensions.height / 2), 
-              1, 
+            transformInstance.setTransform(
+              -playerPin.position_x + (viewportDimensions.width / 2),
+              -playerPin.position_y + (viewportDimensions.height / 2),
+              1,
               0
             );
           }, 300);
         }
       }
     } catch (err) {
-      console.error("Failed to load game data:", err);
+      console.error("Failed to load game data:", err, err.stack);
     }
   }
   
+  // Only run if we have both parameters
   if (gameId && characterId) {
     loadGameData();
+  } else {
+    console.log("Missing required parameters. gameId:", gameId, "characterId:", characterId);
   }
-}, [gameId, characterId, viewportDimensions, transformInstance]); // Added transformInstance to dependencies
+}, [gameId, characterId, viewportDimensions, transformInstance]);
 // Add these utility functions in the MapPage component
 
 // Helper functions for formatting
