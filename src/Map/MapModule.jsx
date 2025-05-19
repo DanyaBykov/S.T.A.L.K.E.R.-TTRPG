@@ -210,7 +210,9 @@ export default function MapPage() {
   const handleMapMove = (lat, lng) => {
     console.log(`Map moved to: ${lat}, ${lng}`);
   };
-  
+  const customCRS = L.extend({}, L.CRS.Simple, {
+    transformation: new L.Transformation(0.025, 0, 0.025, 0)
+  });
   return (
     <Container>
       <MapContainerStyled>
@@ -222,7 +224,7 @@ export default function MapPage() {
         style={{ height: '100%' }}
         maxBounds={[[0, 0], [40, 40]]}
         maxBoundsViscosity={1.0}
-        crs={L.CRS.Simple}  // Use simple coordinates for custom maps
+        crs={customCRS}  // Use simple coordinates for custom maps
       >
         <TileLayer
           url="https://joric.github.io/stalker2_tileset/tiles/{z}/{x}/{y}.jpg"
