@@ -268,7 +268,7 @@ const InventorySystem = () => {
                       handleQuickSlotDragStart(e, userSlotIndex, slot)
                     }
                     onMouseEnter={(e) => {
-                      setHoveredItem(slot.type === 'medication' ? { ...slot.item, quantity: slot.quantity } : slot.item);
+                      setHoveredItem(slot.type === 'medicine' ? { ...slot.item, quantity: slot.quantity } : slot.item);
                       setTooltipPos({ x: e.clientX, y: e.clientY });
                     }}
                     onMouseMove={(e) => {
@@ -307,7 +307,7 @@ const InventorySystem = () => {
 
     let canEquip = false;
     if (draggedItem.type === slotType) canEquip = true;
-    if ((draggedItem.type === 'weapon' || draggedItem.type === 'weapons')  && (slotType === 'primary' || slotType === 'secondary'))
+    if (draggedItem.type === 'weapons'  && (slotType === 'primary' || slotType === 'secondary'))
       canEquip = true;
 
     if (draggedItem.type === 'headgear' || draggedItem.type === 'armor') {
@@ -362,7 +362,7 @@ const InventorySystem = () => {
   const handleQuickSlotDrop = (e, slotIndex) => {
     e.preventDefault();
     if (!draggedItem) return;
-    if (draggedItem.type !== 'medication' && draggedItem.type !== 'magazine') {
+    if (draggedItem.type !== 'medicine' && draggedItem.type !== 'magazine') {
       alert("Only medication or magazine items can be equipped in quick slots.");
       setDraggedItem(null);
       return;
@@ -377,11 +377,11 @@ const InventorySystem = () => {
         setQuickSlots(newSlots);
         setInventoryItems(inventoryItems.filter(item => item.id !== draggedItem.id));
       }
-    } else if (draggedItem.type === 'medication') {
+    } else if (draggedItem.type === 'medicine') {
       if (!currentSlot) {
         const addQuantity = draggedItem.quantity > 3 ? 3 : draggedItem.quantity;
         const newSlots = [...quickSlots];
-        newSlots[slotIndex] = { type: 'medication', item: draggedItem, quantity: addQuantity };
+        newSlots[slotIndex] = { type: 'medicine', item: draggedItem, quantity: addQuantity };
         setQuickSlots(newSlots);
         const remaining = draggedItem.quantity - addQuantity;
         if (remaining <= 0) {
@@ -394,7 +394,7 @@ const InventorySystem = () => {
           ));
         }
       } else {
-        if (currentSlot.type === 'medication' && currentSlot.item.id === draggedItem.id) {
+        if (currentSlot.type === 'medicine' && currentSlot.item.id === draggedItem.id) {
           if (currentSlot.quantity < 3) {
             const addable = Math.min(draggedItem.quantity, 3 - currentSlot.quantity);
             const newSlots = [...quickSlots];
