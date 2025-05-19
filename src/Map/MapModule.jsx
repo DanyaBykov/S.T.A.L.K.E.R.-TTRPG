@@ -86,7 +86,7 @@ const Overlay = styled.div`
     padding-left: 10px;
     
     &:before {
-      content: "
+      content: "";
       position: absolute;
       left: -5px;
       opacity: 0.7;
