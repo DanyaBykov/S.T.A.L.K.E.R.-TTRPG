@@ -482,7 +482,7 @@ function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, 
               </InfoRow>
               
               <button
-                onClick={() => {}} // This will be connected to the toggleEmission function
+                onClick={props.toggleEmission} // Connect to the toggleEmission function
                 style={{
                   width: '100%',
                   padding: '8px',
@@ -555,13 +555,11 @@ function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, 
         </SidePanelHeader>
         
         <SidePanelContent>
-          {/* Existing player content... */}
           <SectionHeader>Character Status</SectionHeader>
           <InfoRow>
             <span>Health:</span>
             <span>{characterData.health || '100'}/100</span>
           </InfoRow>
-          {/* Rest of your existing content... */}
         </SidePanelContent>
       </SidePanelContainer>
     </>
