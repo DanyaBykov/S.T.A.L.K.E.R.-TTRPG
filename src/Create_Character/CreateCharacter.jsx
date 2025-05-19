@@ -7,11 +7,11 @@ import { Link } from 'react-router-dom';
 
 // --- Data Definitions remain the same ---
 const CLASSES = {
-  Hunter: { name: "Мисливець", description: "Опис здібностей мисливця..." },
-  Soldier: { name: "Солдат", description: "Опис здібностей солдата..." },
-  Technician: { name: "Технік", description: "Опис здібностей техніка..." },
-  Medic: { name: "Медик", description: "Опис здібностей медика..." },
-  Scientist: { name: "Вчений", description: "Опис здібностей вченого..." },
+  Hunter: { name: "Мисливець"},
+  Soldier: { name: "Солдат"},
+  Technician: { name: "Технік"},
+  Medic: { name: "Медик"},
+  Scientist: { name: "Вчений"},
 };
 
 const STAT_NAMES = [
@@ -474,8 +474,15 @@ const SubmitButton = styled(NextButton)`
   color: #a3ffb0;
   
   &:hover:not(:disabled) {
+    width: 90%;
     background-color: rgba(30, 70, 30, 0.9);
     text-shadow: 0 0 5px rgba(163, 255, 176, 0.8);
+  }
+  &:disabled {
+    width: 90%;
+  }
+  &:not(:disabled) {
+    width: 90%;
   }
 `;
 
@@ -628,12 +635,6 @@ export default function CreateCharacter() {
                   ))}
                 </Select>
               </FormGroup>
-              
-              {charClass && (
-                <InfoText>
-                  {CLASSES[charClass].description}
-                </InfoText>
-              )}
             </FormSection>
           )}
 
@@ -739,10 +740,6 @@ export default function CreateCharacter() {
                   ))}
                 </tbody>
               </StyledTable>
-              
-              <InfoText>
-                Пасивна спостережливість: {passivePerception}
-              </InfoText>
             </FormSection>
           )}
 
