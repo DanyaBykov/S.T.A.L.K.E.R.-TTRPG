@@ -596,6 +596,7 @@ function ArtifactsSection({ selectedItem, onItemClick }) {
     </div>
   );
 }
+
 function DetailView({ item, onBack, category }) {
   const [fullDetails, setFullDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -650,12 +651,13 @@ function DetailView({ item, onBack, category }) {
 
   const getProperties = () => {
     if (category === 'Artifacts') {
-      if (displayItem.properties) return displayItem.properties;
+      if (displayItem.property) return displayItem.property;
 
       return [
-        `Radiation: ${displayItem.radiation || "N/A"}`,
-        `Weight: ${displayItem.weight || "N/A"} kg`,
-        `Value: ${displayItem.value || "N/A"} UAH`
+        `Rarity: ${displayItem.rarity || "N/A"}`,
+        `Source: ${displayItem.source || "N/A"}`,
+        `Weight: ${displayItem.weight || "N/A"} кг`,
+        `Avg. Price: ${displayItem.avg_price || "N/A"} UAH`
       ].filter(prop => !prop.includes("N/A")).join(", ");
     }
     return displayItem.properties;
@@ -758,6 +760,41 @@ function DetailView({ item, onBack, category }) {
     );
   };
 
+  const renderArtifactProperties = () => {
+    if (category !== "Artifacts" || !displayItem) return null;
+    return (
+      <div className="stat-block-section">
+        <h2 className="stat-block-title">ARTIFACT PROPERTIES</h2>
+        <div className="stat-block-content">
+          <table className="artifact-properties-table">
+            <tbody>
+              <tr>
+                <td><b>Property</b></td>
+                <td>{displayItem.property || "—"}</td>
+              </tr>
+              <tr>
+                <td><b>Source</b></td>
+                <td>{displayItem.source || "—"}</td>
+              </tr>
+              <tr>
+                <td><b>Rarity</b></td>
+                <td>{displayItem.rarity || "—"}</td>
+              </tr>
+              <tr>
+                <td><b>Weight</b></td>
+                <td>{displayItem.weight !== undefined ? `${displayItem.weight} кг` : "—"}</td>
+              </tr>
+              <tr>
+                <td><b>Avg. Price</b></td>
+                <td>{displayItem.avg_price !== undefined ? `${displayItem.avg_price} UAH` : "—"}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="detail-view">
       <div className="detail-header">
@@ -779,7 +816,8 @@ function DetailView({ item, onBack, category }) {
           </p>
           {category === 'Bestiary' && renderBeastStats()}
           {category === 'Anomalies' && renderAnomalyProperties()}
-          {(displayItem.properties || category === 'Artifacts') && (
+          {category === 'Artifacts' && renderArtifactProperties()}
+          {(displayItem.properties && category !== 'Artifacts') && (
             <div className="stat-block-section">
               <h2 className="stat-block-title">PROPERTIES</h2>
               <div className="stat-block-content">
