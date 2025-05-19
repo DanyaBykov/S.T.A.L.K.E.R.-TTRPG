@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { loginUser, registerUser, joinGame } from "../services/api.js";
 import styled from 'styled-components';
 
-// Styled components with STALKER theme
 const LoginBackground = styled.div`
   background: url('/login_bg.png') no-repeat center center/cover;
   width: 100%;
@@ -288,16 +287,14 @@ const SubmitButton = styled.button`
 function Login() {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState("");
-  const [dmAction, setDmAction] = useState("login"); // "login" or "register"
+  const [dmAction, setDmAction] = useState("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Form states for Dungeon Master
   const [dmUsername, setDmUsername] = useState("");
   const [dmEmail, setDmEmail] = useState("");
   const [dmPassword, setDmPassword] = useState("");
 
-  // Form state for Player
   const [gameCode, setGameCode] = useState("");
 
   const handleRoleChange = (e) => {
@@ -315,19 +312,14 @@ function Login() {
 
     try {
       if (selectedRole === "dm") {
-        // Handle DM login/register
         if (dmAction === "login") {
-          // Login as DM
           const response = await loginUser(dmEmail, dmPassword);
           localStorage.setItem("authToken", response.access_token);
           localStorage.setItem("userRole", "dm");
           
-          // Get first character or create game for DM
           navigate("/create-game");
         } else {
-          // Register as DM
           await registerUser(dmUsername, dmEmail, dmPassword);
-          // Then login
           const loginResponse = await loginUser(dmEmail, dmPassword);
           localStorage.setItem("authToken", loginResponse.access_token);
           localStorage.setItem("userRole", "dm");

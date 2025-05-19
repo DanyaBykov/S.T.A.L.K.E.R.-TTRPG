@@ -424,16 +424,13 @@ const CharacterSelection = () => {
   const [gameName, setGameName] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Get game ID from either params or location state
   const currentGameId = gameId || 
                      (location.state && location.state.gameId) || 
                      localStorage.getItem("currentGameId");
 
-  // For editing character name
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
 
-  // For creating a new character
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCharacterName, setNewCharacterName] = useState('');
 
@@ -447,7 +444,6 @@ const CharacterSelection = () => {
     async function fetchCharacters() {
       try {
         setLoading(true);
-        // Get characters for this game
         const chars = await getCharactersForGame(currentGameId);
         setCharacters(chars.characters || []);
         setGameName(chars.game_name || "Game");
@@ -473,10 +469,8 @@ const CharacterSelection = () => {
         name: newCharacterName
       });
       
-      // Add new character to list
       setCharacters([...characters, newCharacter]);
       
-      // Reset form
       setNewCharacterName('');
       setShowCreateForm(false);
       setError(null);
@@ -496,7 +490,6 @@ const CharacterSelection = () => {
       }
     });
   };
-  // Handle editing character name
   const startEdit = (char) => {
     setEditingId(char.id);
     setEditName(char.name);
@@ -514,12 +507,10 @@ const CharacterSelection = () => {
         name: editName
       });
       
-      // Update character in list
       setCharacters(characters.map(char => 
         char.id === editingId ? { ...char, name: editName } : char
       ));
       
-      // Reset form
       setEditingId(null);
       setEditName('');
       setError(null);
@@ -530,7 +521,6 @@ const CharacterSelection = () => {
     }
   };
 
-  // Handle delete
   const handleDeleteCharacter = async (characterId) => {
     if (window.confirm('Are you sure you want to delete this character?')) {
       try {
