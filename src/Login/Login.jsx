@@ -316,6 +316,8 @@ function Login() {
           const response = await loginUser(dmEmail, dmPassword);
           localStorage.setItem("authToken", response.access_token);
           localStorage.setItem("userRole", "dm");
+          
+          // Get first character or create game for DM
           navigate("/create-game");
         } else {
           await registerUser(dmUsername, dmEmail, dmPassword);
