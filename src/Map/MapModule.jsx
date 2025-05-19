@@ -833,47 +833,112 @@ export default function MapPage() {
     }
   }, []);
 
-  useEffect(() => {
-    async function loadGameData() {
-      try {
-        const gameData = await apiRequest(`/games/${gameId}`);
-        setIsGameMaster(gameData.is_dm);
-        setCurrentUserRole(gameData.is_dm ? 'dm' : 'player');
+// Update the useEffect function that loads game data
+
+useEffect(() => {
+  async function loadGameData() {
+    try {
+      const gameData = await apiRequest(`/games/${gameId}`);
+      setIsGameMaster(gameData.is_dm);
+      setCurrentUserRole(gameData.is_dm ? 'dm' : 'player');
+      
+      const pinsData = await apiRequest(`/games/${gameId}/pins`);
+      
+      // Check if this is the first time loading and current player doesn't have a pin
+      const currentPlayerExists = pinsData.pins.some(pin => 
+        pin.character_id === characterId && pin.is_current_user
+      );
+      
+      // Get center of map for default position
+      const centerX = mapDimensions.width / 2;
+      const centerY = mapDimensions.height / 2;
+      
+      // If first time for current player, they'll be centered on map
+      setCharacterPins(pinsData.pins.map(pin => {
+        // For a player joining for the first time, center their token
+        const isNewCurrentPlayer = pin.character_id === characterId && 
+                                  pin.is_current_user && 
+                                  pin.position_x === 500 && 
+                                  pin.position_y === 500;
         
-        const pinsData = await apiRequest(`/games/${gameId}/pins`);
-        setCharacterPins(pinsData.pins.map(pin => ({
+        return {
           id: pin.character_id,
           name: pin.name,
           avatar: pin.avatar_url || (pin.is_monster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
           isMonster: pin.is_monster,
-          x: pin.position_x,
-          y: pin.position_y
-        })));
-      } catch (err) {
-        console.error("Failed to load game data:", err);
+          x: isNewCurrentPlayer ? centerX : pin.position_x,
+          y: isNewCurrentPlayer ? centerY : pin.position_y
+        };
+      }));
+      
+      // If the player is joining for the first time with a centered position,
+      // save this position to the backend
+      if (!currentPlayerExists && characterId) {
+        await apiRequest(`/games/${gameId}/pins/${characterId}/position`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            x: centerX,
+            y: centerY
+          })
+        }).catch(err => console.error("Failed to save initial position:", err));
       }
+      
+      // Center the map view on the player's character if it exists
+      if (characterId) {
+        const playerPin = pinsData.pins.find(pin => pin.character_id === characterId);
+        if (playerPin && instance) {
+          // Apply a slight delay to ensure instance is ready
+          setTimeout(() => {
+            setTransform(
+              -playerPin.position_x + (viewportDimensions.width / 2), 
+              -playerPin.position_y + (viewportDimensions.height / 2), 
+              1, 
+              0
+            );
+          }, 300);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load game data:", err);
     }
-    
-    loadGameData();
-  }, [gameId]);
+  }
   
-  const addCharacterPin = () => {
-    const isMonster = pinTabActive === 'monsters';
-    const newId = `${isMonster ? 'monster' : 'stalker'}-${Date.now()}`;
-    
-    setCharacterPins([
-      ...characterPins, 
-      {
-        id: newId,
-        name: isMonster ? `Mutant-${characterPins.filter(p => p.isMonster).length + 1}` 
-                        : `Stalker-${characterPins.filter(p => !p.isMonster).length + 1}`,
-        avatar: selectedAvatar || (isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
-        isMonster: isMonster,
-        x: 300,
-        y: 300
-      }
-    ]);
-  };
+  loadGameData();
+}, [gameId, characterId, mapDimensions]);
+  
+
+const addCharacterPin = () => {
+  const isMonster = pinTabActive === 'monsters';
+  const newId = `${isMonster ? 'monster' : 'stalker'}-${Date.now()}`;
+  
+  // Use map center for new pins
+  const centerX = mapDimensions.width / 2;
+  const centerY = mapDimensions.height / 2;
+  
+  setCharacterPins([
+    ...characterPins, 
+    {
+      id: newId,
+      name: isMonster ? `Mutant-${characterPins.filter(p => p.isMonster).length + 1}` 
+                      : `Stalker-${characterPins.filter(p => !p.isMonster).length + 1}`,
+      avatar: selectedAvatar || (isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
+      isMonster: isMonster,
+      x: centerX,
+      y: centerY
+    }
+  ]);
+};
+const centerViewOnPin = (pinId, instance) => {
+  const pin = characterPins.find(p => p.id === pinId);
+  if (!pin || !instance) return;
+  
+  instance.setTransform(
+    -pin.x + (viewportDimensions.width / 2), 
+    -pin.y + (viewportDimensions.height / 2), 
+    1,
+    0 // no animation duration
+  );
+};
 
   const removeCharacterPin = (pinId) => {
     setCharacterPins(characterPins.filter(pin => pin.id !== pinId));
@@ -1292,6 +1357,8 @@ export default function MapPage() {
                     isMonster={pin.isMonster}
                   />
                   <PinControls>
+                    <PinButton onClick={() => removeCharacterPin(pin.id)}>X</PinButton>
+                    <PinButton onClick={() => centerViewOnPin(pin.id, instance)}>Center</PinButton>
                     <PinButton onClick={() => removeCharacterPin(pin.id)}>X</PinButton>
                   </PinControls>
                 </PinItem>
