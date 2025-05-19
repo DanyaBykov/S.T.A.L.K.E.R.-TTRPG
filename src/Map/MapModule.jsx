@@ -141,7 +141,11 @@ export default function MapPage() {
   const characterIdFromStorage = localStorage.getItem("currentCharacterId");
 
   const characterId = characterIdFromParams || characterIdFromState || characterIdFromStorage;
-  const gameId = params.gameId;
+  
+  const gameId = params.gameId || 
+                 (location.state && location.state.gameId) || 
+                 localStorage.getItem("currentGameId");
+  
   
   useEffect(() => {
     async function loadGameData() {
