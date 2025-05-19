@@ -1266,7 +1266,7 @@ export default function MapPage() {
   const mapContainerRef = useRef(null);
   
 
-  useEffect(() => {F
+  useEffect(() => {
     setMapOffset({ x: 10, y: 10 });
     setScale(1);
   }, []);
