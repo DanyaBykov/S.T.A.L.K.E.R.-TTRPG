@@ -426,7 +426,7 @@ const EmissionButton = styled.button`
 `;
 
 // Update the SidePanel function to properly handle GM access
-function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, isGameMaster }) {
+function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, isGameMaster, toggleEmission }) {
   if (!characterData && !isGameMaster) {
     // Show loading screen only for players who don't have data yet
     return (
