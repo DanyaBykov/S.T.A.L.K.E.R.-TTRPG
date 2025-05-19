@@ -321,25 +321,45 @@ const InventorySystem = () => {
   const handleEquipmentDrop = async (e, slotType) => {
     e.preventDefault();
     if (!characterId || !draggedItem) return;
-
+  
+    // Create a copy and normalize the type if needed.
+    let normalizedDraggedItem = { ...draggedItem };
+    const lowerType = normalizedDraggedItem.type.toLowerCase();
+    if (
+      lowerType.includes('rifle') ||
+      lowerType.includes('pistol') ||
+      lowerType.includes('shotgun') ||
+      lowerType.includes('assault') ||
+      lowerType.includes('sub-machine')
+    ) {
+      normalizedDraggedItem.type = 'weapons';
+    }
+  
+    // Use the normalized type for all checks.
     let canEquip = false;
-    if (draggedItem.type === slotType) canEquip = true;
-    if (draggedItem.type === 'weapons' && (slotType === 'primary' || slotType === 'secondary'))
+    if (normalizedDraggedItem.type === slotType) canEquip = true;
+    if (
+      normalizedDraggedItem.type === 'weapons' &&
+      (slotType === 'primary' || slotType === 'secondary')
+    )
       canEquip = true;
-
-    if (draggedItem.type === 'headgear' || draggedItem.type === 'armor') {
+  
+    if (
+      normalizedDraggedItem.type === 'headgear' ||
+      normalizedDraggedItem.type === 'armor'
+    ) {
       const newHeadgearCount =
-        draggedItem.type === 'headgear'
-          ? draggedItem.quick_slots || 1
+        normalizedDraggedItem.type === 'headgear'
+          ? normalizedDraggedItem.quick_slots || 1
           : equipment.headgear
-            ? equipment.headgear.quick_slots || 1
-            : 0;
+          ? equipment.headgear.quick_slots || 1
+          : 0;
       const newArmorCount =
-        draggedItem.type === 'armor'
-          ? draggedItem.quick_slots || 2
+        normalizedDraggedItem.type === 'armor'
+          ? normalizedDraggedItem.quick_slots || 2
           : equipment.armor
-            ? equipment.armor.quick_slots || 2
-            : 0;
+          ? equipment.armor.quick_slots || 2
+          : 0;
       const newUserSlotCount = totalQuickSlots - newHeadgearCount - newArmorCount;
       const occupiedUserSlots = quickSlots.filter((slot) => slot !== null).length;
       if (occupiedUserSlots > newUserSlotCount) {
@@ -351,27 +371,27 @@ const InventorySystem = () => {
       }
       canEquip = true;
     }
-
+  
     if (canEquip) {
       try {
+        // Use the normalizedDraggedItem.id in the API call.
+        await equipItem(characterId, slotType, normalizedDraggedItem.id);
+        const currentItem = equipment[slotType];
+        const newEquipment = { ...equipment, [slotType]: normalizedDraggedItem };
         const originalSlot = Object.keys(equipment).find(
-          (key) => equipment[key]?.id === draggedItem.id
+          (key) => equipment[key]?.id === normalizedDraggedItem.id
         );
         if (originalSlot && originalSlot !== slotType) {
-          await equipItem(characterId, originalSlot, null);
-          const newEquipmentTemp = { ...equipment };
-          newEquipmentTemp[originalSlot] = null;
-          setEquipment(newEquipmentTemp);
+          newEquipment[originalSlot] = null;
         }
-        await equipItem(characterId, slotType, draggedItem.id);
-        const currentItem = equipment[slotType];
-        const newEquipment = { ...equipment, [slotType]: draggedItem };
-        let newInventory = inventoryItems.filter(item => item.id !== draggedItem.id);
+        let newInventory = inventoryItems.filter(
+          (item) => item.id !== normalizedDraggedItem.id
+        );
         if (currentItem) newInventory.push(currentItem);
         setEquipment(newEquipment);
         setInventoryItems(newInventory);
       } catch (err) {
-        alert("Please move weapon back to the inventory first and then equip it.");
+        alert("Equip error: " + (err.message || JSON.stringify(err)));
       }
     }
     setDraggedItem(null);
