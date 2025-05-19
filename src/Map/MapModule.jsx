@@ -211,7 +211,7 @@ export default function MapPage() {
     console.log(`Map moved to: ${lat}, ${lng}`);
   };
   const customCRS = L.extend({}, L.CRS.Simple, {
-    transformation: new L.Transformation(1, 0, 1, 0),
+    transformation: new L.Transformation(0.25, 0, 0.25, 0),
     scale: function(zoom) {
       return Math.pow(2, zoom);
     }
@@ -222,29 +222,29 @@ export default function MapPage() {
       <MapContainer 
         center={[20, 20]}
         zoom={2}
-        minZoom={1}
+        minZoom={0}  // Lower minimum zoom to see full map
         maxZoom={6}
         style={{ height: '100%' }}
-        maxBounds={[[0, 0], [40, 40]]}
-        maxBoundsViscosity={1.0}
+        maxBounds={[[-100, -100], [500, 500]]}  // Much wider bounds
+        maxBoundsViscosity={0.8}  // Slightly softer boundaries
         crs={customCRS}
         attributionControl={false}
         zoomControl={true}
         scrollWheelZoom={true}
         dragging={true}
-        inertia={false}
+        inertia={true}  // Enable inertia for smoother panning
         worldCopyJump={false}
       >
         <TileLayer
           url="https://joric.github.io/stalker2_tileset/tiles/{z}/{x}/{y}.jpg"
           attribution='&copy; S.T.A.L.K.E.R. TTRPG Map'
           maxZoom={6}
-          minZoom={1}
+          minZoom={0}  // Match with container minZoom
           tileSize={512}
-          noWrap={true}  // Change to true to prevent wrapping
-          bounds={[[0, 0], [40, 40]]}
+          noWrap={true}
+          bounds={[[-100, -100], [500, 500]]}  // Match with maxBounds
         />
-          
+                
           {characterPins.map(pin => (
             <Marker 
               key={pin.id}
