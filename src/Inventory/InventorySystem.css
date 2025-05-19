@@ -1,6 +1,3 @@
-/* STALKER-themed Inventory System */
-
-/* Base styles */
 html, body {
     height: 100%;
     width: 100%;
@@ -86,7 +83,6 @@ html, body {
     opacity: 1;
   }
   
-  /* Main container */
   .inventory-container {
     position: absolute;
     top: 0;
@@ -100,7 +96,6 @@ html, body {
     font-family: 'Courier New', monospace;
   }
   
-  /* Add scanline effect to the entire inventory */
   .inventory-container::before {
     content: "";
     position: absolute;
@@ -317,57 +312,54 @@ html, body {
     content: "// ";
     opacity: 0.7;
   }
-  
-  /* New Quick Slots Styles */
-.quick-access-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-}
 
-.quick-slot {
-  background-color: #0a0a0a;
-  border: 1px solid #444;
-  height: 115px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #a3ffa3;
-  position: relative;
-  overflow: hidden;
-  transition: background-color 0.2s ease;
-}
+  .quick-access-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
 
-/* Overlay for hover effect */
-.quick-slot::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(163, 255, 163, 0.1);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
+  .quick-slot {
+    background-color: #0a0a0a;
+    border: 1px solid #444;
+    height: 115px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #a3ffa3;
+    position: relative;
+    overflow: hidden;
+    transition: background-color 0.2s ease;
+  }
 
-/* When the slot is occupied (used by a quick item) */
-.quick-slot.occupied {
-  background-color: #131313;
-  border-color: #a3ffa3;
-}
+  .quick-slot::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(163, 255, 163, 0.1);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
 
-.quick-slot.occupied::before {
-  opacity: 0.2;
-}
+  .quick-slot.occupied {
+    background-color: #131313;
+    border-color: #a3ffa3;
+  }
 
-.quick-slot:hover::before {
-  opacity: 0.3;
-}
+  .quick-slot.occupied::before {
+    opacity: 0.2;
+  }
+
+  .quick-slot:hover::before {
+    opacity: 0.3;
+  }
   
   /* Right panel - Inventory */
   .inventory-panel {
@@ -484,7 +476,6 @@ html, body {
     z-index: 2;
   }
   
-  /* Style scrollbars */
   .inventory-table-container::-webkit-scrollbar {
     width: 8px;
   }
@@ -583,8 +574,7 @@ html, body {
     left: 10px;
   }
   
-/* Add Item Modal Fixes */
-.add-item-menu {
+  .add-item-menu {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -596,14 +586,13 @@ html, body {
     padding: 20px;
     border: 1px solid #444;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-    z-index: 1000; /* Ensure high z-index */
+    z-index: 1000;
     color: #a3ffa3;
     font-family: 'Courier New', monospace;
     width: 320px;
     max-width: 90vw;
   }
   
-  /* Fix for the scanlines and border - move these outside the positioning properties */
   .add-item-menu::before {
     content: "";
     position: absolute;
@@ -632,7 +621,6 @@ html, body {
     z-index: 1;
   }
   
-  /* Fix input and select styles */
   .add-item-menu h3 {
     margin-top: 0;
     margin-bottom: 15px;
@@ -680,7 +668,6 @@ html, body {
     resize: vertical;
   }
   
-  /* Improve button styling */
   .add-item-menu button {
     margin-right: 10px;
     padding: 8px 16px;
@@ -856,137 +843,134 @@ html, body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
   }
 
-.context-menu-overlay,
-.update-item-menu-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
+  .context-menu-overlay,
+  .update-item-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
 
-/* Modal window styling for both context and update windows,
-   matching the add-item modal style */
-.context-menu,
-.update-item-menu {
-  position: relative;
-  background-image: linear-gradient(to bottom, 
-    rgba(20, 25, 20, 0.95),
-    rgba(30, 35, 30, 0.95)
-  );
-  padding: 20px;
-  border: 1px solid #444;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-  color: #a3ffa3;
-  font-family: 'Courier New', monospace;
-  width: 320px;
-  max-width: 90vw;
-  text-align: center;
-}
+  .context-menu,
+  .update-item-menu {
+    position: relative;
+    background-image: linear-gradient(to bottom, 
+      rgba(20, 25, 20, 0.95),
+      rgba(30, 35, 30, 0.95)
+    );
+    padding: 20px;
+    border: 1px solid #444;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+    color: #a3ffa3;
+    font-family: 'Courier New', monospace;
+    width: 320px;
+    max-width: 90vw;
+    text-align: center;
+  }
 
-/* Button styling for modal windows */
-.context-menu button,
-.update-item-menu button {
-  padding: 8px 16px;
-  border: 1px solid #444;
-  background-color: #1a2a1a;
-  color: #a3ffa3;
-  font-size: 12px;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: all 0.2s ease;
-  margin: 5px;
-  position: relative;
-}
+  .context-menu button,
+  .update-item-menu button {
+    padding: 8px 16px;
+    border: 1px solid #444;
+    background-color: #1a2a1a;
+    color: #a3ffa3;
+    font-size: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    margin: 5px;
+    position: relative;
+  }
 
-.update-item-menu input,
-.update-item-menu textarea {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 12px;
-  background-color: #1a2a1a;
-  border: 1px solid #444;
-  color: #a3ffa3;
-  font-family: 'Courier New', monospace;
-  box-sizing: border-box;
-  position: relative;
-  z-index: 2;
-}
+  .update-item-menu input,
+  .update-item-menu textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    background-color: #1a2a1a;
+    border: 1px solid #444;
+    color: #a3ffa3;
+    font-family: 'Courier New', monospace;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+  }
 
-.update-item-menu input:focus,
-.update-item-menu textarea:focus {
-  outline: none;
-  border-color: #a3ffa3;
-  box-shadow: 0 0 5px rgba(163, 255, 163, 0.5);
-}
+  .update-item-menu input:focus,
+  .update-item-menu textarea:focus {
+    outline: none;
+    border-color: #a3ffa3;
+    box-shadow: 0 0 5px rgba(163, 255, 163, 0.5);
+  }
 
-.update-item-menu textarea {
-  min-height: 80px;
-  resize: vertical;
-}
+  .update-item-menu textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
 
-.context-menu button:hover,
-.update-item-menu button:hover {
-  background-color: #2a3a2a;
-  padding-left: 25px;
-}
+  .context-menu button:hover,
+  .update-item-menu button:hover {
+    background-color: #2a3a2a;
+    padding-left: 25px;
+  }
 
-.context-menu button:hover::before,
-.update-item-menu button:hover::before {
-  content: ">";
-  position: absolute;
-  left: 10px;
-  opacity: 1;
-}
+  .context-menu button:hover::before,
+  .update-item-menu button:hover::before {
+    content: ">";
+    position: absolute;
+    left: 10px;
+    opacity: 1;
+  }
 
-.burger-menu {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  z-index: 3;
-  padding: 4px;
-  transition: background-color 0.2s ease;
-}
-.burger-menu:hover {
-  background-color: rgba(163, 255, 163, 0.1);
-  border-radius: 3px;
-}
-.burger-menu-list {
-  position: absolute;
-  top: 40px; /* Adjust as necessary */
-  left: 10px;
-  background-image: linear-gradient(to bottom, rgba(20,25,20,0.95), rgba(30,35,30,0.95));
-  border: 1px solid #444;
-  box-shadow: 0 0 10px rgba(251, 244, 244, 0.7);
-  z-index: 100;
-  width: 180px;
-}
-.burger-menu-list ul {
-  list-style: none;
-  margin: 0;
-  padding: 10px 0;
-}
-.burger-menu-list li {
-  padding: 8px 16px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: padding-left 0.2s ease;
-}
-.burger-menu-list li:hover {
-  background-color: #2a3a2a;
-  padding-left: 25px;
-}
-.burger-menu-list li a {
-  color: #a3ffa3;
-  text-decoration: none;
-}
+  .burger-menu {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 3;
+    padding: 4px;
+    transition: background-color 0.2s ease;
+  }
+  .burger-menu:hover {
+    background-color: rgba(163, 255, 163, 0.1);
+    border-radius: 3px;
+  }
+  .burger-menu-list {
+    position: absolute;
+    top: 40px;
+    left: 10px;
+    background-image: linear-gradient(to bottom, rgba(20,25,20,0.95), rgba(30,35,30,0.95));
+    border: 1px solid #444;
+    box-shadow: 0 0 10px rgba(251, 244, 244, 0.7);
+    z-index: 100;
+    width: 180px;
+  }
+  .burger-menu-list ul {
+    list-style: none;
+    margin: 0;
+    padding: 10px 0;
+  }
+  .burger-menu-list li {
+    padding: 8px 16px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: padding-left 0.2s ease;
+  }
+  .burger-menu-list li:hover {
+    background-color: #2a3a2a;
+    padding-left: 25px;
+  }
+  .burger-menu-list li a {
+    color: #a3ffa3;
+    text-decoration: none;
+  }
