@@ -69,8 +69,8 @@ const InventorySystem = () => {
         const charId = characters[0].id;
         setCharacterId(charId);
         const characterData = await getCharacter(charId);
-        setInventoryItems(characterData.inventory || []);
-        setEquipment(characterData.equipment || {});
+        // setInventoryItems(characterData.inventory || []);
+        // setEquipment(characterData.equipment || {});
         setMoney(characterData.money || 10000);
         setCapacity(characterData.capacity || 80);
       } catch (err) {
@@ -124,7 +124,7 @@ const InventorySystem = () => {
   const handleQuickSlotDragStart = (e, slotIndex, slotItem) => {
     e.stopPropagation();
     let dragged;
-    if (slotItem.type === 'medication') {
+    if ((slotItem.type === 'medication' || slotItem.type === 'medicine')) {
       dragged = { ...slotItem.item, quantity: slotItem.quantity, quickSlotIndex: slotIndex };
     } else if (slotItem.type === 'magazine') {
       dragged = { ...slotItem.item, quickSlotIndex: slotIndex };
@@ -307,7 +307,7 @@ const InventorySystem = () => {
 
     let canEquip = false;
     if (draggedItem.type === slotType) canEquip = true;
-    if (draggedItem.type === 'weapon' && (slotType === 'primary' || slotType === 'secondary'))
+    if ((draggedItem.type === 'weapon' || draggedItem.type === 'weapons')  && (slotType === 'primary' || slotType === 'secondary'))
       canEquip = true;
 
     if (draggedItem.type === 'headgear' || draggedItem.type === 'armor') {
