@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import Rules from './Rules';
 
 const API_URL = '';
 
@@ -298,7 +299,6 @@ export default function StalkerJournal() {
     { name: "Bestiary", highlight: true },
     { name: "Anomalies", highlight: false },
     { name: "Artifacts", highlight: false },
-    { name: "STALKER", highlight: false, special: true },
     { name: "Rules", highlight: false },
     { name: "Quest log", highlight: false },
     { name: "Notes", highlight: false }
@@ -330,6 +330,8 @@ export default function StalkerJournal() {
         return <QuestLogSection />;
       case "Notes":
         return <NotesSection />;
+      case "Rules":
+        return <Rules />;
       default:
         return <div className="placeholder-content">Content for {selectedTab} will go here</div>;
     }
