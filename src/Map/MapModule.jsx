@@ -226,7 +226,7 @@ export default function MapPage() {
         minZoom={0}
         maxZoom={6}
         style={{ height: '100%' }}
-        maxBounds={[[0, 0], [600, 600]]}
+        // maxBounds={[[0, 0], [600, 600]]}
         maxBoundsViscosity={0.7}  // Slightly softer boundaries
         crs={customCRS}
         attributionControl={false}
