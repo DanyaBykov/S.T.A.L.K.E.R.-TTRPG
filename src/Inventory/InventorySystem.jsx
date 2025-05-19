@@ -49,6 +49,8 @@ const InventorySystem = () => {
   const [selectedType, setSelectedType] = useState('');
   const [selectedName, setSelectedName] = useState('');
   const [availableItems, setAvailableItems] = useState([]);
+  const [detailedItemData, setDetailedItemData] = useState(null);
+  const [loadingItemDetails, setLoadingItemDetails] = useState(false);
 
 
   useEffect(() => {
