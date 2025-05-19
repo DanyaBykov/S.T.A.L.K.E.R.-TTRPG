@@ -342,7 +342,7 @@ function Login() {
 
         await joinGame(gameCode);
         localStorage.setItem("userRole", "player");
-        localStorage.setItem("currentGameId", response.game_id);
+        localStorage.setItem("currentGameId", gameCode);
         
         navigate("/characters");
       }
