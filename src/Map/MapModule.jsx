@@ -1241,7 +1241,7 @@ export default function MapPage() {
   const [quantities, setQuantities] = useState(
     diceTypes.reduce((acc, d) => ({ ...acc, [d.label]: 0 }), {})
   );
-  const { gameId, characterId } = useParams();
+  // const { gameId, characterId } = useParams();
   const [characterData, setCharacterData] = useState(null);
   const [loadingCharacter, setLoadingCharacter] = useState(true);
   const [isGameMaster, setIsGameMaster] = useState(characterId === 'dm' || false);
