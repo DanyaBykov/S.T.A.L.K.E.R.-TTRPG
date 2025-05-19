@@ -371,6 +371,60 @@ const SidePanelToggle = styled.button`
   }
 `;
 
+const EmissionOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(255,0,0,0.1) 0%, rgba(139,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: 990;
+  animation: pulse 4s infinite alternate;
+  
+  @keyframes pulse {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.7; }
+  }
+`;
+
+const EmissionAlert = styled.div`
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(139,0,0,0.8);
+  color: #ff6b6b;
+  padding: 12px 20px;
+  border: 1px solid #ff6b6b;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  z-index: 991;
+  text-transform: uppercase;
+  font-weight: bold;
+  animation: blink 1s infinite alternate;
+  
+  @keyframes blink {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+  }
+`;
+
+const EmissionButton = styled.button`
+  background: ${props => props.active ? 'rgba(139,0,0,0.7)' : 'rgba(30, 40, 30, 0.8)'};
+  border: 1px solid ${props => props.active ? '#ff6b6b' : '#444'};
+  color: ${props => props.active ? '#ff6b6b' : '#a3ffa3'};
+  padding: 8px 12px;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  
+  &:hover {
+    background: ${props => props.active ? 'rgba(180,0,0,0.7)' : 'rgba(50, 70, 50, 0.8)'};
+  }
+`;
+
 // Update the SidePanel function to properly handle GM access
 function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, isGameMaster }) {
   if (!characterData && !isGameMaster) {
