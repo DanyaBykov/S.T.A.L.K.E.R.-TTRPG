@@ -22,7 +22,7 @@ function App() {
         <Route path="/inventory" element={<InventorySystem />} />
         <Route path="/map" element={<MapPage />} />
         <Route path="/journal" element={<StalkerJournal />} />
-        <Route path="/create-character" element={<CreateCharacter />} />
+        <Route path="/game/:gameId/character/create" element={<CreateCharacter />} />
         <Route path="/create-game" element={<CreateGame />} />
         <Route path="/characters" element={<CharacterSelection />} />
       </Routes>

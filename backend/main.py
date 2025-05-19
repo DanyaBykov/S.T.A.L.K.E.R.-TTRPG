@@ -143,6 +143,50 @@ class GameCreate(BaseModel):
 class GameUpdate(BaseModel):
     name: str
 
+class CharacterStats(BaseModel):
+    str: int
+    dex: int
+    int: int
+    wis: int
+    cha: int
+    sta: int
+    luk: int
+
+class CharacterPersonality(BaseModel):
+    valueMost: str
+    attitude: str
+    important: str
+    flaws: str
+    ideals: str
+
+class CharacterSkillProficiencies(BaseModel):
+    survival: Optional[bool] = False
+    investigation: Optional[bool] = False
+    weapons: Optional[bool] = False
+    melee: Optional[bool] = False
+    medicine: Optional[bool] = False
+    stealth: Optional[bool] = False
+    engineering: Optional[bool] = False
+    mutants: Optional[bool] = False
+    perception: Optional[bool] = False
+    athletics: Optional[bool] = False
+    acrobatics: Optional[bool] = False
+    persuasion: Optional[bool] = False
+    history: Optional[bool] = False
+    intimidation: Optional[bool] = False
+    zone_knowledge: Optional[bool] = False
+
+class CharacterCreationRequest(BaseModel):
+    name: str
+    charClass: str
+    stats: CharacterStats
+    mods: Optional[Dict[str, int]]
+    profs: Optional[Dict[str, int]]
+    personality: CharacterPersonality
+    story: str
+    motivation: str
+    passivePerception: Optional[int]
+
 users_db = {}
 games_db = {
     "test-game-id": {
@@ -1566,6 +1610,54 @@ async def create_game_character(
         "capacity": 80
     }
     
+@app.post("/games/{game_id}/character/create")
+async def create_detailed_character(
+    game_id: str,
+    character_data: CharacterCreationRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a detailed character with stats, skills, and background"""
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    # Create a new character ID
+    character_id = str(uuid.uuid4())
+    
+    equipment = {
+        "headgear": None,
+        "armor": None,
+        "primary": None,
+        "secondary": None,
+        "tool": None,
+        "pistol": None
+    }
+    
+    # Create the character with detailed attributes
+    characters_db[character_id] = {
+        "user_id": current_user["id"],
+        "game_id": game_id,
+        "name": character_data.name,
+        "class": character_data.charClass,
+        "stats": character_data.stats.dict(),
+        "mods": character_data.mods or {},
+        "profs": character_data.profs or {},
+        "personality": character_data.personality.dict(),
+        "story": character_data.story,
+        "motivation": character_data.motivation,
+        "passivePerception": character_data.passivePerception or 10,
+        "money": 50000,
+        "capacity": 80,
+        "inventory": [],
+        "equipment": equipment
+    }
+    
+    return {
+        "id": character_id,
+        "name": character_data.name,
+        "class": character_data.charClass,
+        "money": 10000,
+        "capacity": 80
+    }
 @app.get("/{path:path}", include_in_schema=False)
 async def serve_spa(path: str):
     # First check if the requested path exists as a file

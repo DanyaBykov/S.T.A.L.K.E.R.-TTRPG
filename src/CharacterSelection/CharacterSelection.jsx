@@ -628,32 +628,13 @@ const CharacterSelection = () => {
           </CharacterList>
         )}
         
-        {showCreateForm ? (
-          <div>
-            <h2>Create New Stalker</h2>
-            <Input
-              type="text"
-              value={newCharacterName}
-              onChange={e => setNewCharacterName(e.target.value)}
-              placeholder="Enter stalker name"
-              autoFocus
-            />
-            <FormActions>
-              <Button onClick={handleCreateCharacter} disabled={loading}>
-                <Plus size={16} />
-                {loading ? 'Creating...' : 'Create Stalker'}
-              </Button>
-              <Button onClick={() => setShowCreateForm(false)}>
-                Cancel
-              </Button>
-            </FormActions>
-          </div>
-        ) : (
-          <Button onClick={() => setShowCreateForm(true)}>
-            <Plus size={16} />
-            Create New Stalker
-          </Button>
-        )}
+        <Button 
+          onClick={() => navigate(`/game/${currentGameId}/character/create`)}
+          style={{ marginTop: '1rem' }}
+        >
+          <Plus size={16} />
+          Create New Stalker
+        </Button>
       </CharacterPanel>
       
       <Button onClick={() => navigate('/')}>
