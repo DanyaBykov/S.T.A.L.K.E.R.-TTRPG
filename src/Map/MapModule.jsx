@@ -62,7 +62,7 @@ const MenuBtn = styled.div`
 const MenuList = styled.div`
   position: absolute;
   top: 56px;
-  right: 0;
+  left: 0;
   background-image: linear-gradient(to bottom, 
     rgba(20, 25, 20, 0.9),
     rgba(30, 35, 30, 0.9)
@@ -371,9 +371,64 @@ const SidePanelToggle = styled.button`
   }
 `;
 
-// Side Panel Component implementation
-function SidePanel({ isOpen, onToggle, characterData, position, emissionActive }) {
-  if (!characterData) {
+const EmissionOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(255,0,0,0.1) 0%, rgba(139,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: 990;
+  animation: pulse 4s infinite alternate;
+  
+  @keyframes pulse {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.7; }
+  }
+`;
+
+const EmissionAlert = styled.div`
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(139,0,0,0.8);
+  color: #ff6b6b;
+  padding: 12px 20px;
+  border: 1px solid #ff6b6b;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  z-index: 991;
+  text-transform: uppercase;
+  font-weight: bold;
+  animation: blink 1s infinite alternate;
+  
+  @keyframes blink {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+  }
+`;
+
+const EmissionButton = styled.button`
+  background: ${props => props.active ? 'rgba(139,0,0,0.7)' : 'rgba(30, 40, 30, 0.8)'};
+  border: 1px solid ${props => props.active ? '#ff6b6b' : '#444'};
+  color: ${props => props.active ? '#ff6b6b' : '#a3ffa3'};
+  padding: 8px 12px;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  
+  &:hover {
+    background: ${props => props.active ? 'rgba(180,0,0,0.7)' : 'rgba(50, 70, 50, 0.8)'};
+  }
+`;
+
+// Update the SidePanel function to properly handle GM access
+function SidePanel({ isOpen, onToggle, characterData, position, emissionActive, isGameMaster }) {
+  if (!characterData && !isGameMaster) {
+    // Show loading screen only for players who don't have data yet
     return (
       <>
         <SidePanelToggle 
@@ -396,6 +451,94 @@ function SidePanel({ isOpen, onToggle, characterData, position, emissionActive }
     );
   }
   
+  // Game Master View
+  if (isGameMaster) {
+    return (
+      <>
+        <SidePanelToggle 
+          isOpen={isOpen} 
+          onClick={onToggle}
+        >
+          {isOpen ? '>> Hide Panel' : '<< DM Panel'}
+        </SidePanelToggle>
+        
+        <SidePanelContainer isOpen={isOpen}>
+          <SidePanelHeader>
+            Game Master Console
+            <span onClick={onToggle} style={{ cursor: 'pointer', opacity: 0.7 }}>[x]</span>
+          </SidePanelHeader>
+          
+          <SidePanelContent>
+            <SectionHeader>Zone Controls</SectionHeader>
+            <div style={{ marginBottom: '15px' }}>
+              <InfoRow>
+                <span>Emission Status:</span>
+                <span style={{ 
+                  color: emissionActive ? '#ff6b6b' : '#a3ffa3',
+                  fontWeight: emissionActive ? 'bold' : 'normal',
+                }}>
+                  {emissionActive ? 'ACTIVE' : 'INACTIVE'}
+                </span>
+              </InfoRow>
+              
+              <button
+                onClick={props.toggleEmission} // Connect to the toggleEmission function
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  marginTop: '10px',
+                  background: emissionActive ? 'rgba(139,0,0,0.7)' : 'rgba(30, 40, 30, 0.8)',
+                  border: `1px solid ${emissionActive ? '#ff6b6b' : '#444'}`,
+                  color: emissionActive ? '#ff6b6b' : '#a3ffa3',
+                  cursor: 'pointer',
+                  fontFamily: 'Courier New',
+                  fontSize: '12px',
+                  textTransform: 'uppercase'
+                }}
+              >
+                {emissionActive ? 'Stop Emission' : 'Trigger Emission'}
+              </button>
+            </div>
+            
+            <SectionHeader>Map Position</SectionHeader>
+            <CoordinateDisplay>
+              {position ? `X: ${position.lat.toFixed(1)} | Y: ${position.lng.toFixed(1)}` : 'Unknown Location'}
+            </CoordinateDisplay>
+            
+            <SectionHeader>Stalkers in Zone</SectionHeader>
+            <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
+              {/* This would come from characterPins */}
+              <InfoRow>
+                <span>Total Players:</span>
+                <span>{/* playerCount */}3</span>
+              </InfoRow>
+              <InfoRow>
+                <span>Total Mutants:</span>
+                <span>{/* mutantCount */}2</span>
+              </InfoRow>
+            </div>
+            
+            <SectionHeader>Game Master Notes</SectionHeader>
+            <textarea 
+              placeholder="Add your notes here..."
+              style={{
+                width: '100%',
+                height: '100px',
+                background: 'rgba(20, 25, 20, 0.7)',
+                border: '1px solid #444',
+                color: '#a3ffa3',
+                fontFamily: 'Courier New',
+                padding: '8px',
+                resize: 'vertical'
+              }}
+            />
+          </SidePanelContent>
+        </SidePanelContainer>
+      </>
+    );
+  }
+  
+  // Player View (original code)
   return (
     <>
       <SidePanelToggle 
@@ -417,49 +560,6 @@ function SidePanel({ isOpen, onToggle, characterData, position, emissionActive }
             <span>Health:</span>
             <span>{characterData.health || '100'}/100</span>
           </InfoRow>
-          <InfoRow>
-            <span>Radiation:</span>
-            <span>{characterData.radiation || '0'}%</span>
-          </InfoRow>
-          <InfoRow>
-            <span>Faction:</span>
-            <span>{characterData.faction || 'Loner'}</span>
-          </InfoRow>
-          
-          <SectionHeader>Map Information</SectionHeader>
-          <CoordinateDisplay>
-            {position ? `X: ${position.lat.toFixed(1)} | Y: ${position.lng.toFixed(1)}` : 'Unknown Location'}
-          </CoordinateDisplay>
-          
-          <SectionHeader>Zone Status</SectionHeader>
-          <InfoRow>
-            <span>Emission Status:</span>
-            <span style={{ 
-              color: emissionActive ? '#ff6b6b' : '#a3ffa3',
-              fontWeight: emissionActive ? 'bold' : 'normal',
-              animation: emissionActive ? 'blink 1s infinite alternate' : 'none'
-            }}>
-              {emissionActive ? 'ACTIVE - SEEK SHELTER' : 'INACTIVE'}
-            </span>
-          </InfoRow>
-          
-          <SectionHeader>Notes</SectionHeader>
-          <div style={{ opacity: 0.8, fontStyle: 'italic' }}>
-            {characterData.notes || 'No notes available. Add notes through your PDA.'}
-          </div>
-          
-          <SectionHeader>Active Missions</SectionHeader>
-          <div>
-            {characterData.missions?.length ? (
-              characterData.missions.map((mission, idx) => (
-                <div key={idx} style={{ marginBottom: '8px', borderLeft: '2px solid #a3ffa3', paddingLeft: '10px' }}>
-                  {mission.title}
-                </div>
-              ))
-            ) : (
-              <div style={{ opacity: 0.6 }}>No active missions.</div>
-            )}
-          </div>
         </SidePanelContent>
       </SidePanelContainer>
     </>
