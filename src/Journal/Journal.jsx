@@ -596,12 +596,11 @@ function ArtifactsSection({ selectedItem, onItemClick }) {
     </div>
   );
 }
-
 function DetailView({ item, onBack, category }) {
   const [fullDetails, setFullDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const getTableName = () => {
     switch (category.toLowerCase()) {
       case 'bestiary': return 'beasts';
@@ -610,10 +609,61 @@ function DetailView({ item, onBack, category }) {
       default: return category.toLowerCase();
     }
   };
-  
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      if (item && item.description) {
+        setFullDetails(item);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const tableName = getTableName();
+        const response = await fetch(`${API_URL}/wiki/tables/${tableName}/${item.id}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const detailedItem = await response.json();
+        setFullDetails(detailedItem);
+        setError(null);
+      } catch (err) {
+        console.error(`Error fetching ${category} details:`, err);
+        setError(`Failed to load complete details for ${item.name}.`);
+        setFullDetails(item);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (item) {
+      fetchDetails();
+    }
+  }, [item, category]);
+
+  if (loading) return <div className="loading">Loading details...</div>;
+
+  const displayItem = fullDetails || item;
+
+  const getProperties = () => {
+    if (category === 'Artifacts') {
+      if (displayItem.properties) return displayItem.properties;
+
+      return [
+        `Radiation: ${displayItem.radiation || "N/A"}`,
+        `Weight: ${displayItem.weight || "N/A"} kg`,
+        `Value: ${displayItem.value || "N/A"} UAH`
+      ].filter(prop => !prop.includes("N/A")).join(", ");
+    }
+    return displayItem.properties;
+  };
+
   const renderBeastStats = () => {
     if (category !== 'Bestiary' || !displayItem) return null;
-    
+
     const getSizeIcon = (size) => {
       switch(size?.toLowerCase()) {
         case 'small': return '🐁';
@@ -623,7 +673,7 @@ function DetailView({ item, onBack, category }) {
         default: return '❓';
       }
     };
-    
+
     return (
       <div className="beast-stats-section">
         <div className="stat-block-section">
@@ -636,7 +686,6 @@ function DetailView({ item, onBack, category }) {
                 <span className="stat-value">{displayItem.size}</span>
               </div>
             )}
-            
             {displayItem.HP && (
               <div className="beast-stat">
                 <span className="stat-icon">❤️</span>
@@ -644,7 +693,6 @@ function DetailView({ item, onBack, category }) {
                 <span className="stat-value">{displayItem.HP}</span>
               </div>
             )}
-            
             {displayItem.agility && (
               <div className="beast-stat">
                 <span className="stat-icon">🏃</span>
@@ -654,7 +702,6 @@ function DetailView({ item, onBack, category }) {
             )}
           </div>
         </div>
-        
         {displayItem.abilities && (
           <div className="stat-block-section">
             <h2 className="stat-block-title">ABILITIES</h2>
@@ -670,67 +717,54 @@ function DetailView({ item, onBack, category }) {
       </div>
     );
   };
-  
-  useEffect(() => {
-    const fetchDetails = async () => {
-      if (item && item.description) {
-        setFullDetails(item);
-        setLoading(false);
-        return;
-      }
-      
-      try {
-        setLoading(true);
-        const tableName = getTableName();
-        const response = await fetch(`${API_URL}/wiki/tables/${tableName}/${item.id}`);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const detailedItem = await response.json();
-        setFullDetails(detailedItem);
-        setError(null);
-      } catch (err) {
-        console.error(`Error fetching ${category} details:`, err);
-        setError(`Failed to load complete details for ${item.name}.`);
-        setFullDetails(item);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (item) {
-      fetchDetails();
-    }
-  }, [item, category]);
-  
-  if (loading) return <div className="loading">Loading details...</div>;
-  
-  const displayItem = fullDetails || item;
-  
-  const getProperties = () => {
-    if (category === 'Artifacts') {
-      if (displayItem.properties) return displayItem.properties;
-      
-      return [
-        `Radiation: ${displayItem.radiation || "N/A"}`,
-        `Weight: ${displayItem.weight || "N/A"} kg`,
-        `Value: ${displayItem.value || "N/A"} RU`
-      ].filter(prop => !prop.includes("N/A")).join(", ");
-    }
-    return displayItem.properties;
+
+  const renderAnomalyProperties = () => {
+    if (category !== "Anomalies" || !displayItem) return null;
+    return (
+      <div className="stat-block-section">
+        <h2 className="stat-block-title">ANOMALY PROPERTIES</h2>
+        <div className="stat-block-content">
+          <table className="anomaly-properties-table">
+            <tbody>
+              <tr>
+                <td><b>Strength</b></td>
+                <td>{displayItem.strength || "—"}</td>
+              </tr>
+              <tr>
+                <td><b>Type</b></td>
+                <td>{displayItem.type || "—"}</td>
+              </tr>
+              <tr>
+                <td><b>Visibility</b></td>
+                <td>{displayItem.visibility || "—"}</td>
+              </tr>
+              <tr>
+                <td><b>Behavior</b></td>
+                <td>{displayItem.behavior || "—"}</td>
+              </tr>
+              <tr>
+                <td><b>Damage Dice</b></td>
+                <td>
+                  {["d4","d6","d8","d10","d12","d20"]
+                    .map(die => displayItem[die] > 0 ? `${displayItem[die]}${die}` : null)
+                    .filter(Boolean)
+                    .join(", ") || "None"}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
   };
-  
+
   return (
     <div className="detail-view">
       <div className="detail-header">
         <button className="back-button" onClick={onBack}>← Back to {category}</button>
         <h1 className="detail-title">{displayItem.name}</h1>
       </div>
-      
       {error && <div className="error-message">{error}</div>}
-      
       <div className="detail-content">
         <div className="detail-image-container">
           <img 
@@ -739,14 +773,12 @@ function DetailView({ item, onBack, category }) {
             className="detail-image"
           />
         </div>
-        
         <div className="detail-text">
           <p className="detail-description">
             {displayItem.description}
           </p>
-          
           {category === 'Bestiary' && renderBeastStats()}
-          
+          {category === 'Anomalies' && renderAnomalyProperties()}
           {(displayItem.properties || category === 'Artifacts') && (
             <div className="stat-block-section">
               <h2 className="stat-block-title">PROPERTIES</h2>
