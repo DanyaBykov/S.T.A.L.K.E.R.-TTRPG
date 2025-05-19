@@ -7,11 +7,11 @@ import { Link } from 'react-router-dom';
 
 // --- Data Definitions remain the same ---
 const CLASSES = {
-  Hunter: { name: "Мисливець"},
-  Soldier: { name: "Солдат"},
-  Technician: { name: "Технік"},
-  Medic: { name: "Медик"},
-  Scientist: { name: "Вчений"},
+  Hunter: { name: "Мисливець" },
+  Soldier: { name: "Солдат" },
+  Technician: { name: "Технік" },
+  Medic: { name: "Медик" },
+  Scientist: { name: "Вчений" },
 };
 
 const STAT_NAMES = [
@@ -535,8 +535,8 @@ export default function CreateCharacter() {
 
   const countProf = Object.values(profs).filter(v => v).length;
 
-  const next = () => setStep(s => s+1);
-  const prev = () => setStep(s => s-1);
+  const next = () => setStep(s => s + 1);
+  const prev = () => setStep(s => s - 1);
 
   const allComplete = () => {
     if (step === 1) return name && charClass;
@@ -556,25 +556,25 @@ export default function CreateCharacter() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    
+
     try {
-      const character = { 
-        name, 
-        charClass, 
-        stats, 
-        mods, 
+      const character = {
+        name,
+        charClass,
+        stats,
+        mods,
         profs: skillTotals,
-        passivePerception, 
-        personality, 
-        story, 
-        motivation 
+        passivePerception,
+        personality,
+        story,
+        motivation
       };
-      
+
       const response = await apiRequest(`/games/${gameId}/character/create`, {
         method: 'POST',
         body: JSON.stringify(character)
       });
-      
+
       alert('Персонаж створено успішно!');
       navigate(`/game/${gameId}/map/${response.id}`);
     } catch (error) {
@@ -588,7 +588,7 @@ export default function CreateCharacter() {
       <MenuBtn onClick={() => setMenuOpen(!menuOpen)}>
         <Menu size={32} />
       </MenuBtn>
-      
+
       {menuOpen && (
         <MenuList>
           <ul>
@@ -599,13 +599,13 @@ export default function CreateCharacter() {
           </ul>
         </MenuList>
       )}
-      
+
       <Header>
         <h1>СТВОРЕННЯ СТАЛКЕРА</h1>
       </Header>
-      
+
       <StepCounter>КРОК {step} з 4</StepCounter>
-      
+
       <form onSubmit={handleSubmit}>
         <FormPanel>
           {step === 1 && (
@@ -613,20 +613,20 @@ export default function CreateCharacter() {
               <h2>Ім'я та Клас</h2>
               <FormGroup>
                 <Label htmlFor="name">Ім'я:</Label>
-                <Input 
-                  id="name" 
-                  type="text" 
-                  value={name} 
-                  onChange={e => setName(e.target.value)} 
+                <Input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
                   autoFocus
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <Label htmlFor="charClass">Клас:</Label>
-                <Select 
-                  id="charClass" 
-                  value={charClass} 
+                <Select
+                  id="charClass"
+                  value={charClass}
                   onChange={e => setCharClass(e.target.value)}
                 >
                   <option value="">—</option>
@@ -642,7 +642,7 @@ export default function CreateCharacter() {
             <FormSection>
               <h2>Характеристики</h2>
               <PointsCounter>Вільних очок: {pointsLeft}</PointsCounter>
-              
+
               <StyledTable>
                 <thead>
                   <tr>
@@ -660,7 +660,7 @@ export default function CreateCharacter() {
                         <StatsValue>{stats[s.key]}</StatsValue>
                       </td>
                       <td>
-                        <ModValue 
+                        <ModValue
                           $positive={mods[s.key] > 0}
                           $negative={mods[s.key] < 0}
                         >
@@ -668,8 +668,8 @@ export default function CreateCharacter() {
                         </ModValue>
                       </td>
                       <td>
-                        <StatButton 
-                          type="button" 
+                        <StatButton
+                          type="button"
                           onClick={() => changeStat(s.key, 1)}
                           disabled={pointsLeft <= 0 || stats[s.key] >= 10}
                         >
@@ -677,8 +677,8 @@ export default function CreateCharacter() {
                         </StatButton>
                       </td>
                       <td>
-                        <StatButton 
-                          type="button" 
+                        <StatButton
+                          type="button"
                           onClick={() => changeStat(s.key, -1)}
                           disabled={stats[s.key] <= 1}
                         >
@@ -696,7 +696,7 @@ export default function CreateCharacter() {
             <FormSection>
               <h2>Навички</h2>
               <InfoText>Виберіть 2 навички (+2): {countProf}/2</InfoText>
-              
+
               <StyledTable>
                 <thead>
                   <tr>
@@ -711,7 +711,7 @@ export default function CreateCharacter() {
                     <tr key={sk.key}>
                       <td>{sk.label}</td>
                       <td>
-                        <ModValue 
+                        <ModValue
                           $positive={mods[sk.stat] > 0}
                           $negative={mods[sk.stat] < 0}
                         >
@@ -719,17 +719,17 @@ export default function CreateCharacter() {
                         </ModValue>
                       </td>
                       <td>
-                        <Checkbox 
-                          type="checkbox" 
+                        <Checkbox
+                          type="checkbox"
                           checked={profs[sk.key]}
                           onChange={e => {
                             if (e.target.checked && countProf >= 2) return;
-                            setProfs({...profs, [sk.key]: e.target.checked});
+                            setProfs({ ...profs, [sk.key]: e.target.checked });
                           }}
                         />
                       </td>
                       <td>
-                        <ModValue 
+                        <ModValue
                           $positive={skillTotals[sk.key] > 0}
                           $negative={skillTotals[sk.key] < 0}
                         >
@@ -746,64 +746,64 @@ export default function CreateCharacter() {
           {step === 4 && (
             <FormSection>
               <h2>Особистість, Історія, Мотивація</h2>
-              
+
               <FormGroup>
                 <Label htmlFor="valueMost">Що цінуєте:</Label>
-                <TextArea 
+                <TextArea
                   id="valueMost"
                   value={personality.valueMost}
-                  onChange={e => setPersonality({...personality, valueMost: e.target.value})}
+                  onChange={e => setPersonality({ ...personality, valueMost: e.target.value })}
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <Label htmlFor="attitude">Ставлення до людей:</Label>
-                <TextArea 
+                <TextArea
                   id="attitude"
                   value={personality.attitude}
-                  onChange={e => setPersonality({...personality, attitude: e.target.value})}
+                  onChange={e => setPersonality({ ...personality, attitude: e.target.value })}
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <Label htmlFor="important">Найцінніша людина:</Label>
-                <TextArea 
+                <TextArea
                   id="important"
                   value={personality.important}
-                  onChange={e => setPersonality({...personality, important: e.target.value})}
+                  onChange={e => setPersonality({ ...personality, important: e.target.value })}
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <Label htmlFor="flaws">Вади:</Label>
-                <TextArea 
+                <TextArea
                   id="flaws"
                   value={personality.flaws}
-                  onChange={e => setPersonality({...personality, flaws: e.target.value})}
+                  onChange={e => setPersonality({ ...personality, flaws: e.target.value })}
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <Label htmlFor="ideals">Ідеали:</Label>
-                <TextArea 
+                <TextArea
                   id="ideals"
                   value={personality.ideals}
-                  onChange={e => setPersonality({...personality, ideals: e.target.value})}
+                  onChange={e => setPersonality({ ...personality, ideals: e.target.value })}
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <Label htmlFor="story">Історія:</Label>
-                <TextArea 
+                <TextArea
                   id="story"
                   value={story}
                   onChange={e => setStory(e.target.value)}
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <Label htmlFor="motivation">Мотивація:</Label>
-                <TextArea 
+                <TextArea
                   id="motivation"
                   value={motivation}
                   onChange={e => setMotivation(e.target.value)}
@@ -812,7 +812,7 @@ export default function CreateCharacter() {
             </FormSection>
           )}
         </FormPanel>
-        
+
         <NavigationButtons>
           {step > 1 && (
             <Button type="button" onClick={prev}>
@@ -820,19 +820,19 @@ export default function CreateCharacter() {
               Назад
             </Button>
           )}
-          
+
           {step < 4 ? (
-            <NextButton 
-              type="button" 
-              onClick={next} 
+            <NextButton
+              type="button"
+              onClick={next}
               disabled={!allComplete()}
             >
               Далі
               <ArrowRight size={16} />
             </NextButton>
           ) : (
-            <SubmitButton 
-              type="submit" 
+            <SubmitButton
+              type="submit"
               disabled={!allComplete()}
             >
               <Save size={16} />

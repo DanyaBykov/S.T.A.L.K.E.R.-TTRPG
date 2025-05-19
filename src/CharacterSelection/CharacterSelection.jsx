@@ -5,7 +5,6 @@ import { Menu, Plus, User, Trash2, Edit, CheckCircle } from 'lucide-react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
-// API functions for character management
 async function getCharactersForGame(gameId) {
   try {
     return await apiRequest(`/games/${gameId}/characters`);
@@ -50,7 +49,6 @@ async function deleteCharacter(characterId) {
   }
 }
 
-// Styled Components
 const Container = styled.div`
   background-color: #0a0a0a;
   color: #a3ffa3;
@@ -424,16 +422,13 @@ const CharacterSelection = () => {
   const [gameName, setGameName] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Get game ID from either params or location state
-  const currentGameId = gameId || 
-                     (location.state && location.state.gameId) || 
-                     localStorage.getItem("currentGameId");
+  const currentGameId = gameId ||
+    (location.state && location.state.gameId) ||
+    localStorage.getItem("currentGameId");
 
-  // For editing character name
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
 
-  // For creating a new character
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCharacterName, setNewCharacterName] = useState('');
 
@@ -447,7 +442,6 @@ const CharacterSelection = () => {
     async function fetchCharacters() {
       try {
         setLoading(true);
-        // Get characters for this game
         const chars = await getCharactersForGame(currentGameId);
         setCharacters(chars.characters || []);
         setGameName(chars.game_name || "Game");
@@ -472,11 +466,9 @@ const CharacterSelection = () => {
       const newCharacter = await createCharacter(currentGameId, {
         name: newCharacterName
       });
-      
-      // Add new character to list
+
       setCharacters([...characters, newCharacter]);
-      
-      // Reset form
+
       setNewCharacterName('');
       setShowCreateForm(false);
       setError(null);
@@ -489,37 +481,34 @@ const CharacterSelection = () => {
 
   const handleSelectCharacter = (characterId) => {
     localStorage.setItem("currentCharacterId", characterId);
-    navigate(`/game/${currentGameId}/map`, { 
-      state: { 
+    navigate(`/game/${currentGameId}/map`, {
+      state: {
         gameId: currentGameId,
-        characterId: characterId 
+        characterId: characterId
       }
     });
   };
-  // Handle editing character name
   const startEdit = (char) => {
     setEditingId(char.id);
     setEditName(char.name);
   };
-  
+
   const handleUpdateCharacter = async () => {
     if (!editName.trim()) {
       setError("Character name cannot be empty");
       return;
     }
-    
+
     try {
       setLoading(true);
       const updatedChar = await updateCharacter(editingId, {
         name: editName
       });
-      
-      // Update character in list
-      setCharacters(characters.map(char => 
+
+      setCharacters(characters.map(char =>
         char.id === editingId ? { ...char, name: editName } : char
       ));
-      
-      // Reset form
+
       setEditingId(null);
       setEditName('');
       setError(null);
@@ -530,7 +519,6 @@ const CharacterSelection = () => {
     }
   };
 
-  // Handle delete
   const handleDeleteCharacter = async (characterId) => {
     if (window.confirm('Are you sure you want to delete this character?')) {
       try {
@@ -551,7 +539,7 @@ const CharacterSelection = () => {
       <MenuBtn onClick={() => setMenuOpen(!menuOpen)}>
         <Menu size={32} />
       </MenuBtn>
-      
+
       {menuOpen && (
         <MenuList>
           <ul>
@@ -562,16 +550,16 @@ const CharacterSelection = () => {
           </ul>
         </MenuList>
       )}
-      
+
       <Header>
         <h1>CHARACTERS FOR {gameName}</h1>
       </Header>
-      
+
       {error && <ErrorMessage>{error}</ErrorMessage>}
-      
+
       <CharacterPanel>
         <h2>Available Stalkers</h2>
-        
+
         {loading ? (
           <Loading>Loading characters...</Loading>
         ) : (
@@ -631,8 +619,8 @@ const CharacterSelection = () => {
             )}
           </CharacterList>
         )}
-        
-        <Button 
+
+        <Button
           onClick={() => navigate(`/game/${currentGameId}/character/create`)}
           style={{ marginTop: '1rem' }}
         >
@@ -640,7 +628,7 @@ const CharacterSelection = () => {
           Create New Stalker
         </Button>
       </CharacterPanel>
-      
+
       <Button onClick={() => navigate('/')}>
         Back to Main Terminal
       </Button>

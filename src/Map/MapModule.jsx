@@ -552,9 +552,9 @@ const CharacterPin = styled.div`
   height: ${props => props.size}px;
   border-radius: 50%;
   background: ${props => props.color || 'rgba(20, 25, 20, 0.8)'};
-  border: 2px solid ${props => props.isCurrentPlayer ? '#ffcc00' : 
-                             props.isMonster ? 'rgba(255, 102, 102, 0.7)' : 
-                             'rgba(163, 255, 163, 0.7)'};
+  border: 2px solid ${props => props.isCurrentPlayer ? '#ffcc00' :
+    props.isMonster ? 'rgba(255, 102, 102, 0.7)' :
+      'rgba(163, 255, 163, 0.7)'};
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.6),
               ${props => props.isCurrentPlayer ? '0 0 15px rgba(255, 204, 0, 0.7)' : 'none'};
   display: flex;
@@ -1257,24 +1257,24 @@ export default function MapPage() {
   const [scale, setScale] = useState(1);
   const [pinTabActive, setPinTabActive] = useState('stalkers');
   const [selectedAvatar, setSelectedAvatar] = useState(PLAYER_AVATARS[0] || FALLBACK_PLAYER_AVATAR);
-  const [mapDimensions, setMapDimensions] = useState({ width: 4096, height: 4096 }); 
-  const [viewportDimensions, setViewportDimensions] = useState({ 
-    width: window.innerWidth * 0.7, 
-    height: window.innerHeight 
+  const [mapDimensions, setMapDimensions] = useState({ width: 4096, height: 4096 });
+  const [viewportDimensions, setViewportDimensions] = useState({
+    width: window.innerWidth * 0.7,
+    height: window.innerHeight
   });
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const mapContainerRef = useRef(null);
 
   const params = useParams();
   const location = useLocation();
-  
+
   const characterIdFromParams = params.characterId;
   const characterIdFromState = location.state?.characterId;
   const characterIdFromStorage = localStorage.getItem("currentCharacterId");
-  
+
   const characterId = characterIdFromParams || characterIdFromState || characterIdFromStorage;
   const gameId = params.gameId;
-  
+
   console.log("Map loaded with:", {
     gameIdFromURL: params.gameId,
     gameId: gameId,
@@ -1283,21 +1283,21 @@ export default function MapPage() {
     characterIdFromStorage,
     characterId
   });
-  
+
 
   useEffect(() => {
     setMapOffset({ x: 10, y: 10 });
     setScale(1);
   }, []);
-  
-  
+
+
   useEffect(() => {
     if (mapContainerRef.current) {
       setViewportDimensions({
         width: mapContainerRef.current.clientWidth,
         height: mapContainerRef.current.clientHeight
       });
-      
+
       const resizeObserver = new ResizeObserver(entries => {
         for (let entry of entries) {
           setViewportDimensions({
@@ -1306,7 +1306,7 @@ export default function MapPage() {
           });
         }
       });
-      
+
       resizeObserver.observe(mapContainerRef.current);
       return () => resizeObserver.disconnect();
     }
@@ -1314,7 +1314,7 @@ export default function MapPage() {
   useEffect(() => {
     async function loadCharacterData() {
       if (!characterId) return;
-      
+
       try {
         setLoadingCharacter(true);
         const data = await apiRequest(`/games/${gameId}/characters/${characterId}`);
@@ -1325,269 +1325,269 @@ export default function MapPage() {
         setLoadingCharacter(false);
       }
     }
-    
+
     loadCharacterData();
   }, [gameId, characterId]);
 
-// Update the useEffect function that loads game data
+  // Update the useEffect function that loads game data
 
-useEffect(() => {
-  async function loadGameData() {
-    try {
-      // Make sure we have both gameId and characterId
-      console.log("Loading game data with:", gameId, characterId);
-      
-      if (!gameId || !characterId) {
-        console.log("Missing gameId or characterId, can't load game data");
-        return;
-      }
-      
-      // First load the game metadata
-      const gameData = await apiRequest(`/games/${gameId}`);
-      setIsGameMaster(gameData.is_dm);
-      setCurrentUserRole(gameData.is_dm ? 'dm' : 'player');
-      
-      // Then load the pins
-      const pinsData = await apiRequest(`/games/${gameId}/pins`);
-      console.log("Loaded pins:", pinsData);
-      
-      // Check if current player already has a pin
-      const currentPlayerExists = pinsData.pins.some(pin => 
-        pin.character_id === characterId
-      );
-      console.log("Current player exists:", currentPlayerExists);
-      
-      // Process existing pins
-      setCharacterPins(pinsData.pins.map(pin => ({
-        id: pin.character_id,
-        name: pin.name,
-        avatar: pin.avatar_url || (pin.is_monster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
-        isMonster: pin.is_monster,
-        x: pin.position_x,
-        y: pin.position_y,
-        is_current_user: pin.character_id === characterId
-      })));
-      
-      // If the player is joining for the first time, create a new pin for them
-      if (!currentPlayerExists && characterId && !gameData.is_dm) {
-        console.log("Creating new pin for first-time player");
-        
-        // Calculate center position based on viewport dimensions
-        const centerX = viewportDimensions.width / 2;
-        const centerY = viewportDimensions.height / 2;
-        
-        try {
-          // First get the character data
-          const characterResponse = await apiRequest(`/games/${gameId}/characters/${characterId}`);
-          console.log("Character data:", characterResponse);
-          
-          // Then create a pin with its position
-          await apiRequest(`/games/${gameId}/pins/${characterId}/position`, {
-            method: 'PUT',
-            body: JSON.stringify({
+  useEffect(() => {
+    async function loadGameData() {
+      try {
+        // Make sure we have both gameId and characterId
+        console.log("Loading game data with:", gameId, characterId);
+
+        if (!gameId || !characterId) {
+          console.log("Missing gameId or characterId, can't load game data");
+          return;
+        }
+
+        // First load the game metadata
+        const gameData = await apiRequest(`/games/${gameId}`);
+        setIsGameMaster(gameData.is_dm);
+        setCurrentUserRole(gameData.is_dm ? 'dm' : 'player');
+
+        // Then load the pins
+        const pinsData = await apiRequest(`/games/${gameId}/pins`);
+        console.log("Loaded pins:", pinsData);
+
+        // Check if current player already has a pin
+        const currentPlayerExists = pinsData.pins.some(pin =>
+          pin.character_id === characterId
+        );
+        console.log("Current player exists:", currentPlayerExists);
+
+        // Process existing pins
+        setCharacterPins(pinsData.pins.map(pin => ({
+          id: pin.character_id,
+          name: pin.name,
+          avatar: pin.avatar_url || (pin.is_monster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
+          isMonster: pin.is_monster,
+          x: pin.position_x,
+          y: pin.position_y,
+          is_current_user: pin.character_id === characterId
+        })));
+
+        // If the player is joining for the first time, create a new pin for them
+        if (!currentPlayerExists && characterId && !gameData.is_dm) {
+          console.log("Creating new pin for first-time player");
+
+          // Calculate center position based on viewport dimensions
+          const centerX = viewportDimensions.width / 2;
+          const centerY = viewportDimensions.height / 2;
+
+          try {
+            // First get the character data
+            const characterResponse = await apiRequest(`/games/${gameId}/characters/${characterId}`);
+            console.log("Character data:", characterResponse);
+
+            // Then create a pin with its position
+            await apiRequest(`/games/${gameId}/pins/${characterId}/position`, {
+              method: 'PUT',
+              body: JSON.stringify({
+                x: centerX,
+                y: centerY
+              })
+            });
+            console.log("Pin position created successfully");
+
+            // Add the new pin to local state
+            const newPin = {
+              id: characterId,
+              name: characterResponse.name || "New Stalker",
+              avatar: characterResponse.avatar_url || FALLBACK_PLAYER_AVATAR,
+              isMonster: false,
+              is_current_user: true,
               x: centerX,
               y: centerY
-            })
-          });
-          console.log("Pin position created successfully");
-          
-          // Add the new pin to local state
-          const newPin = {
-            id: characterId,
-            name: characterResponse.name || "New Stalker",
-            avatar: characterResponse.avatar_url || FALLBACK_PLAYER_AVATAR,
-            isMonster: false,
-            is_current_user: true,
-            x: centerX,
-            y: centerY
-          };
-          
-          setCharacterPins(prevPins => [...prevPins, newPin]);
-          
-          // Center the view on the new pin
-          if (transformInstance) {
+            };
+
+            setCharacterPins(prevPins => [...prevPins, newPin]);
+
+            // Center the view on the new pin
+            if (transformInstance) {
+              setTimeout(() => {
+                transformInstance.setTransform(
+                  -centerX + (viewportDimensions.width / 2),
+                  -centerY + (viewportDimensions.height / 2),
+                  1,
+                  0
+                );
+              }, 300);
+            }
+          } catch (err) {
+            console.error("Failed to create initial player pin:", err);
+          }
+        } else if (characterId && !gameData.is_dm) {
+          // Player already exists, center on their pin
+          const playerPin = pinsData.pins.find(pin => pin.character_id === characterId);
+          if (playerPin && transformInstance) {
             setTimeout(() => {
               transformInstance.setTransform(
-                -centerX + (viewportDimensions.width / 2),
-                -centerY + (viewportDimensions.height / 2),
+                -playerPin.position_x + (viewportDimensions.width / 2),
+                -playerPin.position_y + (viewportDimensions.height / 2),
                 1,
                 0
               );
             }, 300);
           }
-        } catch (err) {
-          console.error("Failed to create initial player pin:", err);
         }
-      } else if (characterId && !gameData.is_dm) {
-        // Player already exists, center on their pin
-        const playerPin = pinsData.pins.find(pin => pin.character_id === characterId);
-        if (playerPin && transformInstance) {
-          setTimeout(() => {
-            transformInstance.setTransform(
-              -playerPin.position_x + (viewportDimensions.width / 2),
-              -playerPin.position_y + (viewportDimensions.height / 2),
-              1,
-              0
-            );
-          }, 300);
-        }
+      } catch (err) {
+        console.error("Failed to load game data:", err, err.stack);
       }
-    } catch (err) {
-      console.error("Failed to load game data:", err, err.stack);
     }
-  }
-  
-  // Only run if we have both parameters
-  if (gameId && characterId) {
-    loadGameData();
-  } else {
-    console.log("Missing required parameters. gameId:", gameId, "characterId:", characterId);
-  }
-}, [gameId, characterId, viewportDimensions, transformInstance]);
-// Add these utility functions in the MapPage component
 
-// Helper functions for formatting
-const formatStatName = (key) => {
-  const statMap = {
-    str: 'STR',
-    dex: 'DEX',
-    int: 'INT',
-    wis: 'WIS',
-    cha: 'CHA',
-    sta: 'STA',
-    luk: 'LUK'
-  };
-  return statMap[key] || key.toUpperCase();
-};
-
-const formatSkillName = (key) => {
-  // Convert snake_case to normal text and capitalize
-  return key
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
-
-const formatRadiationColor = (value) => {
-  if (value < 1) return '#a3ffa3';
-  if (value < 3) return '#a3ffff';
-  if (value < 5) return '#ffffa3';
-  if (value < 8) return '#ffcc66';
-  return '#ff6666';
-};
-
-const getProximityColor = (value) => {
-  const colorMap = {
-    'SAFE': '#a3ffa3',
-    'DETECTED': '#ffffa3',
-    'NEAR': '#ffcc66',
-    'DANGER': '#ff6666'
-  };
-  return colorMap[value] || '#a3ffa3';
-};
-
-const getSafetyColor = (value) => {
-  const colorMap = {
-    'SECURE': '#a3ffa3',
-    'NEUTRAL': '#a3ffff',
-    'CONTESTED': '#ffffa3',
-    'DANGER': '#ffcc66',
-    'HOSTILE': '#ff6666'
-  };
-  return colorMap[value] || '#a3ffa3';
-};
-
-// Replace your addCharacterPin function with this implementation
-
-const addCharacterPin = () => {
-  const isMonster = pinTabActive === 'monsters';
-  const newId = `${isMonster ? 'monster' : 'stalker'}-${Date.now()}`;
-  
-  // Get current viewport center in world coordinates
-  let centerX = 0;
-  let centerY = 0;
-  
-  // If we have a transform instance, use its state to get the current viewport center
-  if (transformInstance) {
-    const { state } = transformInstance;
-    
-    // Calculate the center of the current viewport in world coordinates
-    centerX = -state.positionX / state.scale + (viewportDimensions.width / 2 / state.scale);
-    centerY = -state.positionY / state.scale + (viewportDimensions.height / 2 / state.scale);
-    
-    console.log(`Adding new pin at viewport center: ${centerX}, ${centerY}`);
-  } else {
-    // Fallback to middle of the map if transform is not available
-    centerX = mapDimensions.width / 2;
-    centerY = mapDimensions.height / 2;
-    console.log(`Adding new pin at map center: ${centerX}, ${centerY}`);
-  }
-  
-  const newPin = {
-    id: newId,
-    name: isMonster ? `Mutant-${characterPins.filter(p => p.isMonster).length + 1}` 
-                    : `Stalker-${characterPins.filter(p => !p.isMonster).length + 1}`,
-    avatar: selectedAvatar || (isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
-    isMonster: isMonster,
-    x: centerX,
-    y: centerY
-  };
-  
-  setCharacterPins([...characterPins, newPin]);
-  
-  // If we're in a game, save to backend
-  if (gameId) {
-    if (isMonster) {
-      // For monsters, use the monster creation endpoint
-      apiRequest(`/games/${gameId}/monsters`, {
-        method: 'POST',
-        body: JSON.stringify({
-          name: newPin.name,
-          position_x: newPin.x,
-          position_y: newPin.y,
-          avatar_url: newPin.avatar
-        })
-      }).catch(err => console.error("Failed to save new monster pin:", err));
+    // Only run if we have both parameters
+    if (gameId && characterId) {
+      loadGameData();
     } else {
-      // For characters, use the pin position endpoint
-      apiRequest(`/games/${gameId}/pins/${newId}/position`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          x: newPin.x,
-          y: newPin.y
-        })
-      }).catch(err => console.error("Failed to save new pin position:", err));
+      console.log("Missing required parameters. gameId:", gameId, "characterId:", characterId);
     }
-  }
-};
-const centerViewOnPin = (pinId) => {
-  const pin = characterPins.find(p => p.id === pinId);
-  if (!pin || !transformInstance) {
-    console.log("Cannot center - pin or instance missing", { pinId, pin, hasInstance: !!transformInstance });
-    return;
-  }
-  
-  console.log("Centering pin:", pin.name, "at", pin.x, pin.y);
-  
-  transformInstance.setTransform(
-    -pin.x + (viewportDimensions.width / 2), 
-    -pin.y + (viewportDimensions.height / 2), 
-    1,
-    0 // no animation duration
-  );
-};
+  }, [gameId, characterId, viewportDimensions, transformInstance]);
+  // Add these utility functions in the MapPage component
+
+  // Helper functions for formatting
+  const formatStatName = (key) => {
+    const statMap = {
+      str: 'STR',
+      dex: 'DEX',
+      int: 'INT',
+      wis: 'WIS',
+      cha: 'CHA',
+      sta: 'STA',
+      luk: 'LUK'
+    };
+    return statMap[key] || key.toUpperCase();
+  };
+
+  const formatSkillName = (key) => {
+    // Convert snake_case to normal text and capitalize
+    return key
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  const formatRadiationColor = (value) => {
+    if (value < 1) return '#a3ffa3';
+    if (value < 3) return '#a3ffff';
+    if (value < 5) return '#ffffa3';
+    if (value < 8) return '#ffcc66';
+    return '#ff6666';
+  };
+
+  const getProximityColor = (value) => {
+    const colorMap = {
+      'SAFE': '#a3ffa3',
+      'DETECTED': '#ffffa3',
+      'NEAR': '#ffcc66',
+      'DANGER': '#ff6666'
+    };
+    return colorMap[value] || '#a3ffa3';
+  };
+
+  const getSafetyColor = (value) => {
+    const colorMap = {
+      'SECURE': '#a3ffa3',
+      'NEUTRAL': '#a3ffff',
+      'CONTESTED': '#ffffa3',
+      'DANGER': '#ffcc66',
+      'HOSTILE': '#ff6666'
+    };
+    return colorMap[value] || '#a3ffa3';
+  };
+
+  // Replace your addCharacterPin function with this implementation
+
+  const addCharacterPin = () => {
+    const isMonster = pinTabActive === 'monsters';
+    const newId = `${isMonster ? 'monster' : 'stalker'}-${Date.now()}`;
+
+    // Get current viewport center in world coordinates
+    let centerX = 0;
+    let centerY = 0;
+
+    // If we have a transform instance, use its state to get the current viewport center
+    if (transformInstance) {
+      const { state } = transformInstance;
+
+      // Calculate the center of the current viewport in world coordinates
+      centerX = -state.positionX / state.scale + (viewportDimensions.width / 2 / state.scale);
+      centerY = -state.positionY / state.scale + (viewportDimensions.height / 2 / state.scale);
+
+      console.log(`Adding new pin at viewport center: ${centerX}, ${centerY}`);
+    } else {
+      // Fallback to middle of the map if transform is not available
+      centerX = mapDimensions.width / 2;
+      centerY = mapDimensions.height / 2;
+      console.log(`Adding new pin at map center: ${centerX}, ${centerY}`);
+    }
+
+    const newPin = {
+      id: newId,
+      name: isMonster ? `Mutant-${characterPins.filter(p => p.isMonster).length + 1}`
+        : `Stalker-${characterPins.filter(p => !p.isMonster).length + 1}`,
+      avatar: selectedAvatar || (isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
+      isMonster: isMonster,
+      x: centerX,
+      y: centerY
+    };
+
+    setCharacterPins([...characterPins, newPin]);
+
+    // If we're in a game, save to backend
+    if (gameId) {
+      if (isMonster) {
+        // For monsters, use the monster creation endpoint
+        apiRequest(`/games/${gameId}/monsters`, {
+          method: 'POST',
+          body: JSON.stringify({
+            name: newPin.name,
+            position_x: newPin.x,
+            position_y: newPin.y,
+            avatar_url: newPin.avatar
+          })
+        }).catch(err => console.error("Failed to save new monster pin:", err));
+      } else {
+        // For characters, use the pin position endpoint
+        apiRequest(`/games/${gameId}/pins/${newId}/position`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            x: newPin.x,
+            y: newPin.y
+          })
+        }).catch(err => console.error("Failed to save new pin position:", err));
+      }
+    }
+  };
+  const centerViewOnPin = (pinId) => {
+    const pin = characterPins.find(p => p.id === pinId);
+    if (!pin || !transformInstance) {
+      console.log("Cannot center - pin or instance missing", { pinId, pin, hasInstance: !!transformInstance });
+      return;
+    }
+
+    console.log("Centering pin:", pin.name, "at", pin.x, pin.y);
+
+    transformInstance.setTransform(
+      -pin.x + (viewportDimensions.width / 2),
+      -pin.y + (viewportDimensions.height / 2),
+      1,
+      0 // no animation duration
+    );
+  };
 
   const removeCharacterPin = (pinId) => {
     setCharacterPins(characterPins.filter(pin => pin.id !== pinId));
   };
-  
+
   const adjustPositionForScale = (position) => {
     return {
       x: position.x,
       y: position.y
     };
   };
-  
+
   const canMovePin = (pinId) => {
     if (isGameMaster) return true; // DM can move any pin
     return pinId === characterId;
@@ -1595,63 +1595,63 @@ const centerViewOnPin = (pinId) => {
 
   const handlePinDrag = (pinId, data) => {
     if (!canMovePin(pinId)) return;
-    
+
     // const adjustedPosition = adjustPositionForScale(data);
-    setCharacterPins(characterPins.map(pin => 
+    setCharacterPins(characterPins.map(pin =>
       pin.id === pinId ? { ...pin, x: adjustedPosition.x, y: adjustedPosition.y } : pin
     ));
   };
-  
 
 
-const handlePinStop = async (pinId) => {
-  if (!canMovePin(pinId)) return;
-  
-  // Find the pin that was moved
-  const movedPin = characterPins.find(pin => pin.id === pinId);
-  if (!movedPin) return;
-  
-  // No grid snapping - use exact position
-  const updatedPin = {...movedPin};
-  
-  // Update local state
-  setCharacterPins(characterPins.map(pin => 
-    pin.id === pinId ? updatedPin : pin
-  ));
-  
-  // Save to backend
-  try {
-    await apiRequest(`/games/${gameId}/pins/${pinId}/position`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        x: updatedPin.x,
-        y: updatedPin.y
-      })
-    });
-  } catch (err) {
-    console.error("Failed to save pin position:", err);
-  }
-};
-  
+
+  const handlePinStop = async (pinId) => {
+    if (!canMovePin(pinId)) return;
+
+    // Find the pin that was moved
+    const movedPin = characterPins.find(pin => pin.id === pinId);
+    if (!movedPin) return;
+
+    // No grid snapping - use exact position
+    const updatedPin = { ...movedPin };
+
+    // Update local state
+    setCharacterPins(characterPins.map(pin =>
+      pin.id === pinId ? updatedPin : pin
+    ));
+
+    // Save to backend
+    try {
+      await apiRequest(`/games/${gameId}/pins/${pinId}/position`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          x: updatedPin.x,
+          y: updatedPin.y
+        })
+      });
+    } catch (err) {
+      console.error("Failed to save pin position:", err);
+    }
+  };
+
   const renamePinById = (id, newName) => {
     setCharacterPins(
-      characterPins.map(pin => 
+      characterPins.map(pin =>
         pin.id === id ? { ...pin, name: newName } : pin
       )
     );
   };
-  
+
   const changePinAvatar = (id, avatarUrl) => {
     setCharacterPins(
-      characterPins.map(pin => 
+      characterPins.map(pin =>
         pin.id === id ? { ...pin, avatar: avatarUrl } : pin
       )
     );
   };
   const switchPinTab = (tab) => {
     setPinTabActive(tab);
-    setSelectedAvatar(tab === 'monsters' ? 
-      (MONSTER_AVATARS[0] || FALLBACK_MONSTER_AVATAR) : 
+    setSelectedAvatar(tab === 'monsters' ?
+      (MONSTER_AVATARS[0] || FALLBACK_MONSTER_AVATAR) :
       (PLAYER_AVATARS[0] || FALLBACK_PLAYER_AVATAR)
     );
   };
@@ -1674,220 +1674,220 @@ const handlePinStop = async (pinId) => {
   return (
     <Container>
       <MapContainer ref={mapContainerRef}>
-        <TransformWrapper 
-          initialScale={1} 
-          minScale={0.5} 
-          maxScale={4} 
-          wheel={{ step: 0.1, disabled: true }} 
-          style={{'height': '100%'}}
-          limitToBounds={false} 
+        <TransformWrapper
+          initialScale={1}
+          minScale={0.5}
+          maxScale={4}
+          wheel={{ step: 0.1, disabled: true }}
+          style={{ 'height': '100%' }}
+          limitToBounds={false}
           onInit={(instance) => setTransformInstance(instance)}
-          onZoom={() => {}}
+          onZoom={() => { }}
           onPanning={(ref) => {
             console.log("Panning:", ref.state.positionX, ref.state.positionY);
-            setMapOffset({ 
-              x: ref.state.positionX, 
-              y: ref.state.positionY 
+            setMapOffset({
+              x: ref.state.positionX,
+              y: ref.state.positionY
             });
           }}
           panning={{ disabled: false }}
           disablePadding={true}
           doubleClick={{ disabled: true }}
         >
-        {({ zoomIn, zoomOut, setTransform, instance }) => {
-          useEffect(() => {
-            const lastWheelTime = { current: 0 };
-            
-            const handleWheel = (e) => {
-              e.preventDefault();
-              
-              const now = Date.now();
-              if (now - lastWheelTime.current < 50) return; 
-              lastWheelTime.current = now;
-              
-              const currentScale = scale;
-              const currentOffsetX = mapOffset.x;
-              const currentOffsetY = mapOffset.y;
-              
-              const zoomFactor = e.deltaY > 0 ? 0.98 : 1.02; 
-              const newScale = Math.max(0.5, Math.min(4, currentScale * (e.deltaY > 0 ? 0.98 : 1.02)));
-              
-              
-              if (Math.abs(newScale - currentScale) < 0.01) return;
-              
-              
-              const rect = mapContainerRef.current.getBoundingClientRect();
-              
-              
-              const mouseX = e.clientX - rect.left;
-              const mouseY = e.clientY - rect.top;
-              
-              
-              const worldX = (mouseX - currentOffsetX) / currentScale;
-              const worldY = (mouseY - currentOffsetY) / currentScale;
-              
-              
-              const newOffsetX = mouseX - (worldX * newScale);
-              const newOffsetY = mouseY - (worldY * newScale);
-              
-              
-              setTransform(newOffsetX, newOffsetY, newScale, 0);
-              
-              
-              setScale(newScale);
-              setMapOffset({
-                x: newOffsetX, 
-                y: newOffsetY
-              });
-            };
-            
-            const container = mapContainerRef.current;
-            if (container) {
-              container.addEventListener('wheel', handleWheel, { passive: false });
-              return () => container.removeEventListener('wheel', handleWheel);
-            }
-          }, [scale, mapOffset, setTransform]);
-          return (
-          <>
-          
-            <TransformComponent  wrapperStyle={{
-                height: '100%',
-                position: 'relative',
-                overflow: 'visible'
-              }} 
-              contentStyle={{
-                height: '100%',
-                width: '100%',
-                position: 'relative'
-              }}
-            >
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                zIndex: 1
-              }}>
-                <TileRenderer
-                  viewportWidth={viewportDimensions.width}
-                  viewportHeight={viewportDimensions.height}
-                  scale={scale}
-                  offsetX={mapOffset.x}
-                  offsetY={mapOffset.y}
-                />
-              </div>
-              {gridEnabled && (
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
+          {({ zoomIn, zoomOut, setTransform, instance }) => {
+            useEffect(() => {
+              const lastWheelTime = { current: 0 };
+
+              const handleWheel = (e) => {
+                e.preventDefault();
+
+                const now = Date.now();
+                if (now - lastWheelTime.current < 50) return;
+                lastWheelTime.current = now;
+
+                const currentScale = scale;
+                const currentOffsetX = mapOffset.x;
+                const currentOffsetY = mapOffset.y;
+
+                const zoomFactor = e.deltaY > 0 ? 0.98 : 1.02;
+                const newScale = Math.max(0.5, Math.min(4, currentScale * (e.deltaY > 0 ? 0.98 : 1.02)));
+
+
+                if (Math.abs(newScale - currentScale) < 0.01) return;
+
+
+                const rect = mapContainerRef.current.getBoundingClientRect();
+
+
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+
+                const worldX = (mouseX - currentOffsetX) / currentScale;
+                const worldY = (mouseY - currentOffsetY) / currentScale;
+
+
+                const newOffsetX = mouseX - (worldX * newScale);
+                const newOffsetY = mouseY - (worldY * newScale);
+
+
+                setTransform(newOffsetX, newOffsetY, newScale, 0);
+
+
+                setScale(newScale);
+                setMapOffset({
+                  x: newOffsetX,
+                  y: newOffsetY
+                });
+              };
+
+              const container = mapContainerRef.current;
+              if (container) {
+                container.addEventListener('wheel', handleWheel, { passive: false });
+                return () => container.removeEventListener('wheel', handleWheel);
+              }
+            }, [scale, mapOffset, setTransform]);
+            return (
+              <>
+
+                <TransformComponent wrapperStyle={{
                   height: '100%',
-                  zIndex: 2,
-                  pointerEvents: 'none'
-                }}>
-                  <GridOverlay 
-                    gridSize={gridSize} 
-                    scale={scale} 
-                    offsetX={mapOffset.x} 
-                    offsetY={mapOffset.y}
-                  />
-                </div>
-              )}
-                            
-                            <PinContainer>
-  {characterPins.map(pin => {
-    if (!pinRefs.current[pin.id]) {
-      pinRefs.current[pin.id] = React.createRef();
-    }
-    
-    return (
-      <div 
-        key={pin.id} 
-        style={{
-          position: 'absolute',
-          left: pin.x,  // Position directly with CSS
-          top: pin.y,   // instead of using Draggable's position
-          transform: 'translate(-50%, -50%)',
-          cursor: canMovePin(pin.id) ? 'grab' : 'default',
-          zIndex: 100,
-          pointerEvents: 'auto'
-        }}
-      >
-        <Draggable
-          position={{ x: 0, y: 0 }} // Start with neutral position
-          onDrag={(e, data) => {
-            e.stopPropagation();
-            if (canMovePin(pin.id)) {
-              // Calculate new position based on drag delta
-              const newX = pin.x + (data.deltaX / scale) * 0.25;
-              const newY = pin.y + (data.deltaY / scale) * 0.25;
-              
-              setCharacterPins(characterPins.map(p => 
-                p.id === pin.id ? { ...p, x: newX, y: newY } : p
-              ));
-            }
-          }}
-          onStop={(e, data) => {
-            e.stopPropagation();
-            // Reset the draggable component's internal position
-            if (canMovePin(pin.id)) {
-              // Save to backend
-              apiRequest(`/games/${gameId}/pins/${pin.id}/position`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                  x: pin.x,
-                  y: pin.y
-                })
-              }).catch(err => console.error("Failed to save pin position:", err));
-            }
-          }}
-          disabled={!canMovePin(pin.id)}
-          scale={scale}
-          nodeRef={pinRefs.current[pin.id]}
-        >
-          <div 
-            ref={pinRefs.current[pin.id]} 
-            style={{
-              cursor: canMovePin(pin.id) ? 'grab' : 'not-allowed',
-              pointerEvents: 'auto',
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <CharacterPin 
-              size={gridSize * 0.8} 
-              isMonster={pin.isMonster}
-              title={pin.name}
-              isCurrentPlayer={pin.id === characterId}
-            >
-              <img 
-                src={pin.avatar} 
-                alt={pin.name} 
-                onError={(e) => {
-                  e.target.src = pin.isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
+                  position: 'relative',
+                  overflow: 'visible'
                 }}
-              />
-              <span>{pin.name}</span>
-            </CharacterPin>
-          </div>
-        </Draggable>
-      </div>
-    );
-  })}
-</PinContainer>
-              </TransformComponent>
-              
-            </>
-          );
-        }}
+                  contentStyle={{
+                    height: '100%',
+                    width: '100%',
+                    position: 'relative'
+                  }}
+                >
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    zIndex: 1
+                  }}>
+                    <TileRenderer
+                      viewportWidth={viewportDimensions.width}
+                      viewportHeight={viewportDimensions.height}
+                      scale={scale}
+                      offsetX={mapOffset.x}
+                      offsetY={mapOffset.y}
+                    />
+                  </div>
+                  {gridEnabled && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      zIndex: 2,
+                      pointerEvents: 'none'
+                    }}>
+                      <GridOverlay
+                        gridSize={gridSize}
+                        scale={scale}
+                        offsetX={mapOffset.x}
+                        offsetY={mapOffset.y}
+                      />
+                    </div>
+                  )}
+
+                  <PinContainer>
+                    {characterPins.map(pin => {
+                      if (!pinRefs.current[pin.id]) {
+                        pinRefs.current[pin.id] = React.createRef();
+                      }
+
+                      return (
+                        <div
+                          key={pin.id}
+                          style={{
+                            position: 'absolute',
+                            left: pin.x,  // Position directly with CSS
+                            top: pin.y,   // instead of using Draggable's position
+                            transform: 'translate(-50%, -50%)',
+                            cursor: canMovePin(pin.id) ? 'grab' : 'default',
+                            zIndex: 100,
+                            pointerEvents: 'auto'
+                          }}
+                        >
+                          <Draggable
+                            position={{ x: 0, y: 0 }} // Start with neutral position
+                            onDrag={(e, data) => {
+                              e.stopPropagation();
+                              if (canMovePin(pin.id)) {
+                                // Calculate new position based on drag delta
+                                const newX = pin.x + (data.deltaX / scale) * 0.25;
+                                const newY = pin.y + (data.deltaY / scale) * 0.25;
+
+                                setCharacterPins(characterPins.map(p =>
+                                  p.id === pin.id ? { ...p, x: newX, y: newY } : p
+                                ));
+                              }
+                            }}
+                            onStop={(e, data) => {
+                              e.stopPropagation();
+                              // Reset the draggable component's internal position
+                              if (canMovePin(pin.id)) {
+                                // Save to backend
+                                apiRequest(`/games/${gameId}/pins/${pin.id}/position`, {
+                                  method: 'PUT',
+                                  body: JSON.stringify({
+                                    x: pin.x,
+                                    y: pin.y
+                                  })
+                                }).catch(err => console.error("Failed to save pin position:", err));
+                              }
+                            }}
+                            disabled={!canMovePin(pin.id)}
+                            scale={scale}
+                            nodeRef={pinRefs.current[pin.id]}
+                          >
+                            <div
+                              ref={pinRefs.current[pin.id]}
+                              style={{
+                                cursor: canMovePin(pin.id) ? 'grab' : 'not-allowed',
+                                pointerEvents: 'auto',
+                              }}
+                              onMouseDown={(e) => e.stopPropagation()}
+                            >
+                              <CharacterPin
+                                size={gridSize * 0.8}
+                                isMonster={pin.isMonster}
+                                title={pin.name}
+                                isCurrentPlayer={pin.id === characterId}
+                              >
+                                <img
+                                  src={pin.avatar}
+                                  alt={pin.name}
+                                  onError={(e) => {
+                                    e.target.src = pin.isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
+                                  }}
+                                />
+                                <span>{pin.name}</span>
+                              </CharacterPin>
+                            </div>
+                          </Draggable>
+                        </div>
+                      );
+                    })}
+                  </PinContainer>
+                </TransformComponent>
+
+              </>
+            );
+          }}
         </TransformWrapper>
-        {}
+        { }
         <GridControl>
           <h3>Grid Controls</h3>
           <ControlRow>
             <span>Grid:</span>
-            <Button 
+            <Button
               onClick={() => setGridEnabled(!gridEnabled)}
               style={{ width: 'auto', padding: '5px 10px' }}
             >
@@ -1905,8 +1905,8 @@ const handlePinStop = async (pinId) => {
             />
           </ControlRow>
         </GridControl>
-        
-        {}
+
+        { }
         <ScaleLegend>
           <ScaleLine />
           <span>{Math.round(100 / scale)}m</span>
@@ -1949,31 +1949,31 @@ const handlePinStop = async (pinId) => {
         <PinPanel>
           <h3>Tactical Tokens</h3>
           <PinTabs>
-            <PinTab 
-              active={pinTabActive === 'stalkers'} 
+            <PinTab
+              active={pinTabActive === 'stalkers'}
               onClick={() => switchPinTab('stalkers')}
             >
               Stalkers
             </PinTab>
-            <PinTab 
-              active={pinTabActive === 'monsters'} 
+            <PinTab
+              active={pinTabActive === 'monsters'}
               onClick={() => switchPinTab('monsters')}
             >
               Mutants
             </PinTab>
           </PinTabs>
-          
-          {}
+
+          { }
           <AvatarSelector isMonster={pinTabActive === 'monsters'}>
             {(pinTabActive === 'stalkers' ? PLAYER_AVATARS : MONSTER_AVATARS).map((avatar, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className={selectedAvatar === avatar ? 'selected' : ''}
                 onClick={() => setSelectedAvatar(avatar)}
               >
-                <img 
-                  src={avatar} 
-                  alt={`Avatar ${i+1}`}
+                <img
+                  src={avatar}
+                  alt={`Avatar ${i + 1}`}
                   onError={(e) => {
                     e.target.src = pinTabActive === 'monsters' ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
                   }}
@@ -1981,25 +1981,25 @@ const handlePinStop = async (pinId) => {
               </div>
             ))}
           </AvatarSelector>
-          
-          {}
-          <AddPinButton 
+
+          { }
+          <AddPinButton
             onClick={addCharacterPin}
             isMonster={pinTabActive === 'monsters'}
           >
             <Plus size={16} />
             Add {pinTabActive === 'stalkers' ? 'Stalker' : 'Mutant'}
           </AddPinButton>
-          
-          {}
+
+          { }
           <div style={{ marginTop: '15px' }}>
             {characterPins
               .filter(pin => pin.isMonster === (pinTabActive === 'monsters'))
               .map(pin => (
                 <PinItem key={pin.id}>
                   <PinAvatar isMonster={pin.isMonster}>
-                    <img 
-                      src={pin.avatar} 
+                    <img
+                      src={pin.avatar}
                       alt={pin.name}
                       onError={(e) => {
                         e.target.src = pin.isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
@@ -2024,11 +2024,11 @@ const handlePinStop = async (pinId) => {
             )}
           </div>
         </PinPanel>
-  
+
         <MenuBtn>
-          <Menu 
+          <Menu
             size={32}
-            onClick={() => setMenuOpen(o => !o)} 
+            onClick={() => setMenuOpen(o => !o)}
             style={{ cursor: 'pointer' }}
           />
           {menuOpen && (
@@ -2043,173 +2043,174 @@ const handlePinStop = async (pinId) => {
           )}
         </MenuBtn>
       </MapContainer>
-      
 
 
-<AvatarPanel>
-  <PanelHeader>STALKER PROFILE</PanelHeader>
-  
-  {loadingCharacter ? (
-    <LoadingIndicator>
-      <span>Loading character data...</span>
-      <div className="scanner-line"></div>
-    </LoadingIndicator>
-  ) : !characterData ? (
-    <NoCharacterData>
-      No character data available
-    </NoCharacterData>
-  ) : (
-    <>
-      <CharacterHeader>
-        <CharacterAvatar>
-          <img 
-            src={characterData.avatar_url || FALLBACK_PLAYER_AVATAR} 
-            alt={characterData.name}
-            onError={(e) => { e.target.src = FALLBACK_PLAYER_AVATAR; }}
-          />
-          <StatusIndicator active={true} />
-        </CharacterAvatar>
-        
-        <CharacterNameplate>
-          <h3>{characterData.name}</h3>
-          <div className="class">{characterData.class}</div>
-          <RadiationMeter value={characterData.radiation || 0} />
-        </CharacterNameplate>
-      </CharacterHeader>
-      
-      <StatsPanels>
-        <StatsPanel>
-          <h4>ATTRIBUTES</h4>
-          <StatsList>
-            {characterData.stats && Object.entries(characterData.stats).map(([key, value]) => (
-              <StatItem key={key}>
-                <span className="label">{formatStatName(key)}</span>
-                <StatBar value={value} />
-                <span className="value">{value}</span>
-              </StatItem>
-            ))}
-          </StatsList>
-        </StatsPanel>
-        
-        <StatsPanel>
-          <h4>SKILLS</h4>
-          <SkillGrid>
-            {characterData.profs && Object.entries(characterData.profs)
-              .slice(0, 6) // Show only top skills to save space
-              .sort(([,a], [,b]) => b - a)
-              .map(([key, value]) => (
-                <SkillItem key={key} proficient={value > 0}>
-                  <span className="label">{formatSkillName(key)}</span>
-                  <span className="value">{value > 0 ? `+${value}` : value}</span>
-                </SkillItem>
-              ))}
-          </SkillGrid>
-        </StatsPanel>
-      </StatsPanels>
-      
-      <EquipmentBlock>
-        <h4>EQUIPMENT STATUS</h4>
-        <EquipmentGrid>
-          <EquipmentSlot type="headgear">
-            <EquipmentIcon>{characterData.equipment?.headgear ? 
-              <img src={`./equipment/${characterData.equipment.headgear.icon || 'helmet.png'}`} alt="Headgear" /> : 
-              'HEAD'
-            }</EquipmentIcon>
-            <span>{characterData.equipment?.headgear?.name || '-'}</span>
-          </EquipmentSlot>
-          
-          <EquipmentSlot type="armor">
-            <EquipmentIcon>{characterData.equipment?.armor ? 
-              <img src={`./equipment/${characterData.equipment.armor.icon || 'armor.png'}`} alt="Armor" /> : 
-              'BODY'
-            }</EquipmentIcon>
-            <span>{characterData.equipment?.armor?.name || '-'}</span>
-          </EquipmentSlot>
-          
-          <EquipmentSlot type="primary">
-            <EquipmentIcon>{characterData.equipment?.primary ? 
-              <img src={`./equipment/${characterData.equipment.primary.icon || 'weapon.png'}`} alt="Primary" /> : 
-              'PRI'
-            }</EquipmentIcon>
-            <span>{characterData.equipment?.primary?.name || '-'}</span>
-          </EquipmentSlot>
-          
-          <EquipmentSlot type="secondary">
-            <EquipmentIcon>{characterData.equipment?.secondary ? 
-              <img src={`./equipment/${characterData.equipment.secondary.icon || 'backpack.png'}`} alt="Secondary" /> : 
-              'SEC'
-            }</EquipmentIcon>
-            <span>{characterData.equipment?.secondary?.name || '-'}</span>
-          </EquipmentSlot>
-        </EquipmentGrid>
-        
-        <ResourceMeters>
-          <ResourceMeter>
-            <div className="label">MONEY</div>
-            <div className="value">{characterData.money || 0} ГРН</div>
-          </ResourceMeter>
-          
-          <ResourceMeter>
-            <div className="label">CAPACITY</div>
-            <div className="bar-container">
-              <div 
-                className="bar" 
-                style={{
-                  width: `${Math.min(100, (characterData.inventory?.reduce((acc, item) => acc + (item.weight || 0), 0) / characterData.capacity) * 100) || 0}%`
-                }}
-              ></div>
-            </div>
-            <div className="value">
-              {characterData.inventory?.reduce((acc, item) => acc + (item.weight || 0), 0) || 0}/{characterData.capacity || 0}
-            </div>
-          </ResourceMeter>
-        </ResourceMeters>
-        
-        <InventoryMini>
-          <h5>INVENTORY ({characterData.inventory?.length || 0})</h5>
-          <ScrollableItems>
-            {characterData.inventory && characterData.inventory.length > 0 ? (
-              characterData.inventory.slice(0, 5).map((item, index) => (
-                <InventoryItem key={index}>
-                  <div className="item-name">{item.name}</div>
-                  <div className="item-weight">{item.weight}kg</div>
-                </InventoryItem>
-              ))
-            ) : (
-              <EmptyInventory>Empty inventory</EmptyInventory>
-            )}
-            {characterData.inventory && characterData.inventory.length > 5 && (
-              <MoreItems>+ {characterData.inventory.length - 5} more items</MoreItems>
-            )}
-          </ScrollableItems>
-        </InventoryMini>
-      </EquipmentBlock>
-      
-      <EnvironmentStatus>
-        <h4>ENVIRONMENT</h4>
-        <StatusGrid>
-          <StatusCell>
-            <div className="label">RADS</div>
-            <div className="value" style={{color: formatRadiationColor(characterData.radiation || 0)}}>
-              {characterData.radiation || 0} mSv
-            </div>
-          </StatusCell>
-          <StatusCell>
-            <div className="label">ANOMALIES</div>
-            <div className="value" style={{color: getProximityColor(characterData.anomaly_proximity || 'SAFE')}}>
-              {characterData.anomaly_proximity || 'SAFE'}
-            </div>
-          </StatusCell>
-          <StatusCell>
-            <div className="label">SAFETY</div>
-            <div className="value" style={{color: getSafetyColor(characterData.safety_level || 'SECURE')}}>
-              {characterData.safety_level || 'SECURE'}
-            </div>
-          </StatusCell>
-        </StatusGrid>
-      </EnvironmentStatus>
-    </>
-  )}
-</AvatarPanel>
+
+      <AvatarPanel>
+        <PanelHeader>STALKER PROFILE</PanelHeader>
+
+        {loadingCharacter ? (
+          <LoadingIndicator>
+            <span>Loading character data...</span>
+            <div className="scanner-line"></div>
+          </LoadingIndicator>
+        ) : !characterData ? (
+          <NoCharacterData>
+            No character data available
+          </NoCharacterData>
+        ) : (
+          <>
+            <CharacterHeader>
+              <CharacterAvatar>
+                <img
+                  src={characterData.avatar_url || FALLBACK_PLAYER_AVATAR}
+                  alt={characterData.name}
+                  onError={(e) => { e.target.src = FALLBACK_PLAYER_AVATAR; }}
+                />
+                <StatusIndicator active={true} />
+              </CharacterAvatar>
+
+              <CharacterNameplate>
+                <h3>{characterData.name}</h3>
+                <div className="class">{characterData.class}</div>
+                <RadiationMeter value={characterData.radiation || 0} />
+              </CharacterNameplate>
+            </CharacterHeader>
+
+            <StatsPanels>
+              <StatsPanel>
+                <h4>ATTRIBUTES</h4>
+                <StatsList>
+                  {characterData.stats && Object.entries(characterData.stats).map(([key, value]) => (
+                    <StatItem key={key}>
+                      <span className="label">{formatStatName(key)}</span>
+                      <StatBar value={value} />
+                      <span className="value">{value}</span>
+                    </StatItem>
+                  ))}
+                </StatsList>
+              </StatsPanel>
+
+              <StatsPanel>
+                <h4>SKILLS</h4>
+                <SkillGrid>
+                  {characterData.profs && Object.entries(characterData.profs)
+                    .slice(0, 6) // Show only top skills to save space
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([key, value]) => (
+                      <SkillItem key={key} proficient={value > 0}>
+                        <span className="label">{formatSkillName(key)}</span>
+                        <span className="value">{value > 0 ? `+${value}` : value}</span>
+                      </SkillItem>
+                    ))}
+                </SkillGrid>
+              </StatsPanel>
+            </StatsPanels>
+
+            <EquipmentBlock>
+              <h4>EQUIPMENT STATUS</h4>
+              <EquipmentGrid>
+                <EquipmentSlot type="headgear">
+                  <EquipmentIcon>{characterData.equipment?.headgear ?
+                    <img src={`./equipment/${characterData.equipment.headgear.icon || 'helmet.png'}`} alt="Headgear" /> :
+                    'HEAD'
+                  }</EquipmentIcon>
+                  <span>{characterData.equipment?.headgear?.name || '-'}</span>
+                </EquipmentSlot>
+
+                <EquipmentSlot type="armor">
+                  <EquipmentIcon>{characterData.equipment?.armor ?
+                    <img src={`./equipment/${characterData.equipment.armor.icon || 'armor.png'}`} alt="Armor" /> :
+                    'BODY'
+                  }</EquipmentIcon>
+                  <span>{characterData.equipment?.armor?.name || '-'}</span>
+                </EquipmentSlot>
+
+                <EquipmentSlot type="primary">
+                  <EquipmentIcon>{characterData.equipment?.primary ?
+                    <img src={`./equipment/${characterData.equipment.primary.icon || 'weapon.png'}`} alt="Primary" /> :
+                    'PRI'
+                  }</EquipmentIcon>
+                  <span>{characterData.equipment?.primary?.name || '-'}</span>
+                </EquipmentSlot>
+
+                <EquipmentSlot type="secondary">
+                  <EquipmentIcon>{characterData.equipment?.secondary ?
+                    <img src={`./equipment/${characterData.equipment.secondary.icon || 'backpack.png'}`} alt="Secondary" /> :
+                    'SEC'
+                  }</EquipmentIcon>
+                  <span>{characterData.equipment?.secondary?.name || '-'}</span>
+                </EquipmentSlot>
+              </EquipmentGrid>
+
+              <ResourceMeters>
+                <ResourceMeter>
+                  <div className="label">MONEY</div>
+                  <div className="value">{characterData.money || 0} ГРН</div>
+                </ResourceMeter>
+
+                <ResourceMeter>
+                  <div className="label">CAPACITY</div>
+                  <div className="bar-container">
+                    <div
+                      className="bar"
+                      style={{
+                        width: `${Math.min(100, (characterData.inventory?.reduce((acc, item) => acc + (item.weight || 0), 0) / characterData.capacity) * 100) || 0}%`
+                      }}
+                    ></div>
+                  </div>
+                  <div className="value">
+                    {characterData.inventory?.reduce((acc, item) => acc + (item.weight || 0), 0) || 0}/{characterData.capacity || 0}
+                  </div>
+                </ResourceMeter>
+              </ResourceMeters>
+
+              <InventoryMini>
+                <h5>INVENTORY ({characterData.inventory?.length || 0})</h5>
+                <ScrollableItems>
+                  {characterData.inventory && characterData.inventory.length > 0 ? (
+                    characterData.inventory.slice(0, 5).map((item, index) => (
+                      <InventoryItem key={index}>
+                        <div className="item-name">{item.name}</div>
+                        <div className="item-weight">{item.weight}kg</div>
+                      </InventoryItem>
+                    ))
+                  ) : (
+                    <EmptyInventory>Empty inventory</EmptyInventory>
+                  )}
+                  {characterData.inventory && characterData.inventory.length > 5 && (
+                    <MoreItems>+ {characterData.inventory.length - 5} more items</MoreItems>
+                  )}
+                </ScrollableItems>
+              </InventoryMini>
+            </EquipmentBlock>
+
+            <EnvironmentStatus>
+              <h4>ENVIRONMENT</h4>
+              <StatusGrid>
+                <StatusCell>
+                  <div className="label">RADS</div>
+                  <div className="value" style={{ color: formatRadiationColor(characterData.radiation || 0) }}>
+                    {characterData.radiation || 0} mSv
+                  </div>
+                </StatusCell>
+                <StatusCell>
+                  <div className="label">ANOMALIES</div>
+                  <div className="value" style={{ color: getProximityColor(characterData.anomaly_proximity || 'SAFE') }}>
+                    {characterData.anomaly_proximity || 'SAFE'}
+                  </div>
+                </StatusCell>
+                <StatusCell>
+                  <div className="label">SAFETY</div>
+                  <div className="value" style={{ color: getSafetyColor(characterData.safety_level || 'SECURE') }}>
+                    {characterData.safety_level || 'SECURE'}
+                  </div>
+                </StatusCell>
+              </StatusGrid>
+            </EnvironmentStatus>
+          </>
+        )}
+      </AvatarPanel>
     </Container>
-  );}
+  );
+}

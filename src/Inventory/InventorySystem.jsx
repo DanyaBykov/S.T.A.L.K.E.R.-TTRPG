@@ -37,7 +37,7 @@ const InventorySystem = () => {
   });
   const [deleteItem, setDeleteItem] = useState(null);
   const [deleteQuantity, setDeleteQuantity] = useState(1);
-  const [contextItem, setContextItem] = useState(null); 
+  const [contextItem, setContextItem] = useState(null);
   const [isUpdateItemMenuOpen, setIsUpdateItemMenuOpen] = useState(false);
   const [updateItem, setUpdateItem] = useState(null);
   const [updateItemData, setUpdateItemData] = useState({ quantity: 1, notes: '' });
@@ -50,7 +50,7 @@ const InventorySystem = () => {
   const [selectedName, setSelectedName] = useState('');
   const [availableItems, setAvailableItems] = useState([]);
 
- 
+
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (!token) {
@@ -131,7 +131,7 @@ const InventorySystem = () => {
     }
     setDraggedItem(dragged);
   };
-  
+
   const getTooltipStyle = (x, y) => {
     const padding = 10;
     const tooltipElement = document.getElementById('tooltip');
@@ -139,7 +139,7 @@ const InventorySystem = () => {
     const tooltipHeight = tooltipElement ? tooltipElement.offsetHeight : 100;
     let left = x + padding;
     let top = y + padding;
-  
+
     if (left + tooltipWidth > window.innerWidth) {
       left = window.innerWidth - tooltipWidth - padding;
     }
@@ -164,10 +164,10 @@ const InventorySystem = () => {
         const updatedItems = inventoryItems.map((item) =>
           item.id === deleteItem.id
             ? {
-                ...item,
-                quantity: item.quantity - deleteQuantity,
-                total_weight: item.total_weight - deleteItem.weight * deleteQuantity,
-              }
+              ...item,
+              quantity: item.quantity - deleteQuantity,
+              total_weight: item.total_weight - deleteItem.weight * deleteQuantity,
+            }
             : item
         );
         setInventoryItems(updatedItems);
@@ -204,12 +204,12 @@ const InventorySystem = () => {
     }
   };
 
-  
+
 
   const renderQuickAccess = () => {
     const headgearCount = equipment.headgear ? (equipment.headgear.quick_slots || 1) : 0;
     const armorCount = equipment.armor ? (equipment.armor.quick_slots || 2) : 0;
-    
+
     return (
       <div className="quick-access-grid">
         {Array.from({ length: totalQuickSlots }, (_, index) => {
@@ -304,25 +304,25 @@ const InventorySystem = () => {
   const handleEquipmentDrop = async (e, slotType) => {
     e.preventDefault();
     if (!characterId || !draggedItem) return;
-  
+
     let canEquip = false;
     if (draggedItem.type === slotType) canEquip = true;
     if (draggedItem.type === 'weapon' && (slotType === 'primary' || slotType === 'secondary'))
       canEquip = true;
-  
+
     if (draggedItem.type === 'headgear' || draggedItem.type === 'armor') {
       const newHeadgearCount =
         draggedItem.type === 'headgear'
           ? draggedItem.quick_slots || 1
           : equipment.headgear
-          ? equipment.headgear.quick_slots || 1
-          : 0;
+            ? equipment.headgear.quick_slots || 1
+            : 0;
       const newArmorCount =
         draggedItem.type === 'armor'
           ? draggedItem.quick_slots || 2
           : equipment.armor
-          ? equipment.armor.quick_slots || 2
-          : 0;
+            ? equipment.armor.quick_slots || 2
+            : 0;
       const newUserSlotCount = totalQuickSlots - newHeadgearCount - newArmorCount;
       const occupiedUserSlots = quickSlots.filter((slot) => slot !== null).length;
       if (occupiedUserSlots > newUserSlotCount) {
@@ -334,7 +334,7 @@ const InventorySystem = () => {
       }
       canEquip = true;
     }
-  
+
     if (canEquip) {
       try {
         await equipItem(characterId, slotType, draggedItem.id);
@@ -420,28 +420,28 @@ const InventorySystem = () => {
     }
     setDraggedItem(null);
   };
-  
+
 
   const handleInventoryDrop = async (e) => {
     e.preventDefault();
     if (!characterId || !draggedItem) return;
-  
+
     if (draggedItem.quickSlotIndex !== undefined) {
       const newSlots = [...quickSlots];
       newSlots[draggedItem.quickSlotIndex] = null;
       setQuickSlots(newSlots);
-  
+
       const itemToReturn = { ...draggedItem };
       delete itemToReturn.quickSlotIndex;
       const invItem = inventoryItems.find(item => item.id === itemToReturn.id);
       if (invItem) {
         const updatedInventory = inventoryItems.map(item =>
-          item.id === itemToReturn.id 
-            ? { 
-                ...item, 
-                quantity: item.quantity + (itemToReturn.quantity || 1),
-                total_weight: (item.quantity + (itemToReturn.quantity || 1)) * item.weight 
-              }
+          item.id === itemToReturn.id
+            ? {
+              ...item,
+              quantity: item.quantity + (itemToReturn.quantity || 1),
+              total_weight: (item.quantity + (itemToReturn.quantity || 1)) * item.weight
+            }
             : item
         );
         setInventoryItems(updatedInventory);
@@ -451,7 +451,7 @@ const InventorySystem = () => {
       setDraggedItem(null);
       return;
     }
-    
+
     if (Object.values(equipment).includes(draggedItem)) {
       const slotKey = Object.keys(equipment).find(key => equipment[key]?.id === draggedItem.id);
       if (slotKey) {
@@ -477,7 +477,7 @@ const InventorySystem = () => {
   const handleItemTypeChange = async (typeSelected) => {
     setNewItem({ ...newItem, type: typeSelected, name: '', weight: 0 });
     setSelectedType(typeSelected);
-    
+
     try {
       const items = await getItemsByType(typeSelected);
       setAvailableItems(items);
@@ -505,28 +505,28 @@ const InventorySystem = () => {
     <div className="inventory-container">
       <div className="main-content">
         <div className="equipment-panel">
-        <div className="header">
-          <div 
-            className="burger-menu" 
-            onClick={() => setBurgerOpen((prev) => !prev)}
-            title="Options"
-          >
-            <Menu size={24} />
+          <div className="header">
+            <div
+              className="burger-menu"
+              onClick={() => setBurgerOpen((prev) => !prev)}
+              title="Options"
+            >
+              <Menu size={24} />
+            </div>
+            EQUIPMENT
           </div>
-          EQUIPMENT
-        </div>
-        {burgerOpen && (
-          <div className="burger-menu-list">
-            <ul>
-              <li><Link to="/">MAIN TERMINAL</Link></li>
-              <li><Link to="/inventory">INVENTORY</Link></li>
-              <li><Link to="/map">ZONE MAP</Link></li>
-              <li><Link to="/journal">JOURNAL</Link></li>
-            </ul>
-          </div>
-        )}
+          {burgerOpen && (
+            <div className="burger-menu-list">
+              <ul>
+                <li><Link to="/">MAIN TERMINAL</Link></li>
+                <li><Link to="/inventory">INVENTORY</Link></li>
+                <li><Link to="/map">ZONE MAP</Link></li>
+                <li><Link to="/journal">JOURNAL</Link></li>
+              </ul>
+            </div>
+          )}
           <div className="equipment-grid">
-          {['primary', 'headgear', 'armor', 'secondary', 'tool', 'pistol'].map(slotType => (
+            {['primary', 'headgear', 'armor', 'secondary', 'tool', 'pistol'].map(slotType => (
               <div
                 key={slotType}
                 className="equipment-slot"
@@ -558,7 +558,7 @@ const InventorySystem = () => {
                   </div>
                 )}
               </div>
-          ))}
+            ))}
           </div>
           <div className="quick-access">
             <div className="quick-access-label">QUICK ACCESS</div>
@@ -758,9 +758,9 @@ const InventorySystem = () => {
                 value={updateItemData.quantity}
                 onChange={(e) => {
                   const value = Number(e.target.value);
-                  setUpdateItemData({ 
-                    ...updateItemData, 
-                    quantity: value < 1 ? 1 : value 
+                  setUpdateItemData({
+                    ...updateItemData,
+                    quantity: value < 1 ? 1 : value
                   });
                 }}
               />
@@ -777,18 +777,18 @@ const InventorySystem = () => {
             <button onClick={async () => {
               try {
                 const fullItemData = {
-                  ...updateItem,                                      
-                  quantity: updateItemData.quantity,                
-                  notes: updateItemData.notes,         
+                  ...updateItem,
+                  quantity: updateItemData.quantity,
+                  notes: updateItemData.notes,
                   total_weight: updateItem.weight * updateItemData.quantity
                 };
-                
+
                 const updated = await updateInventoryItem(characterId, updateItem.id, fullItemData);
-                
+
                 const updatedInventory = inventoryItems.map(item =>
                   item.id === updateItem.id ? updated : item
                 );
-                
+
                 setInventoryItems(updatedInventory);
                 setIsUpdateItemMenuOpen(false);
                 setUpdateItem(null);

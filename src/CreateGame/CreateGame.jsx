@@ -5,7 +5,6 @@ import { Menu, Plus, Edit, Trash2, LogIn, Save, X } from 'lucide-react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
-// API functions for game management
 async function getGames() {
   try {
     return await apiRequest('/games');
@@ -50,7 +49,6 @@ async function deleteGame(gameId) {
   }
 }
 
-// Styled Components
 const Container = styled.div`
   background-color: #0a0a0a;
   color: #a3ffa3;
@@ -454,12 +452,10 @@ const CreateGame = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  
-  // States to handle editing
+
   const [editingGameId, setEditingGameId] = useState(null);
   const [editGameName, setEditGameName] = useState('');
 
-  // Fetch user's games on component mount
   useEffect(() => {
     async function fetchGames() {
       try {
@@ -497,7 +493,6 @@ const CreateGame = () => {
   };
 
   const handleJoinGame = (gameId) => {
-    // Navigate to the game dashboard
     navigate(`/game/${gameId}/map/dm`);
   };
 
@@ -511,16 +506,15 @@ const CreateGame = () => {
       setError('Game name cannot be empty.');
       return;
     }
-    
+
     try {
       setLoading(true);
       await updateGame(editingGameId, editGameName);
-      
-      // Update local state
-      setGames(games.map(game => 
+
+      setGames(games.map(game =>
         game.id === editingGameId ? { ...game, name: editGameName } : game
       ));
-      
+
       setEditingGameId(null);
       setEditGameName('');
       setError(null);
@@ -536,12 +530,11 @@ const CreateGame = () => {
     if (!window.confirm("Are you sure you want to delete this game?")) {
       return;
     }
-    
+
     try {
       setLoading(true);
       await deleteGame(gameId);
-      
-      // Update local state
+
       setGames(games.filter(game => game.id !== gameId));
       setError(null);
     } catch (err) {
@@ -557,7 +550,7 @@ const CreateGame = () => {
       <MenuBtn onClick={() => setMenuOpen(!menuOpen)}>
         <Menu size={32} />
       </MenuBtn>
-      
+
       {menuOpen && (
         <MenuList>
           <ul>
@@ -568,13 +561,13 @@ const CreateGame = () => {
           </ul>
         </MenuList>
       )}
-      
+
       <Header>
         <h1>S.T.A.L.K.E.R. GAME MASTER CONSOLE</h1>
       </Header>
-      
+
       {error && <ErrorMessage>{error}</ErrorMessage>}
-      
+
       <ContentLayout>
         <GameListPanel>
           <h2>ACTIVE OPERATIONS</h2>
@@ -591,9 +584,9 @@ const CreateGame = () => {
                   <GameCard key={game.id}>
                     {editingGameId === game.id ? (
                       <>
-                        <Input 
-                          type="text" 
-                          value={editGameName} 
+                        <Input
+                          type="text"
+                          value={editGameName}
                           onChange={(e) => setEditGameName(e.target.value)}
                           autoFocus
                         />
@@ -602,7 +595,7 @@ const CreateGame = () => {
                             <Save size={16} />
                             Save
                           </Button>
-                          <Button 
+                          <Button
                             onClick={() => { setEditingGameId(null); setEditGameName(''); }}
                           >
                             <X size={16} />
@@ -642,7 +635,7 @@ const CreateGame = () => {
             </GameList>
           )}
         </GameListPanel>
-        
+
         <ActionPanel>
           <h2>CREATE NEW OPERATION</h2>
           <Input
@@ -651,14 +644,14 @@ const CreateGame = () => {
             value={newGameName}
             onChange={(e) => setNewGameName(e.target.value)}
           />
-          <Button 
-            onClick={handleCreateGame} 
+          <Button
+            onClick={handleCreateGame}
             disabled={loading}
           >
             <Plus size={16} />
             {loading ? 'PROCESSING...' : 'CREATE OPERATION'}
           </Button>
-          
+
           <div style={{ marginTop: '3rem' }}>
             <Button onClick={() => navigate('/')}>
               RETURN TO MAIN CONSOLE
