@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import "./Journal.css";
 import styled from 'styled-components';
 import { Menu } from 'lucide-react';
-import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import Rules from './Rules';
+import Rules from './Rules';    
 
 const API_URL = '';
 
@@ -294,7 +294,7 @@ export default function StalkerJournal() {
   const [selectedTab, setSelectedTab] = useState("Bestiary");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-
+  
   const tabs = [
     { name: "Bestiary", highlight: true },
     { name: "Anomalies", highlight: false },
@@ -303,7 +303,7 @@ export default function StalkerJournal() {
     { name: "Quest log", highlight: false },
     { name: "Notes", highlight: false }
   ];
-
+  
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
@@ -319,7 +319,7 @@ export default function StalkerJournal() {
   };
 
   const renderContent = () => {
-    switch (selectedTab) {
+    switch(selectedTab) {
       case "Bestiary":
         return <BestiarySection selectedItem={selectedItem} onItemClick={handleItemClick} />;
       case "Anomalies":
@@ -336,7 +336,7 @@ export default function StalkerJournal() {
         return <div className="placeholder-content">Content for {selectedTab} will go here</div>;
     }
   };
-
+  
   return (
     <JournalContainer>
       <NavBar>
@@ -344,7 +344,7 @@ export default function StalkerJournal() {
           <MenuBtn onClick={toggleMobileMenu}>
             <Menu size={24} />
           </MenuBtn>
-
+          
           <DesktopNav>
             {tabs.map((tab) => (
               <NavItem
@@ -358,14 +358,14 @@ export default function StalkerJournal() {
             ))}
           </DesktopNav>
         </NavContent>
-
+        
         <NavLinks>
           <Link to="/">TERMINAL</Link>
           <Link to="/map">MAP</Link>
           <Link to="/inventory">INVENTORY</Link>
         </NavLinks>
       </NavBar>
-
+      
       {mobileMenuOpen && (
         <MenuList>
           {tabs.map((tab) => (
@@ -380,7 +380,7 @@ export default function StalkerJournal() {
           ))}
         </MenuList>
       )}
-
+      
       <MainContent>
         <JournalPage>
           {renderContent()}
@@ -424,24 +424,24 @@ function BestiarySection({ selectedItem, onItemClick }) {
       try {
         setLoading(true);
         const response = await fetch(`${API_URL}/wiki/beasts`);
-
+        
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
+        
         const data = await response.json();
         setBeasts(Array.isArray(data.data) ? data.data : data);
         setError(null);
       } catch (err) {
         console.error("Error fetching beasts:", err);
         setError("Failed to load bestiary data. Using local data.");
-
+        
         setBeasts(mockBestiaryData);
       } finally {
         setLoading(false);
       }
     };
-
+    
     if (!selectedItem) {
       fetchBeasts();
     }
@@ -459,8 +459,8 @@ function BestiarySection({ selectedItem, onItemClick }) {
       {error && <div className="error-message">{error}</div>}
       <div className="item-list">
         {beasts.map(beast => (
-          <div
-            key={beast.id}
+          <div 
+            key={beast.id} 
             className="list-item"
             onClick={() => onItemClick(beast)}
           >
@@ -485,24 +485,24 @@ function AnomaliesSection({ selectedItem, onItemClick }) {
       try {
         setLoading(true);
         const response = await fetch(`${API_URL}/wiki/anomalies`);
-
+        
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
+        
         const data = await response.json();
         setAnomalies(Array.isArray(data.data) ? data.data : data);
         setError(null);
       } catch (err) {
         console.error("Error fetching anomalies:", err);
         setError("Failed to load anomalies data. Using local data.");
-
+        
         setAnomalies(mockAnomaliesData);
       } finally {
         setLoading(false);
       }
     };
-
+    
     if (!selectedItem) {
       fetchAnomalies();
     }
@@ -520,8 +520,8 @@ function AnomaliesSection({ selectedItem, onItemClick }) {
       {error && <div className="error-message">{error}</div>}
       <div className="item-list">
         {anomalies.map(anomaly => (
-          <div
-            key={anomaly.id}
+          <div 
+            key={anomaly.id} 
             className="list-item"
             onClick={() => onItemClick(anomaly)}
           >
@@ -546,24 +546,24 @@ function ArtifactsSection({ selectedItem, onItemClick }) {
       try {
         setLoading(true);
         const response = await fetch(`${API_URL}/wiki/artifacts`);
-
+        
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
+        
         const data = await response.json();
         setArtifacts(Array.isArray(data.data) ? data.data : data);
         setError(null);
       } catch (err) {
         console.error("Error fetching artifacts:", err);
         setError("Failed to load artifacts data. Using local data.");
-
+        
         setArtifacts(mockArtifactsData);
       } finally {
         setLoading(false);
       }
     };
-
+    
     if (!selectedItem) {
       fetchArtifacts();
     }
@@ -581,8 +581,8 @@ function ArtifactsSection({ selectedItem, onItemClick }) {
       {error && <div className="error-message">{error}</div>}
       <div className="item-list">
         {artifacts.map(artifact => (
-          <div
-            key={artifact.id}
+          <div 
+            key={artifact.id} 
             className="list-item"
             onClick={() => onItemClick(artifact)}
           >
@@ -667,7 +667,7 @@ function DetailView({ item, onBack, category }) {
     if (category !== 'Bestiary' || !displayItem) return null;
 
     const getSizeIcon = (size) => {
-      switch (size?.toLowerCase()) {
+      switch(size?.toLowerCase()) {
         case 'small': return '🐁';
         case 'medium': return '🐺';
         case 'large': return '🦁';
@@ -747,7 +747,7 @@ function DetailView({ item, onBack, category }) {
               <tr>
                 <td><b>Damage Dice</b></td>
                 <td>
-                  {["d4", "d6", "d8", "d10", "d12", "d20"]
+                  {["d4","d6","d8","d10","d12","d20"]
                     .map(die => displayItem[die] > 0 ? `${displayItem[die]}${die}` : null)
                     .filter(Boolean)
                     .join(", ") || "None"}
@@ -804,9 +804,9 @@ function DetailView({ item, onBack, category }) {
       {error && <div className="error-message">{error}</div>}
       <div className="detail-content">
         <div className="detail-image-container">
-          <img
-            src={displayItem.image || "/api/placeholder/280/280"}
-            alt={displayItem.name}
+          <img 
+            src={displayItem.image || "/api/placeholder/280/280"} 
+            alt={displayItem.name} 
             className="detail-image"
           />
         </div>
@@ -840,38 +840,15 @@ const getAuthHeaders = () => {
 };
 
 function QuestLogSection() {
-  let characterId;
-  const params = typeof useParams === 'function' ? useParams() : {};
-  const location = typeof useLocation === 'function' ? useLocation() : {};
-  const navigate = typeof useNavigate === 'function' ? useNavigate() : () => {};
-  characterId = params.characterId || (location.state && location.state.characterId);
-  if (!characterId) {
-    characterId = localStorage.getItem('selectedCharacterId');
-  }
-  if (!characterId) {
-    const storedCharacters = localStorage.getItem('characters');
-    if (storedCharacters) {
-      try {
-        const parsed = JSON.parse(storedCharacters);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          characterId = parsed[0].id;
-        }
-      } catch (e) {}
-    }
-  }
-  if (!characterId) {
-    setTimeout(() => navigate && navigate('/'), 1000);
-    return <div className="error-message">No character selected. Please select a character first.</div>;
-  }
-
-  // Now hooks can be used
   const [quests, setQuests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newQuestTitle, setNewQuestTitle] = useState("");
   const [newQuestDescription, setNewQuestDescription] = useState("");
-
+  
+  const characterId = "1c5293ee-d3bd-4e7b-b91f-bb4f9f56a8a3"; 
+  
   useEffect(() => {
     const fetchQuests = async () => {
       try {
@@ -879,18 +856,18 @@ function QuestLogSection() {
         const response = await fetch(`${API_URL}/characters/${characterId}/quests`, {
           headers: getAuthHeaders()
         });
-
+        
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
+        
         const data = await response.json();
         setQuests(data);
         setError(null);
       } catch (err) {
         console.error("Error fetching quests:", err);
         setError("Failed to load quests. Using local data.");
-
+        
         setQuests([
           { id: 1, title: "Find the military documents", description: "Locate the secret documents in the abandoned military base", completed: false },
           { id: 2, title: "Eliminate the bloodsucker nest", description: "Clear out the bloodsuckers in the old factory", completed: true },
@@ -900,60 +877,60 @@ function QuestLogSection() {
         setLoading(false);
       }
     };
-
+    
     fetchQuests();
   }, [characterId]);
-
+  
   const toggleQuestStatus = async (id) => {
     try {
-      setQuests(quests.map(quest =>
+      setQuests(quests.map(quest => 
         quest.id === id ? { ...quest, completed: !quest.completed } : quest
       ));
-
+      
       const response = await fetch(`${API_URL}/characters/${characterId}/quests/${id}/toggle`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
       });
-
+      
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
+      
       const updatedQuest = await response.json();
       console.log("Quest updated successfully:", updatedQuest);
-
+      
     } catch (err) {
       console.error("Error toggling quest status:", err);
-      setQuests(quests.map(quest =>
+      setQuests(quests.map(quest => 
         quest.id === id ? { ...quest, completed: !quest.completed } : quest
       ));
       setError("Failed to update quest. Change saved locally only.");
     }
   };
-
+  
   const addNewQuest = async () => {
     if (newQuestTitle.trim() === "") return;
-
+    
     try {
       const newQuest = {
         title: newQuestTitle,
         description: newQuestDescription,
         completed: false
       };
-
+      
       const response = await fetch(`${API_URL}/characters/${characterId}/quests`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(newQuest)
       });
-
+      
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
+      
       const createdQuest = await response.json();
       setQuests([...quests, createdQuest]);
-
+      
       setNewQuestTitle("");
       setNewQuestDescription("");
       setShowAddForm(false);
@@ -961,39 +938,39 @@ function QuestLogSection() {
     } catch (err) {
       console.error("Error creating quest:", err);
       setError("Failed to save to server. Quest saved locally.");
-
+      
       const localQuest = {
         id: Date.now(),
         title: newQuestTitle,
         description: newQuestDescription,
         completed: false
       };
-
+      
       setQuests([...quests, localQuest]);
       setNewQuestTitle("");
       setNewQuestDescription("");
       setShowAddForm(false);
     }
   };
-
+  
   if (loading) return <div className="loading">Loading quests...</div>;
-
+  
   return (
     <div className="quest-section">
       <div className="section-header">
         <h1 className="section-title">Quest Log</h1>
-        <button
+        <button 
           className="add-button"
           onClick={() => setShowAddForm(true)}
         >
           +
         </button>
       </div>
-
+      
       {error && (
         <div className="error-message">{error}</div>
       )}
-
+      
       {showAddForm && (
         <div className="add-form">
           <input
@@ -1015,7 +992,7 @@ function QuestLogSection() {
           </div>
         </div>
       )}
-
+      
       <div className="quest-list">
         {quests.length === 0 ? (
           <div className="empty-state">No quests available. Add your first quest!</div>
@@ -1023,8 +1000,8 @@ function QuestLogSection() {
           quests.map(quest => (
             <div key={quest.id} className={`quest-item ${quest.completed ? 'completed' : ''}`}>
               <div className="quest-checkbox">
-                <input
-                  type="checkbox"
+                <input 
+                  type="checkbox" 
                   checked={quest.completed}
                   onChange={() => toggleQuestStatus(quest.id)}
                 />
@@ -1042,29 +1019,6 @@ function QuestLogSection() {
 }
 
 function NotesSection() {
-  const navigate = useNavigate ? useNavigate() : () => {};
-  const params = useParams ? useParams() : {};
-  const location = useLocation ? useLocation() : {};
-  let characterId = params.characterId || (location.state && location.state.characterId);
-  if (!characterId) {
-    characterId = localStorage.getItem('selectedCharacterId');
-  }
-  if (!characterId) {
-    const storedCharacters = localStorage.getItem('characters');
-    if (storedCharacters) {
-      try {
-        const parsed = JSON.parse(storedCharacters);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          characterId = parsed[0].id;
-        }
-      } catch (e) {}
-    }
-  }
-  if (!characterId) {
-    setTimeout(() => navigate && navigate('/'), 1000);
-    return <div className="error-message">No character selected. Please select a character first.</div>;
-  }
-
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -1072,7 +1026,9 @@ function NotesSection() {
   const [selectedNote, setSelectedNote] = useState(null);
   const [newNoteTitle, setNewNoteTitle] = useState("");
   const [newNoteContent, setNewNoteContent] = useState("");
-
+  
+  const characterId = "1c5293ee-d3bd-4e7b-b91f-bb4f9f56a8a3";
+  
   useEffect(() => {
     const fetchNotes = async () => {
       try {
@@ -1080,18 +1036,18 @@ function NotesSection() {
         const response = await fetch(`${API_URL}/characters/${characterId}/notes`, {
           headers: getAuthHeaders()
         });
-
+        
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
+        
         const data = await response.json();
         setNotes(data);
         setError(null);
       } catch (err) {
         console.error("Error fetching notes:", err);
         setError("Failed to load notes. Using local data.");
-
+        
         setNotes([
           { id: 1, title: "Safe paths through Garbage", content: "Avoid the center area with the car graveyard. The northern path seems safer, watch for anomalies near the fence." },
           { id: 2, title: "Trader prices", content: "The trader in Rostok pays well for mutant parts. The one in the Bar has better prices for artifacts." }
@@ -1100,32 +1056,32 @@ function NotesSection() {
         setLoading(false);
       }
     };
-
+    
     fetchNotes();
   }, [characterId]);
-
+  
   const addNewNote = async () => {
     if (newNoteTitle.trim() === "") return;
-
+    
     try {
       const newNote = {
         title: newNoteTitle,
         content: newNoteContent
       };
-
+      
       const response = await fetch(`${API_URL}/characters/${characterId}/notes`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(newNote)
       });
-
+      
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
+      
       const createdNote = await response.json();
       setNotes([...notes, createdNote]);
-
+      
       setNewNoteTitle("");
       setNewNoteContent("");
       setShowAddForm(false);
@@ -1133,51 +1089,51 @@ function NotesSection() {
     } catch (err) {
       console.error("Error creating note:", err);
       setError("Failed to save to server. Note saved locally.");
-
+      
       const localNote = {
         id: Date.now(),
         title: newNoteTitle,
         content: newNoteContent
       };
-
+      
       setNotes([...notes, localNote]);
       setNewNoteTitle("");
       setNewNoteContent("");
       setShowAddForm(false);
     }
   };
-
+  
   const viewNote = (note) => {
     setSelectedNote(note);
     setNewNoteTitle(note.title);
     setNewNoteContent(note.content);
     setShowAddForm(true);
   };
-
+  
   const updateNote = async () => {
     if (newNoteTitle.trim() === "") return;
-
+    
     try {
       const updatedNote = {
         title: newNoteTitle,
         content: newNoteContent
       };
-
+      
       const response = await fetch(`${API_URL}/characters/${characterId}/notes/${selectedNote.id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(updatedNote)
       });
-
+      
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
+      
       const serverUpdatedNote = await response.json();
-      setNotes(notes.map(note =>
+      setNotes(notes.map(note => 
         note.id === selectedNote.id ? serverUpdatedNote : note
       ));
-
+      
       setNewNoteTitle("");
       setNewNoteContent("");
       setSelectedNote(null);
@@ -1186,80 +1142,80 @@ function NotesSection() {
     } catch (err) {
       console.error("Error updating note:", err);
       setError("Failed to update on server. Note updated locally.");
-
-      setNotes(notes.map(note =>
-        note.id === selectedNote.id
-          ? { ...note, title: newNoteTitle, content: newNoteContent }
+      
+      setNotes(notes.map(note => 
+        note.id === selectedNote.id 
+          ? { ...note, title: newNoteTitle, content: newNoteContent } 
           : note
       ));
-
+      
       setNewNoteTitle("");
       setNewNoteContent("");
       setSelectedNote(null);
       setShowAddForm(false);
     }
   };
-
+  
   const deleteNote = async (id, e) => {
     e.stopPropagation();
-
+    
     if (!confirm("Are you sure you want to delete this note?")) {
       return;
     }
-
+    
     try {
       const response = await fetch(`${API_URL}/characters/${characterId}/notes/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
-
+      
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
+      
       setNotes(notes.filter(note => note.id !== id));
-
+      
       if (selectedNote && selectedNote.id === id) {
         setSelectedNote(null);
         setNewNoteTitle("");
         setNewNoteContent("");
         setShowAddForm(false);
       }
-
+      
       setError(null);
     } catch (err) {
       console.error("Error deleting note:", err);
       setError("Failed to delete from server. Note removed locally.");
-
+      
       setNotes(notes.filter(note => note.id !== id));
     }
   };
-
+  
   const cancelForm = () => {
     setNewNoteTitle("");
     setNewNoteContent("");
     setSelectedNote(null);
     setShowAddForm(false);
   };
-
+  
   if (loading) return <div className="loading">Loading notes...</div>;
-
+  
   return (
     <div className="notes-section">
       <div className="section-header">
         <h1 className="section-title">Notes</h1>
-        <button
+        <button 
           className="add-button"
           onClick={() => setShowAddForm(true)}
         >
           +
         </button>
       </div>
-
+      
       {error && (
         <div className="error-message">{error}</div>
       )}
-
+      
       {showAddForm && (
         <div className="add-form notes-form">
           <input
@@ -1281,8 +1237,8 @@ function NotesSection() {
               {selectedNote ? 'Update' : 'Save'}
             </button>
             {selectedNote && (
-              <button
-                className="delete-button"
+              <button 
+                className="delete-button" 
                 onClick={(e) => deleteNote(selectedNote.id, e)}
               >
                 Delete
@@ -1291,26 +1247,26 @@ function NotesSection() {
           </div>
         </div>
       )}
-
+      
       <div className="notes-list">
         {notes.length === 0 ? (
           <div className="empty-state">No notes available. Add your first note!</div>
         ) : (
           notes.map(note => (
-            <div
-              key={note.id}
+            <div 
+              key={note.id} 
               className="note-item"
               onClick={() => viewNote(note)}
             >
               <div className="note-title">{note.title}</div>
               <div className="note-preview">
-                {note.content.length > 60
-                  ? `${note.content.substring(0, 60)}...`
+                {note.content.length > 60 
+                  ? `${note.content.substring(0, 60)}...` 
                   : note.content
                 }
               </div>
-              <button
-                className="delete-icon"
+              <button 
+                className="delete-icon" 
                 onClick={(e) => deleteNote(note.id, e)}
               >
                 ×
