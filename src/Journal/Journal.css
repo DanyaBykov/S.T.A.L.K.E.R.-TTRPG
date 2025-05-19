@@ -256,6 +256,7 @@
   border-radius: 4px;
   padding: 12px;
   background-color: #ede8d8;
+  color: #333;
 }
 
 .quest-item.completed {
@@ -357,6 +358,7 @@
   border-radius: 4px;
   padding: 16px;
   background-color: #ede8d8;
+  color: #333;
   cursor: pointer;
   transition: transform 0.2s;
 }
