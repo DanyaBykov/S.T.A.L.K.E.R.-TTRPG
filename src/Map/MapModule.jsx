@@ -210,20 +210,24 @@ export default function MapPage() {
   return (
     <Container>
       <MapContainerStyled>
-        <MapContainer 
-          center={[20, 20]} 
-          zoom={3} 
-          minZoom={1}
+      <MapContainer 
+        center={[20, 20]} 
+        zoom={3} 
+        minZoom={2}  // Increased minimum zoom for better visibility
+        maxZoom={6}
+        style={{ height: '100%' }}
+        maxBounds={[[0, 0], [40, 40]]}  // Set map boundaries
+        maxBoundsViscosity={1.0}  // Makes boundaries "hard" - no movement beyond them
+      >
+        <TileLayer
+          url="https://joric.github.io/stalker2_tileset/tiles/{z}/{x}/{y}.jpg"
+          attribution='&copy; S.T.A.L.K.E.R. TTRPG Map'
           maxZoom={6}
-          style={{ height: '100%' }}
-        >
-          <TileLayer
-            url="https://joric.github.io/stalker2_tileset/tiles/{z}/{x}/{y}.jpg"
-            attribution='&copy; S.T.A.L.K.E.R. TTRPG Map'
-            maxZoom={6}
-            minZoom={1}
-            tileSize={512}
-          />
+          minZoom={2}  // Match minZoom with the container
+          tileSize={512}
+          noWrap={true}  // Prevent the map from cycling/wrapping
+          bounds={[[0, 0], [40, 40]]}  // Match with maxBounds for consistency
+        />
           
           {characterPins.map(pin => (
             <Marker 
