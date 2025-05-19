@@ -1706,16 +1706,34 @@ const handlePinStop = async (pinId) => {
                   onDrag={(e, data) => {
                     e.stopPropagation();
                     if (canMovePin(pin.id)) {
-                      handlePinDrag(pin.id, data);
+                      // Update directly from data without any adjustments
+                      setCharacterPins(characterPins.map(pin => 
+                        pin.id === pinId ? { ...pin, x: data.x, y: data.y } : pin
+                      ));
                     }
                   }}
-                  onStop={(e) => {
+                  onStop={(e, data) => {
                     e.stopPropagation();
-                    handlePinStop(pin.id);
+                    if (canMovePin(pin.id)) {
+                      // Capture final position directly from data
+                      const finalPosition = { x: data.x, y: data.y };
+                      
+                      // Update local state with exact position
+                      setCharacterPins(characterPins.map(pin => 
+                        pin.id === pin.id ? { ...pin, ...finalPosition } : pin
+                      ));
+                      
+                      // Save to backend with exact position
+                      apiRequest(`/games/${gameId}/pins/${pin.id}/position`, {
+                        method: 'PUT',
+                        body: JSON.stringify(finalPosition)
+                      }).catch(err => console.error("Failed to save pin position:", err));
+                    }
                   }}
                   disabled={!canMovePin(pin.id)}
                   bounds="parent"
                   grid={null}
+                  scale={1}  // Ensure no scaling is applied during dragging
                   nodeRef={pinRefs.current[pin.id]}
                 >
                   {/* existing pin rendering */}
