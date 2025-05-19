@@ -1596,7 +1596,7 @@ const centerViewOnPin = (pinId) => {
   const handlePinDrag = (pinId, data) => {
     if (!canMovePin(pinId)) return;
     
-    // const adjustedPosition = adjustPositionForScale(data);
+    const adjustedPosition = adjustPositionForScale(data);
     setCharacterPins(characterPins.map(pin => 
       pin.id === pinId ? { ...pin, x: adjustedPosition.x, y: adjustedPosition.y } : pin
     ));
