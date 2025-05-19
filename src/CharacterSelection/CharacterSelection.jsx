@@ -422,9 +422,6 @@ const CharacterSelection = () => {
   const [gameName, setGameName] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const currentGameId = gameId ||
-    (location.state && location.state.gameId) ||
-    localStorage.getItem("currentGameId");
   const currentGameId = gameId || 
                      (location.state && location.state.gameId) || 
                      localStorage.getItem("currentGameId");
