@@ -43,7 +43,7 @@ const InventorySystem = () => {
   const [updateItemData, setUpdateItemData] = useState({ quantity: 1, notes: '' });
   const [hoveredItem, setHoveredItem] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-  const totalQuickSlots = 6; // Total quick slots
+  const totalQuickSlots = 6;
   const [quickSlots, setQuickSlots] = useState(Array(totalQuickSlots).fill(null));
   const [burgerOpen, setBurgerOpen] = useState(false);
   const [selectedType, setSelectedType] = useState('');
@@ -124,7 +124,6 @@ const InventorySystem = () => {
   const handleQuickSlotDragStart = (e, slotIndex, slotItem) => {
     e.stopPropagation();
     let dragged;
-    // For medication, merge the full item data with the current stacked quantity.
     if (slotItem.type === 'medication') {
       dragged = { ...slotItem.item, quantity: slotItem.quantity, quickSlotIndex: slotIndex };
     } else if (slotItem.type === 'magazine') {
@@ -187,7 +186,6 @@ const InventorySystem = () => {
 
   const handleAddItem = async () => {
     if (!characterId) return;
-    // Calculate weight that this item will add
     const additionalWeight = newItem.quantity * newItem.weight;
     const currentWeight = calculateTotalWeight();
     if (currentWeight + additionalWeight > capacity) {
@@ -211,7 +209,6 @@ const InventorySystem = () => {
   const renderQuickAccess = () => {
     const headgearCount = equipment.headgear ? (equipment.headgear.quick_slots || 1) : 0;
     const armorCount = equipment.armor ? (equipment.armor.quick_slots || 2) : 0;
-    const userSlotCount = totalQuickSlots - headgearCount - armorCount;
     
     return (
       <div className="quick-access-grid">
@@ -309,13 +306,11 @@ const InventorySystem = () => {
     if (!characterId || !draggedItem) return;
   
     let canEquip = false;
-    // Simple type matching:
     if (draggedItem.type === slotType) canEquip = true;
     if (draggedItem.type === 'weapon' && (slotType === 'primary' || slotType === 'secondary'))
       canEquip = true;
   
     if (draggedItem.type === 'headgear' || draggedItem.type === 'armor') {
-      // Determine what the new reserved counts would be:
       const newHeadgearCount =
         draggedItem.type === 'headgear'
           ? draggedItem.quick_slots || 1
@@ -329,7 +324,6 @@ const InventorySystem = () => {
           ? equipment.armor.quick_slots || 2
           : 0;
       const newUserSlotCount = totalQuickSlots - newHeadgearCount - newArmorCount;
-      // Count user-managed slots currently occupied.
       const occupiedUserSlots = quickSlots.filter((slot) => slot !== null).length;
       if (occupiedUserSlots > newUserSlotCount) {
         alert(
