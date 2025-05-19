@@ -7,7 +7,8 @@ import styled from 'styled-components';
 import Draggable from 'react-draggable';
 import { Plus, UserCircle } from 'lucide-react';
 import TileRenderer from './TileRenderer';
-
+import { useParams } from 'react-router-dom';
+import { apiRequest } from '../services/api'
 
 
 const Container = styled.div`
@@ -783,16 +784,10 @@ export default function MapPage() {
   const [quantities, setQuantities] = useState(
     diceTypes.reduce((acc, d) => ({ ...acc, [d.label]: 0 }), {})
   );
-  const [characterPins, setCharacterPins] = useState([
-    { 
-      id: 'stalker-1', 
-      name: 'Stalker-1', 
-      avatar: PLAYER_AVATARS[0] || FALLBACK_PLAYER_AVATAR,
-      isMonster: false,
-      x: 200, 
-      y: 200
-    }
-  ]);
+  const { gameId, characterId } = useParams();
+  const [isGameMaster, setIsGameMaster] = useState(false);
+  const [characterPins, setCharacterPins] = useState([]);
+  const [currentUserRole, setCurrentUserRole] = useState('player');
   const pinRefs = useRef({});
   const [results, setResults] = useState([]);
   const [rolling, setRolling] = useState(false);
@@ -809,6 +804,7 @@ export default function MapPage() {
   });
   const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const mapContainerRef = useRef(null);
+  
 
   useEffect(() => {
     setMapOffset({ x: 10, y: 10 });
@@ -836,6 +832,30 @@ export default function MapPage() {
       return () => resizeObserver.disconnect();
     }
   }, []);
+
+  useEffect(() => {
+    async function loadGameData() {
+      try {
+        const gameData = await apiRequest(`/games/${gameId}`);
+        setIsGameMaster(gameData.is_dm);
+        setCurrentUserRole(gameData.is_dm ? 'dm' : 'player');
+        
+        const pinsData = await apiRequest(`/games/${gameId}/pins`);
+        setCharacterPins(pinsData.pins.map(pin => ({
+          id: pin.character_id,
+          name: pin.name,
+          avatar: pin.avatar_url || (pin.is_monster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR),
+          isMonster: pin.is_monster,
+          x: pin.position_x,
+          y: pin.position_y
+        })));
+      } catch (err) {
+        console.error("Failed to load game data:", err);
+      }
+    }
+    
+    loadGameData();
+  }, [gameId]);
   
   const addCharacterPin = () => {
     const isMonster = pinTabActive === 'monsters';
@@ -866,7 +886,14 @@ export default function MapPage() {
     };
   };
   
+  const canMovePin = (pinId) => {
+    if (isGameMaster) return true; // DM can move any pin
+    return pinId === characterId;
+  };
+
   const handlePinDrag = (pinId, data) => {
+    if (!canMovePin(pinId)) return;
+    
     const adjustedPosition = adjustPositionForScale(data);
     setCharacterPins(characterPins.map(pin => 
       pin.id === pinId ? { ...pin, x: adjustedPosition.x, y: adjustedPosition.y } : pin
@@ -874,34 +901,42 @@ export default function MapPage() {
   };
   
   // 3. Update the handlePinStop function to correctly snap to grid
-const handlePinStop = (pinId) => {
-  setCharacterPins(characterPins.map(pin => {
-    if (pin.id !== pinId) return pin;
+  const handlePinStop = async (pinId) => {
+    if (!canMovePin(pinId)) return;
     
+    // Find the pin that was moved
+    const movedPin = characterPins.find(pin => pin.id === pinId);
+    if (!movedPin) return;
+    
+    let updatedPin = {...movedPin};
+    
+    // Apply grid snapping if enabled
     if (gridEnabled) {
       const adjustedGridSize = gridSize * scale;
-      
-      // Calculate grid cell coordinates
-      // Note: We no longer subtract mapOffset since pins are now in the same coordinate space as the grid
-      const cellX = Math.round(pin.x / adjustedGridSize);
-      const cellY = Math.round(pin.y / adjustedGridSize);
-      
-      // Convert to snap position
-      const snappedX = cellX * adjustedGridSize;
-      const snappedY = cellY * adjustedGridSize;
-      
-      console.log(`Snapping pin to grid: (${snappedX}, ${snappedY})`);
-      
-      return {
-        ...pin,
-        x: snappedX,
-        y: snappedY
-      };
+      const cellX = Math.round(movedPin.x / adjustedGridSize);
+      const cellY = Math.round(movedPin.y / adjustedGridSize);
+      updatedPin.x = cellX * adjustedGridSize;
+      updatedPin.y = cellY * adjustedGridSize;
     }
     
-    return pin;
-  }));
-};
+    // Update local state
+    setCharacterPins(characterPins.map(pin => 
+      pin.id === pinId ? updatedPin : pin
+    ));
+    
+    // Save to backend
+    try {
+      await apiRequest(`/games/${gameId}/pins/${pinId}/position`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          x: updatedPin.x,
+          y: updatedPin.y
+        })
+      });
+    } catch (err) {
+      console.error("Failed to save pin position:", err);
+    }
+  };
   
   const renamePinById = (id, newName) => {
     setCharacterPins(
@@ -1066,56 +1101,61 @@ const handlePinStop = (pinId) => {
                 </div>
               )}
                             
-                <PinContainer>
-                  {characterPins.map(pin => {
-                    if (!pinRefs.current[pin.id]) {
-                      pinRefs.current[pin.id] = React.createRef();
+                            <PinContainer>
+            {characterPins.map(pin => {
+              if (!pinRefs.current[pin.id]) {
+                pinRefs.current[pin.id] = React.createRef();
+              }
+              
+              return (
+                <Draggable
+                  key={pin.id}
+                  position={{ x: pin.x, y: pin.y }}
+                  onDrag={(e, data) => {
+                    e.stopPropagation();
+                    if (canMovePin(pin.id)) {
+                      handlePinDrag(pin.id, data);
                     }
-                    
-                    return (
-                      <Draggable
-                      key={pin.id}
-                      position={{ x: pin.x, y: pin.y }}
-                      onDrag={(e, data) => {
-                        e.stopPropagation();
-                        handlePinDrag(pin.id, data);
-                      }}
-                      onStop={(e) => {
-                        e.stopPropagation();
-                        handlePinStop(pin.id);
-                      }}
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                      }}
-                      bounds="parent"
-                      grid={null}
-                      nodeRef={pinRefs.current[pin.id]}
+                  }}
+                  onStop={(e) => {
+                    e.stopPropagation();
+                    handlePinStop(pin.id);
+                  }}
+                  disabled={!canMovePin(pin.id)}
+                  bounds="parent"
+                  grid={null}
+                  nodeRef={pinRefs.current[pin.id]}
+                >
+                  {/* existing pin rendering */}
+                  <div 
+                    ref={pinRefs.current[pin.id]} 
+                    style={{
+                      position: 'absolute',
+                      cursor: canMovePin(pin.id) ? 'grab' : 'not-allowed'
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                  >
+                    <CharacterPin 
+                      size={gridSize * 0.8} 
+                      isMonster={pin.isMonster}
+                      title={pin.name}
+                      isSnapped={gridEnabled}
+                      isCurrentPlayer={pin.id === characterId}
                     >
-                        <div 
-                          ref={pinRefs.current[pin.id]} 
-                          style={{position: 'absolute'}}
-                          onMouseDown={(e) => e.stopPropagation()}
-                        >
-                          <CharacterPin 
-                            size={gridSize * 0.8} 
-                            isMonster={pin.isMonster}
-                            title={pin.name}
-                            isSnapped={gridEnabled}
-                          >
-                            <img 
-                              src={pin.avatar} 
-                              alt={pin.name} 
-                              onError={(e) => {
-                                e.target.src = pin.isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
-                              }}
-                            />
-                            <span>{pin.name}</span>
-                          </CharacterPin>
-                        </div>
-                      </Draggable>
-                    );
-                  })}
-                </PinContainer>
+                      <img 
+                        src={pin.avatar} 
+                        alt={pin.name} 
+                        onError={(e) => {
+                          e.target.src = pin.isMonster ? FALLBACK_MONSTER_AVATAR : FALLBACK_PLAYER_AVATAR;
+                        }}
+                      />
+                      <span>{pin.name}</span>
+                    </CharacterPin>
+                  </div>
+                </Draggable>
+              );
+            })}
+          </PinContainer>
               </TransformComponent>
               
             </>

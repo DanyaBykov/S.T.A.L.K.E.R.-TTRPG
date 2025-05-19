@@ -569,7 +569,7 @@ export default function CreateCharacter() {
       });
       
       alert('Персонаж створено успішно!');
-      navigate(`/game/${gameId}/character/${response.id}`);
+      navigate(`/game/${gameId}/map/${response.id}`);
     } catch (error) {
       console.error('Error creating character:', error);
       alert('Помилка при створенні персонажа. Спробуйте ще раз.');

@@ -25,6 +25,7 @@ function App() {
         <Route path="/game/:gameId/character/create" element={<CreateCharacter />} />
         <Route path="/create-game" element={<CreateGame />} />
         <Route path="/characters" element={<CharacterSelection />} />
+        <Route path="/game/:gameId/map/:characterId" element={<MapPage />} />
       </Routes>
     </Router>
   );
