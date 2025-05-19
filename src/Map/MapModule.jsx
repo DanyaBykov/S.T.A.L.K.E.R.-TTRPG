@@ -1272,7 +1272,7 @@ export default function MapPage() {
   const characterIdFromState = location.state?.characterId;
   const characterIdFromStorage = localStorage.getItem("currentCharacterId");
   
-  const haracterId = characterIdFromParams || characterIdFromState || characterIdFromStorage;
+  const characterId = characterIdFromParams || characterIdFromState || characterIdFromStorage;
   const gameId = params.gameId;
   
   console.log("Map loaded with:", {
