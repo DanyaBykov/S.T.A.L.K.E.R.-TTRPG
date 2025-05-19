@@ -220,7 +220,7 @@ export default function MapPage() {
     <Container>
       <MapContainerStyled>
       <MapContainer 
-        center={[300, 300]}
+        center={[600, 600]}
         zoom={2}
         minZoom={0}  // Lower minimum zoom to see full map
         maxZoom={6}
