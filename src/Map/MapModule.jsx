@@ -1703,7 +1703,6 @@ const handlePinStop = async (pinId) => {
         onDrag={(e, data) => {
           e.stopPropagation();
           if (canMovePin(pin.id)) {
-            // Update directly from data without any adjustments
             setCharacterPins(characterPins.map(p => 
               p.id === pin.id ? { ...p, x: data.x, y: data.y } : p
             ));
@@ -1712,32 +1711,35 @@ const handlePinStop = async (pinId) => {
         onStop={(e, data) => {
           e.stopPropagation();
           if (canMovePin(pin.id)) {
-            // Capture final position directly from data
             const finalPosition = { x: data.x, y: data.y };
             
-            // Update local state with exact position
             setCharacterPins(characterPins.map(p => 
-              p.id === pin.id ? { ...p, ...finalPosition } : p
+              p.id === pin.id ? { ...p, x: finalPosition.x, y: finalPosition.y } : p
             ));
             
-            // Save to backend with exact position
+            // Save to backend with the actual map coordinates
             apiRequest(`/games/${gameId}/pins/${pin.id}/position`, {
               method: 'PUT',
-              body: JSON.stringify(finalPosition)
+              body: JSON.stringify({
+                x: finalPosition.x,
+                y: finalPosition.y
+              })
             }).catch(err => console.error("Failed to save pin position:", err));
           }
         }}
         disabled={!canMovePin(pin.id)}
-        bounds="parent"
+        bounds={null} // Remove bounds constraint
         grid={null}
-        scale={1}
+        scale={scale} // Pass the current scale to Draggable
         nodeRef={pinRefs.current[pin.id]}
       >
         <div 
           ref={pinRefs.current[pin.id]} 
           style={{
             position: 'absolute',
-            cursor: canMovePin(pin.id) ? 'grab' : 'not-allowed'
+            cursor: canMovePin(pin.id) ? 'grab' : 'not-allowed',
+            pointerEvents: 'auto', // Ensure this element receives mouse events
+            zIndex: 100
           }}
           onMouseDown={(e) => e.stopPropagation()}
         >
