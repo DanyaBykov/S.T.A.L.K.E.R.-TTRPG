@@ -62,7 +62,7 @@ const MenuBtn = styled.div`
 const MenuList = styled.div`
   position: absolute;
   top: 56px;
-  right: 0;
+  left: 0;
   background-image: linear-gradient(to bottom, 
     rgba(20, 25, 20, 0.9),
     rgba(30, 35, 30, 0.9)
