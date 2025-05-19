@@ -187,18 +187,29 @@ class CharacterCreationRequest(BaseModel):
     motivation: str
     passivePerception: Optional[int]
 
+class PinPosition(BaseModel):
+    x: float
+    y: float
+
+class CharacterPin(BaseModel):
+    character_id: str
+    name: str
+    avatar_url: Optional[str] = None
+    is_monster: bool = False
+    position_x: float
+    position_y: float
+
+class MonsterPinCreate(BaseModel):
+    name: str
+    position_x: float = 500
+    position_y: float = 500
+
 users_db = {}
-games_db = {
-    "test-game-id": {
-        "dm_id": "test-dm-id",
-        "game_code": "ABC123",
-        "created_at": datetime.utcnow(),
-        "players": ["test-player-id"]
-    }
-}
+games_db = {}
 characters_db = {}
 quests_db = {}
-notes_db = {} 
+notes_db = {}   
+pins_db = {}
 
 # --- HELPER FUNCTIONS ---
 
@@ -1657,6 +1668,158 @@ async def create_detailed_character(
         "class": character_data.charClass,
         "money": 10000,
         "capacity": 80
+    }
+
+@app.get("/games/{game_id}/pins")
+async def get_game_pins(game_id: str, current_user: dict = Depends(get_current_user_or_none)):
+    """Get all character pins for a game"""
+    # Check if game exists
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    game = games_db[game_id]
+    is_dm = current_user and game["dm_id"] == current_user["id"]
+    is_player = current_user and current_user["id"] in game["players"]
+    
+    # Check permissions - must be DM or player in this game
+    if not (is_dm or is_player):
+        raise HTTPException(status_code=403, detail="You don't have access to this game")
+    
+    # Get all characters in the game
+    game_characters = []
+    for char_id, char_data in characters_db.items():
+        if char_data["game_id"] == game_id:
+            game_characters.append({
+                "id": char_id,
+                "name": char_data["name"],
+                "user_id": char_data["user_id"],
+                "avatar_url": char_data.get("avatar_url", None),
+                "is_monster": char_data.get("is_monster", False)
+            })
+    
+    # Get or initialize pin positions
+    if game_id not in pins_db:
+        pins_db[game_id] = {}
+    
+    pins = []
+    for char in game_characters:
+        # Get the character's position or create default
+        if char["id"] not in pins_db[game_id]:
+            # Set default starting position (centered on map)
+            pins_db[game_id][char["id"]] = {
+                "x": 500,  # Default X position (center of map)
+                "y": 500,  # Default Y position (center of map)
+                "last_updated": datetime.now().isoformat()
+            }
+        
+        position = pins_db[game_id][char["id"]]
+        
+        pins.append({
+            "character_id": char["id"],
+            "name": char["name"],
+            "avatar_url": char["avatar_url"],
+            "is_monster": char["is_monster"],
+            "position_x": position["x"],
+            "position_y": position["y"],
+            "is_current_user": current_user and current_user["id"] == char["user_id"]
+        })
+    
+    return {"pins": pins}
+
+@app.put("/games/{game_id}/pins/{character_id}/position")
+async def update_pin_position(
+    game_id: str,
+    character_id: str,
+    position_data: PinPosition,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a character pin position"""
+    # Check if game exists
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    # Check if character exists
+    if character_id not in characters_db:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    character = characters_db[character_id]
+    game = games_db[game_id]
+    
+    # Check permissions - must be DM or the character's owner
+    is_dm = game["dm_id"] == current_user["id"]
+    is_owner = character["user_id"] == current_user["id"]
+    
+    if not (is_dm or is_owner):
+        raise HTTPException(
+            status_code=403, 
+            detail="You don't have permission to move this pin"
+        )
+    
+    # Initialize pins for game if they don't exist
+    if game_id not in pins_db:
+        pins_db[game_id] = {}
+    
+    # Update pin position
+    pins_db[game_id][character_id] = {
+        "x": position_data.x,
+        "y": position_data.y,
+        "last_updated": datetime.now().isoformat()
+    }
+    
+    return {
+        "status": "success",
+        "character_id": character_id,
+        "position": {
+            "x": position_data.x,
+            "y": position_data.y
+        }
+    }
+@app.post("/games/{game_id}/monsters")
+async def create_monster_pin(
+    game_id: str,
+    monster_data: MonsterPinCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a monster pin (DM only)"""
+    # Check if game exists
+    if game_id not in games_db:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    # Check permissions - only DM can add monsters
+    game = games_db[game_id]
+    if game["dm_id"] != current_user["id"]:
+        raise HTTPException(
+            status_code=403, 
+            detail="Only the DM can add monsters"
+        )
+    
+    # Create a monster character
+    monster_id = str(uuid.uuid4())
+    characters_db[monster_id] = {
+        "user_id": current_user["id"],  # DM owns the monster
+        "game_id": game_id,
+        "name": monster_data.name,
+        "is_monster": True,
+        "money": 0,
+        "capacity": 0
+    }
+    
+    # Set monster pin position
+    if game_id not in pins_db:
+        pins_db[game_id] = {}
+    
+    pins_db[game_id][monster_id] = {
+        "x": monster_data.position_x,
+        "y": monster_data.position_y,
+        "last_updated": datetime.now().isoformat()
+    }
+    
+    return {
+        "character_id": monster_id,
+        "name": monster_data.name,
+        "position_x": monster_data.position_x,
+        "position_y": monster_data.position_y,
+        "is_monster": True
     }
 @app.get("/{path:path}", include_in_schema=False)
 async def serve_spa(path: str):
